@@ -37,7 +37,7 @@ let s:cached_items = {}  " pattern -> [item, ...]
 
 " Interface  "{{{1
 function! ku#file#available_sources()  "{{{2
-  return ['file']
+  return ['file', 'file/current']
 endfunction
 
 
@@ -45,6 +45,22 @@ endfunction
 
 function! ku#file#on_source_enter(source_name_ext)  "{{{2
   let s:cached_items = {}
+  if a:source_name_ext ==# 'current' && isdirectory(expand('#:h'))
+    lcd #:h
+  endif
+endfunction
+
+
+
+
+function! ku#file#on_before_action(source_name_ext, item)  "{{{2
+  if a:source_name_ext ==# 'current' && isdirectory(expand('%:h'))
+    let save_cwd = getcwd()
+    lcd %:h
+    let a:item.word = fnamemodify(a:item.word, ':p')
+    lcd `=save_cwd`
+  endif
+  return a:item
 endfunction
 
 
