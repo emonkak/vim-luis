@@ -2092,7 +2092,8 @@ endfunction
 
 function! s:split_source_name(source_name)  "{{{2
   " ==> [source_name_base, source_name_ext]
-  return split(a:source_name.'/', '/', s:TRUE)[:1]
+  let _ = split(a:source_name, '/')
+  return [_[0], join(_[1:], '/')]
 endfunction
 
 
