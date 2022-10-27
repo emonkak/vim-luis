@@ -33,9 +33,9 @@ syntax case match
 
 syntax match kuStatusLine /\%1l.*/
 \            contains=kuSourcePrompt,kuSourceSeparator,kuSourceNames
-syntax match kuSourcePrompt /^Sources/ contained nextgroup=kuSourceSeparator
+syntax match kuSourcePrompt /^Source/ contained nextgroup=kuSourceSeparator
 syntax match kuSourceSeparator /: / contained nextgroup=kuSourceNames
-syntax match kuSourceNames /[a-z/-]\+/ contained
+syntax match kuSourceNames /[a-z/_-]\+/ contained
 
 syntax match kuInputLine /\%2l.*/ contains=kuInputPrompt
 syntax match kuInputPrompt /^>/ contained nextgroup=kuInputPattern

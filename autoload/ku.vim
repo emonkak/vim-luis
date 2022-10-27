@@ -26,17 +26,8 @@
 let s:FALSE = 0
 let s:TRUE = !s:FALSE
 
-
-let s:INVALID_BUFNR = -2357
-let s:INVALID_COLUMN = -20091017
-
-
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
-
-
-let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
-
 
 if has('win16') || has('win32') || has('win64')  " on Microsoft Windows
   let s:KU_BUFFER_NAME = '[ku]'
@@ -44,30 +35,58 @@ else
   let s:KU_BUFFER_NAME = '*ku*'
 endif
 
-
-let s:NULL_KIND = {
-\ }
-
-
-" Default values of optional attributes of source.  Note that:
-" - Attributes in s:NULL_SOURCE are treated as optional ones,
-"   so don't include required attributes in s:NULL_SOURCE.
-" - Values of all attributes but 'kinds' are used as immutable ones.
-" - The value of 'kinds' is just a placeholder and it's not used as is.
-"   See also ku#define_source().
-let s:NULL_SOURCE = {
-\   'default_action_table': {},
-\   'default_key_table': {},
-\   'filters': [],
-\   'kinds': [],
-\   'matchers': [function('ku#matcher#default#matches_p')],
-\   'on_action': function('ku#default_on_action'),
-\   'sorters': [function('ku#sorter#default#sort')],
-\   'valid_for_acc_p': function('ku#default_valid_for_acc_p'),
-\ }
-
-
 let s:PROMPT = '>'
+
+let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
+
+let s:SOURCE_SPEC = {
+\   'constraint': 'struct',
+\   'body': {
+\     'gather_candidates': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'name': {
+\       'constraint': 'type',
+\       'body': v:t_string,
+\     },
+\     'kind': {
+\       'constraint': 'struct',
+\       'body': {
+\         'action_table': {
+\           'constraint': 'dictionary',
+\           'body': {
+\             'constraint': 'type',
+\             'body': v:t_func,
+\           }
+\         },
+\         'key_table': {
+\           'constraint': 'dictionary',
+\           'body': {
+\             'constraint': 'type',
+\             'body': v:t_string,
+\           }
+\         },
+\       },
+\     },
+\     'on_source_enter': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'on_source_leave': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'special_char_p': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'valid_for_acc_p': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\   },
+\ }
 
 
 
@@ -78,31 +97,16 @@ let s:PROMPT = '>'
 
 " Variables  "{{{1
 
-" kind-name => kind-definition
-let s:available_kinds = {}
-
-" source-name => source-definition
-let s:available_sources = {}
-
-" kind-name => custom-action-table
-" custom-action-table = action-table = {action-name => action-function}
-let s:custom_kind_action_tables = {}
-
-" kind-name => custom-key-table
-" custom-key-table = key-table = {key => action-name}
-let s:custom_kind_key_tables = {}
-
-" buffer number of the ku buffer
-let s:ku_bufnr = s:INVALID_BUFNR
-
-" Special characters to activate automatic component completion.
-if !exists('g:ku_component_separators')
-  let g:ku_component_separators = '/\:'
-endif
-
 " Contains the information of a ku session.
 " See s:new_session() for the details of content.
 let s:session = {}
+
+" buffer number of the ku buffer
+let s:ku_bufnr = -1
+
+if !exists('g:ku_limit_candidates')
+  let g:ku_limit_candidates = 1000
+endif
 
 
 
@@ -112,96 +116,24 @@ let s:session = {}
 
 
 " Interface  "{{{1
-function! ku#available_kind_names()  "{{{2
-  return sort(keys(s:available_kinds))
-endfunction
-
-
-
-
-function! ku#available_kind_p(kind_name)  "{{{2
-  return has_key(s:available_kinds, a:kind_name)
-endfunction
-
-
-
-
-function! ku#available_kinds()  "{{{2
-  return s:available_kinds
-endfunction
-
-
-
-
-function! ku#available_source_names()  "{{{2
-  return sort(keys(s:available_sources))
-endfunction
-
-
-
-
-function! ku#available_source_p(source_name)  "{{{2
-  return has_key(s:available_sources, a:source_name)
-endfunction
-
-
-
-
-function! ku#available_sources()  "{{{2
-  return s:available_sources
-endfunction
-
-
-
-
-function! ku#custom_action(kind_name,action_name,func_or_kind2_name,...)  "{{{2
-  if a:0 == 0
-    let Func = a:func_or_kind2_name  " E704
-    return s:custom_action_1(a:kind_name, a:action_name, Func)
-  else
-    let kind2_name = a:func_or_kind2_name
-    let action2_name = a:1
-    return s:custom_action_2(a:kind_name,a:action_name,kind2_name,action2_name)
-  endif
-endfunction
-
-
-
-
-function! ku#custom_key(kind_name, key, action_name)  "{{{2
-  let custom_kind_key_table = s:custom_kind_key_table(a:kind_name)
-  let old_action_name = get(custom_kind_key_table, a:key, 0)
-
-  " FIXME: How about checking availability of a:action_name?
-  let custom_kind_key_table[a:key] = a:action_name
-
-  return old_action_name
-endfunction
-
-
-
-
-function! ku#define_default_ui_key_mappings(override_p)  "{{{2
+function! ku#define_default_ui_key_mappings(override_p) abort  "{{{2
   " Define key mappings for the current buffer.
-  let f = {}
-  let f.unique = a:override_p ? '' : '<unique>'
-  function! f.map(modes, lhs, rhs)
-    for i in range(len(a:modes))
-      execute 'silent!' a:modes[i].'map' '<buffer>' self.unique a:lhs  a:rhs
-    endfor
-  endfunction
+  let args = a:override_p ? '<buffer>' : '<unique> <buffer>'
 
-  call f.map('ni', '<C-c>', '<Plug>(ku-quit-session)')
-  call f.map('ni', '<C-c>', '<Plug>(ku-quit-session)')
-  call f.map('ni', '<C-i>', '<Plug>(ku-choose-action)')
-  call f.map('ni', '<C-m>', '<Plug>(ku-do-default-action)')
-  call f.map('ni', '<Enter>', '<Plug>(ku-do-default-action)')
-  call f.map('ni', '<Return>', '<Plug>(ku-do-default-action)')
-  call f.map('ni', '<Tab>', '<Plug>(ku-choose-action)')
+  for command in ['nmap', 'imap']
+    execute command args '<C-c>' '<Plug>(ku-quit-session)'
+    execute command args '<C-c>' '<Plug>(ku-quit-session)'
+    execute command args '<C-i>' '<Plug>(ku-choose-action)'
+    execute command args '<C-m>' '<Plug>(ku-do-default-action)'
+    execute command args '<Enter>' '<Plug>(ku-do-default-action)'
+    execute command args '<Return>' '<Plug>(ku-do-default-action)'
+    execute command args '<Tab>' '<Plug>(ku-choose-action)'
+  endfor
 
-  call f.map('i', '<BS>', '<Plug>(ku-delete-backward-char)')
-  call f.map('i', '<C-h>', '<Plug>(ku-delete-backward-char)')
-  call f.map('i', '<C-w>', '<Plug>(ku-delete-backward-component)')
+  execute 'imap' args '<BS>' '<Plug>(ku-delete-backward-char)'
+  execute 'imap' args '<C-h>' '<Plug>(ku-delete-backward-char)'
+  execute 'imap' args '<C-u>' '<Plug>(ku-delete-backward-line)'
+  execute 'imap' args '<C-w>' '<Plug>(ku-delete-backward-component)'
 
   return
 endfunction
@@ -209,105 +141,79 @@ endfunction
 
 
 
-function! ku#define_kind(kind_definition)  "{{{2
-  let new_kind = extend(copy(s:NULL_KIND), a:kind_definition, 'force')
+function! ku#do_action(action_name, candidate) abort  "{{{2
+  let kind = s:kind_from_candidate(a:candidate)
+  return s:do_action(a:action_name, a:candidate, kind)
+endfunction
 
-  if !(s:TRUE
-  \    && s:valid_key_p(new_kind, 'default_action_table', 'dictionary')
-  \    && s:valid_key_p(new_kind, 'default_key_table', 'dictionary')
-  \    && s:valid_key_p(new_kind, 'name', 'string')
-  \  )
+
+
+
+function! ku#refresh_candidates() abort  "{{{2
+  if !s:ku_active_p()
     return s:FALSE
   endif
 
-  let s:available_kinds[new_kind['name']] = new_kind
+  let complete_info = complete_info(['mode'])
+  if complete_info.mode == ''
+    return s:FALSE
+  endif
 
+  call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   return s:TRUE
 endfunction
 
 
 
 
-function! ku#define_source(definition)  "{{{2
-  let new_source = extend(copy(s:NULL_SOURCE), a:definition, 'force')
-
-  if !(s:TRUE
-  \    && s:valid_key_p(new_source, 'default_action_table', 'dictionary')
-  \    && s:valid_key_p(new_source, 'default_key_table', 'dictionary')
-  \    && s:valid_key_p(new_source, 'filters', 'list of functions')
-  \    && s:valid_key_p(new_source, 'gather_candidates', 'function')
-  \    && s:valid_key_p(new_source, 'kinds', 'list of strings')
-  \    && s:valid_key_p(new_source, 'matchers', 'list of functions')
-  \    && s:valid_key_p(new_source, 'name', 'string')
-  \    && s:valid_key_p(new_source, 'sorters', 'list of functions')
-  \    && s:valid_key_p(new_source, 'valid_for_acc_p', 'function')
-  \  )
+function! ku#restart()  "{{{2
+  if empty(s:session)
+    echohl ErrorMsg
+    echo 'ku: Not started yet'
+    echohl NONE
     return s:FALSE
   endif
-
-  let new_kind_name = printf('source/%s', new_source.name)
-  call ku#define_kind({
-  \      'default_action_table': new_source.default_action_table,
-  \      'default_key_table': new_source.default_key_table,
-  \      'name': new_kind_name,
-  \    })
-  let new_source.kind_names = [new_kind_name] + new_source.kinds + ['common']
-  unlet new_source.kinds
-
-  let s:available_sources[new_source['name']] = new_source
-
-  return s:TRUE
+  let last_source = s:session.source
+  let last_pattern = s:remove_prompt(s:session.last_pattern_raw)
+  return ku#start(last_source, last_pattern)
 endfunction
 
 
 
 
-function! ku#make_path(...)  "{{{2
-  if a:0 == 1 && type(a:1) is type([])
-    return join(a:1, ku#path_separator())
-  else
-    return join(a:000, ku#path_separator())
-  endif
-endfunction
-
-
-
-
-function! ku#path_separator()  "{{{2
-  return (exists('+shellslash') && !&shellslash) ? '\' : '/'
-endfunction
-
-
-
-
-function! ku#start(...)  "{{{2
-  let source_names = 1<=a:0 && a:1 isnot 0 ? a:1 : ku#available_source_names()
-  let initial_pattern = 2 <= a:0 ? a:2 : ''
-
-  for source_name in source_names
-    if !ku#available_source_p(source_name)
-      echoerr 'Invalid source name:' string(source_name)
-      return s:FALSE
-    endif
-  endfor
-
+function! ku#start(source, initial_pattern = '') abort  "{{{2
   if s:ku_active_p()
-    echoerr 'Already active'
+    echohl ErrorMsg
+    echo 'ku: Already active'
+    echohl NONE
+    return s:FALSE
+  endif
+
+  let errors = ku#spec#validate(a:source, s:SOURCE_SPEC)
+  if !empty(errors)
+    echoerr 'ku: Invalid format for source'
+    for error in errors
+      echoerr error
+    endfor
     return s:FALSE
   endif
 
   " Initialze session.
-  let s:session = s:new_session(source_names)
+  let s:session = s:new_session(a:source)
 
   " Open or create the ku buffer.
   let v:errmsg = ''
-  execute 'topleft' (bufexists(s:ku_bufnr) ? 'split' : 'new')
-  if v:errmsg != ''
-    return s:FALSE
-  endif
   if bufexists(s:ku_bufnr)
+    topleft split
+    if v:errmsg != ''
+      return s:FALSE
+    endif
     silent execute s:ku_bufnr 'buffer'
   else
+    topleft new
+    if v:errmsg != ''
+      return s:FALSE
+    endif
     let s:ku_bufnr = bufnr('')
     call s:initialize_ku_buffer()
   endif
@@ -321,6 +227,7 @@ function! ku#start(...)  "{{{2
   set backspace=eol,indent,start
     " Ensure to show ins-completion-menu while automatic completion.
   set completeopt=menu,menuone
+  set noequalalways
 
   " Reset the content of the ku buffer.
   " BUGS: To avoid unexpected behavior caused by automatic completion of the
@@ -330,8 +237,8 @@ function! ku#start(...)  "{{{2
   "       be done carefully.
   silent % delete _
   normal! o
-  call setline(s:LNUM_STATUS, 'Sources: ' . join(source_names, ', '))
-  call setline(s:LNUM_PATTERN, s:PROMPT . initial_pattern)
+  call setline(s:LNUM_STATUS, 'Source: ' . a:source.name)
+  call setline(s:LNUM_PATTERN, s:PROMPT . a:initial_pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
 
   " Start Insert mode.
@@ -346,25 +253,37 @@ function! ku#start(...)  "{{{2
   let typeahead_buffer = s:consume_typeahead_buffer()
   call feedkeys('A' . typeahead_buffer, 'n')
 
+  call a:source.on_source_enter()
+
   return s:TRUE
 endfunction
 
 
 
 
-function! ku#take_action(action_name, ...)  "{{{2
-  " Return TRUE for success.
-  " Return FALSE for failure.
+function! ku#take_action(action_name = 0) abort  "{{{2
+  if !s:ku_active_p()
+    echohl ErrorMsg
+    echo 'ku: Not active'
+    echohl NONE
+    return s:FALSE
+  endif
 
-  let candidate = a:0 == 0 ? s:guess_candidate() : a:1
-
+  let candidate = has_key(v:completed_item, 'user_data')
+  \               && type(v:completed_item.user_data) == v:t_dict
+  \               && has_key(v:completed_item.user_data, 'ku__completed_p')
+  \               && v:completed_item.user_data.ku__completed_p
+  \             ? v:completed_item
+  \             : s:guess_candidate()
   if candidate is 0
     " Ignore.  Assumes that error message is already displayed by caller.
-  elseif a:action_name ==# '*choose*'
-    let action_name = s:choose_action(candidate)
-  else
-    let action_name = a:action_name
+    return s:FALSE
   endif
+
+  let kind = s:kind_from_candidate(candidate)
+  let action_name = a:action_name is 0
+  \               ? s:choose_action(candidate, kind)
+  \               : a:action_name
 
   " Close the ku window, because some kind of actions does something on the
   " current buffer/window and user expects that such actions do something on
@@ -372,12 +291,20 @@ function! ku#take_action(action_name, ...)  "{{{2
   " active.
   call s:quit_session()
 
-  if candidate is 0 || action_name is 0
+  if action_name is 0
     " In these cases, error messages are already noticed by other functions.
     return s:FALSE
-  else
-    return ku#_take_action(action_name, candidate) is 0
   endif
+
+  let error = s:do_action(action_name, candidate, kind)
+  if error isnot 0
+    echohl ErrorMsg
+    echomsg error
+    echohl NONE
+    return s:FALSE
+  endif
+
+  return s:TRUE
 endfunction
 
 
@@ -388,99 +315,30 @@ endfunction
 
 
 " Misc.  "{{{1
-" For tests  "{{{2
-function! ku#_local_variables()
-  return s:
-endfunction
-
-
-function! ku#_sid_prefix()
-  return maparg('<SID>', 'n')
-endfunction
-
-nnoremap <SID>  <SID>
-
-
-
-
-function! ku#default_on_action(candidate)  "{{{2
-  return a:candidate
-endfunction
-
-
-
-
-function! ku#default_valid_for_acc_p(candidate)  "{{{2
-  return s:TRUE  " Treat any candidate is valid for ACC.
-endfunction
-
-
-
-
-function! ku#omnifunc(findstart, base)  "{{{2
+function! ku#_omnifunc(findstart, base) abort  "{{{2
   if a:findstart
     " FIXME: For in-line completion.
 
-    let s:session.last_lcandidates = []
+    let s:session.last_candidates = []
 
     " To determine whether the content of the current line is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let s:session.last_lcandidates
-    \   = s:lcandidates_from_pattern(pattern, s:session.sources)
-    return s:session.last_lcandidates
+    let s:session.last_candidates = s:omnifunc_core(pattern)
+    return s:session.last_candidates
   endif
 endfunction
 
 
 
 
-function! ku#_take_action(action_name, candidate)  "{{{2
-  " Return 0 for success.
-  " Return a string (= error message) for failure.
-
-  if a:action_name ==# 'nop'
-    " Do nothing.
-    "
-    " 'nop' is a pseudo action and it cannot be overriden.
-    " To express this property, bypass the usual process.
-    return 0
-  else
-    let A = s:find_action(a:action_name, s:kinds_from_candidate(a:candidate))
-    if A is 0
-      let _ = printf('There is no such action: %s', string(a:action_name))
-      echoerr _
-      return _
-    endif
-
-    let processed_candidate = a:candidate.ku__source.on_action(a:candidate)
-    let _ = A(processed_candidate)
-    if _ isnot 0
-      echohl ErrorMsg
-      echomsg _
-      echohl NONE
-      return _
-    endif
-
-    return 0
-  endif
-endfunction
-
-
-
-
-function! s:acc_text(line, lcandidates)  "{{{2
+function! s:acc_text(line, sep, candidates) abort  "{{{2
   " ACC = Automatic Component Completion
 
-  " Note that a:line always ends with a special character which is one of
-  " g:ku_component_separators,  because this function is always called by
-  " typing a special character.  So there are at least 2 components in a:line.
-  let SEP = a:line[-1:]
-
   let user_input_raw = s:remove_prompt(a:line)
-  let line_components = split(user_input_raw, SEP, s:TRUE)
+  let line_components = split(user_input_raw, a:sep, s:TRUE)
 
   " Find a candidate which has the same components but the last 2 ones of
   " line_components.  Because line_components[-1] is always empty and
@@ -510,8 +368,8 @@ function! s:acc_text(line, lcandidates)  "{{{2
   "     the completion text will be 'usr/share/man'.
   "     Because user seems to want to complete till the component which
   "     matches to 'm'.
-  for candidate in a:lcandidates
-    let candidate_components = split(candidate.word, SEP, s:TRUE)
+  for candidate in a:candidates
+    let candidate_components = split(candidate.word, '\V' . a:sep, s:TRUE)
 
     if len(line_components) < 2
       echoerr 'ku:e2: Assumption on ACC is failed: ' . string(line_components)
@@ -532,7 +390,7 @@ function! s:acc_text(line, lcandidates)  "{{{2
       continue
     endif
 
-    if !candidate.ku__source.valid_for_acc_p(candidate)
+    if !candidate.user_data.ku__source.valid_for_acc_p(candidate, a:sep)
       continue
     endif
 
@@ -560,13 +418,13 @@ function! s:acc_text(line, lcandidates)  "{{{2
       " Pattern for the partially typed component = line_components[-2].
     let p = '\c' . s:make_skip_regexp(line_components[-2])
       " Tail of candidate.word without 'prefix' component in line_components.
-    let t = join(candidate_components[(c):], SEP)
+    let t = join(candidate_components[(c):], a:sep)
 
     let i = matchend(t, p)
     if i < 0  " Partially typed component doesn't match for this candidate.
       continue  " Try next one.
     endif
-    let j = stridx(t, SEP, i)
+    let j = stridx(t, a:sep, i)
     if 0 <= j
       " Several candidate_components are matched for ACC.
       let index_to_preceding_char_to_SEP = -(len(t) - j + 1)
@@ -574,7 +432,7 @@ function! s:acc_text(line, lcandidates)  "{{{2
       let result = candidate.word[:index_to_the_tail_of_completed_text]
     else
       " All of candidate_components are matched for ACC.
-      let result = join(candidate_components, SEP)
+      let result = join(candidate_components, a:sep)
     endif
 
     return result
@@ -586,7 +444,7 @@ endfunction
 
 
 
-function! s:choose_action(candidate)  "{{{2
+function! s:choose_action(candidate, kind) abort  "{{{2
   " Prompt      Candidate Source
   "    |          |         |
   "   _^_______  _^______  _^__
@@ -599,12 +457,7 @@ function! s:choose_action(candidate)  "{{{2
   "
   " Here "Prompt" is highlighted with kuChoosePrompt,
   " "Candidate" is highlighted with kuChooseCandidate, and so forth.
-  let KEY_TABLE
-  \ = s:composite_key_table_from_kinds(s:kinds_from_candidate(a:candidate))
-  call filter(KEY_TABLE, 'v:val !=# "nop"')
-  let ACTION_TABLE
-  \ = s:composite_action_table_from_kinds(s:kinds_from_candidate(a:candidate))
-
+  let KEY_TABLE = s:composite_key_table(a:kind)
   " "Candidate: {candidate} ({source})"
   echohl NONE
   echo ''
@@ -617,7 +470,7 @@ function! s:choose_action(candidate)  "{{{2
   echohl NONE
   echon ' ('
   echohl kuChooseSource
-  echon a:candidate.ku__source.name
+  echon a:candidate.user_data.ku__source.name
   echohl NONE
   echon ')'
   call s:list_key_bindings_sorted_by_action_name(KEY_TABLE)
@@ -641,7 +494,9 @@ function! s:choose_action(candidate)  "{{{2
 endfunction
 
 
-function! s:list_key_bindings_sorted_by_action_name(key_table)  "{{{3
+
+
+function! s:list_key_bindings_sorted_by_action_name(key_table) abort  "{{{2
   " ACTIONS => {
   "   'keys': [[key_value, key_repr], ...],
   "   'label': label
@@ -704,7 +559,7 @@ endfunction
 
 
 
-function! s:compare_ignorecase(x, y)  "{{{2
+function! s:compare_ignorecase(x, y) abort  "{{{2
   " Comparing function for sort() to do consistently case-insensitive sort.
   "
   " sort(list, 1) does case-insensitive sort,
@@ -725,7 +580,7 @@ endfunction
 
 
 
-function! s:complete_the_prompt()  "{{{2
+function! s:complete_the_prompt() abort  "{{{2
   call setline('.', s:PROMPT . getline('.'))
   return
 endfunction
@@ -733,33 +588,26 @@ endfunction
 
 
 
-function! s:composite_action_table_from_kinds(kinds)  "{{{2
-  let composite_action_table = {}
+function! s:composite_key_table(kind) abort  "{{{2
+  let key_table = {}
+  let kind = a:kind
 
-  for action_table in s:list_action_tables(a:kinds)
-    call extend(composite_action_table, action_table, 'keep')
-  endfor
+  while 1
+    call extend(key_table, kind.key_table)
+    if !has_key(kind, 'prototype')
+      break
+    endif
+    let kind = kind.prototype
+  endwhile
 
-  return composite_action_table
+  return key_table
 endfunction
 
 
 
 
-function! s:composite_key_table_from_kinds(kinds)  "{{{2
-  let composite_key_table = {}
 
-  for key_table in s:list_key_tables(a:kinds)
-    call extend(composite_key_table, key_table, 'keep')
-  endfor
-
-  return composite_key_table
-endfunction
-
-
-
-
-function! s:consume_typeahead_buffer()  "{{{2
+function! s:consume_typeahead_buffer() abort  "{{{2
   let buffer = ''
 
   while s:TRUE
@@ -776,109 +624,40 @@ endfunction
 
 
 
-function! s:contains_the_prompt_p(s)  "{{{2
+function! s:contains_the_prompt_p(s) abort  "{{{2
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
 
 
 
-function! s:custom_action_1(kind_name, action_name, func)  "{{{2
-  let custom_kind_action_table = s:custom_kind_action_table(a:kind_name)
-  let Old_func = get(custom_kind_action_table, a:action_name, 0)  " E704
-
-  let custom_kind_action_table[a:action_name] = a:func
-
-  return Old_func
-endfunction
-
-
-
-
-function! s:custom_action_2(kind_name,action_name,kind2_name,action2_name)"{{{2
-  let custom_kind_action_table = s:custom_kind_action_table(a:kind_name)
-  let Old_func = get(custom_kind_action_table, a:action_name, 0)  " E704
-
-  let default_kind2_action_table = s:default_kind_action_table(a:kind2_name)
-  let Func2 = get(default_kind2_action_table, a:action2_name, 0)  " E704
-  if Func2 is 0
-    echoerr 'Action' string(a:action2_name) 'is not defined'
-    \       'for' string(a:kind2_name).'.'
-    return 0
+function! s:do_action(action_name, candidate, kind) abort  "{{{2
+  let ActionFn = s:find_action(a:kind, a:action_name)
+  if ActionFn is 0
+    return 'There is no such action:' string(a:action_name)
   endif
 
-  let custom_kind_action_table[a:action_name] = Func2
+  let source = a:candidate.user_data.ku__source
+  let candidate = source.on_action(a:candidate)
 
-  return Old_func
+  return ActionFn(candidate)
 endfunction
 
 
 
 
-function! s:custom_kind_action_table(kind_name)  "{{{2
-  if !has_key(s:custom_kind_action_tables, a:kind_name)
-    let s:custom_kind_action_tables[a:kind_name] = {}
-  endif
+function! s:find_action(kind, action_name) abort  "{{{2
+  let kind = a:kind
 
-  return s:custom_kind_action_tables[a:kind_name]
-endfunction
-
-
-
-
-function! s:custom_kind_key_table(kind_name)  "{{{2
-  if !has_key(s:custom_kind_key_tables, a:kind_name)
-    let s:custom_kind_key_tables[a:kind_name] = {}
-  endif
-
-  return s:custom_kind_key_tables[a:kind_name]
-endfunction
-
-
-
-
-function! s:default_kind_action_table(kind_name)  "{{{2
-  if !has_key(s:available_kinds, a:kind_name)
-    return {}
-  endif
-
-  return s:available_kinds[a:kind_name].default_action_table
-endfunction
-
-
-
-
-function! s:default_kind_key_table(kind_name)  "{{{2
-  if !has_key(s:available_kinds, a:kind_name)
-    return {}
-  endif
-
-  return s:available_kinds[a:kind_name].default_key_table
-endfunction
-
-
-
-
-function! s:filter_lcandidates(lcandidates, args, source)  "{{{2
-  let filtered_lcandidates = a:lcandidates
-
-  for Filter in a:source.filters
-    let filtered_lcandidates = Filter(filtered_lcandidates, a:args)
-    unlet Filter  " To avoid E705.
-  endfor
-
-  return filtered_lcandidates
-endfunction
-
-
-
-
-function! s:find_action(action_name, kinds)  "{{{2
-  for action_table in s:list_action_tables(a:kinds)
-    if has_key(action_table, a:action_name)
-      return action_table[a:action_name]
+  while 1
+    if has_key(kind.action_table, a:action_name)
+      return kind.action_table[a:action_name]
     endif
-  endfor
+    if !has_key(kind, 'prototype')
+      break
+    endif
+    let kind = kind.prototype
+  endwhile
 
   return 0
 endfunction
@@ -886,7 +665,7 @@ endfunction
 
 
 
-function! s:get_char(...)  "{{{2
+function! s:get_char(...) abort  "{{{2
   " Rich version of getchar()
 
   let n = call('getchar', a:000)
@@ -907,7 +686,7 @@ endfunction
 
 
 
-function! s:get_key()  "{{{2
+function! s:get_key() abort  "{{{2
   " Alternative getchar() to get a logical key such as <F1> and <M-{x}>.
 
   let k1 = s:get_char()
@@ -923,49 +702,49 @@ endfunction
 
 
 
-function! s:guess_candidate()  "{{{2
+function! s:guess_candidate() abort  "{{{2
   let current_pattern_raw = getline(s:LNUM_PATTERN)
 
   if current_pattern_raw !=# s:session.last_pattern_raw
     " current_pattern_raw seems to be inserted by Vim's completion,
     " so user seemed to select a candidate by Vim's completion.
-    for _ in s:session.last_lcandidates
-      if current_pattern_raw ==# _.word
-        let candidate = _
-        break
+    for candidate in s:session.last_candidates
+      if current_pattern_raw ==# candidate.word
+        return candidate
       endif
     endfor
-    if !exists('candidate')
-      echoerr 'ku:e1: No match found in s:session.last_lcandidates'
-      echoerr '  current_pattern_raw' string(current_pattern_raw)
-      echoerr '  s:session.last_pattern_raw'
-      \          string(s:session.last_pattern_raw)
-      echoerr '  s:session.last_lcandidates'
-      \          string(s:session.last_lcandidates)
-      let candidate = 0
-    endif
-  else
-    " current_pattern_raw seems NOT to be inserted by Vim's completion, but ...
-    if 0 < len(s:session.last_lcandidates)
-      " There are 1 or more candidates -- user seems to want to take action on
-      " the first one.
-      let candidate = s:session.last_lcandidates[0]
-    else
-      " There is no candidate -- user seems to want to take action on
-      " current_pattern_raw with fake sources.
-      " FIXME: Specification of fake sources is not written yet.
-      let candidate = 0
-      echoerr 'There is no candidate to choose'
-    endif
+
+    echoerr 'ku:e1: No match found in s:session.last_candidates'
+    echoerr '  current_pattern_raw' string(current_pattern_raw)
+    echoerr '  s:session.last_pattern_raw'
+    \          string(s:session.last_pattern_raw)
+    echoerr '  s:session.last_candidates'
+    \          string(s:session.last_candidates)
+    return 0
   endif
 
-  return candidate
+  " current_pattern_raw seems NOT to be inserted by Vim's completion, but ...
+  if 0 < len(s:session.last_candidates)
+    " There are 1 or more candidates -- user seems to want to take action on
+    " the first one.
+    return s:session.last_candidates[0]
+  endif
+
+  " There is no candidate -- user seems to want to take action on
+  " current_pattern_raw with fake sources.
+  return {
+  \   'word': s:remove_prompt(current_pattern_raw),
+  \   'user_data': {
+  \     'ku__completed_p': s:FALSE,
+  \     'ku__source': s:session.source,
+  \   }
+  \ }
 endfunction
 
 
 
 
-function! s:initialize_ku_buffer()  "{{{2
+function! s:initialize_ku_buffer() abort  "{{{2
   " The current buffer is initialized.
 
   " Basic settings.
@@ -973,7 +752,7 @@ function! s:initialize_ku_buffer()  "{{{2
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal omnifunc=ku#omnifunc
+  setlocal omnifunc=ku#_omnifunc
   silent file `=s:KU_BUFFER_NAME`
 
   " Autocommands.
@@ -982,12 +761,12 @@ function! s:initialize_ku_buffer()  "{{{2
     autocmd CursorMovedI <buffer>  call feedkeys(s:on_CursorMovedI(), 'n')
     autocmd BufLeave <buffer>  call s:quit_session()
     autocmd WinLeave <buffer>  call s:quit_session()
-    " autocmd TabLeave <buffer>  call s:quit_session()  " not necessary
+    autocmd BufUnload <buffer>  let s:ku_bufnr = -1
   augroup END
 
   " Key mappings - fundamentals.
   nnoremap <buffer> <silent> <SID>(choose-action)
-  \        :<C-u>call ku#take_action('*choose*')<Return>
+  \        :<C-u>call ku#take_action()<Return>
   nnoremap <buffer> <silent> <SID>(do-default-action)
   \        :<C-u>call ku#take_action('default')<Return>
   nnoremap <buffer> <silent> <SID>(quit-session)
@@ -997,9 +776,11 @@ function! s:initialize_ku_buffer()  "{{{2
   inoremap <buffer> <expr> <SID>(cancel-completion)
   \        pumvisible() ? '<C-e>' : ''
   inoremap <buffer> <expr> <SID>(delete-backward-char)
-  \        pumvisible() ? '<C-e><BS>' : '<BS>'
+  \        pumvisible() ? '<C-y><BS>' : '<BS>'
+  inoremap <buffer> <expr> <SID>(delete-backward-line)
+  \        pumvisible() ? '<C-y><C-u>' : '<C-u>'
   inoremap <buffer> <expr> <SID>(delete-backward-component)
-  \ (pumvisible() ? '<C-e>' : '')
+  \ (pumvisible() ? '<C-y>' : '')
   \ . <SID>keys_to_delete_backward_component()
 
   nnoremap <buffer> <script> <Plug>(ku-choose-action)
@@ -1018,6 +799,8 @@ function! s:initialize_ku_buffer()  "{{{2
 
   inoremap <buffer> <script> <Plug>(ku-delete-backward-char)
   \        <SID>(delete-backward-char)
+  inoremap <buffer> <script> <Plug>(ku-delete-backward-line)
+  \        <SID>(delete-backward-line)
   inoremap <buffer> <script> <Plug>(ku-delete-backward-component)
   \        <SID>(delete-backward-component)
   " <C-n>/<C-p> ... Vim doesn't expand these keys in Insert mode completion.
@@ -1036,7 +819,7 @@ endfunction
 
 
 
-function! s:keys_to_delete_backward_component()  "{{{2
+function! s:keys_to_delete_backward_component() abort  "{{{2
   " In the following figures,
   " '|' means the cursor position, and
   " '^' means characters to delete:
@@ -1052,16 +835,14 @@ function! s:keys_to_delete_backward_component()  "{{{2
 
   let line = getline('.')
   if len(line) < col('.')
-    let i = matchend(line,
-    \                ('\V\.\*\['
-    \                 . escape(g:ku_component_separators, '\')
-    \                 . ']\ze\.'))
-    if 0 <= i
-      return repeat("\<BS>", len(line) - i)
-    else
-      " No component separator - delete everything.
-      return "\<C-u>"
-    endif
+    for i in range(len(line) - 2, 0, -1)
+      if s:session.source.special_char_p(line[i:i])
+        let num_chars = strchars(line[i + 1:])
+        return repeat("\<BS>", num_chars)
+      endif
+    endfor
+    " No component separator - delete everything.
+    return "\<C-u>"
   else
     " Don't consider cases that the cursor doesn't point the end of the
     " current line.
@@ -1072,96 +853,23 @@ endfunction
 
 
 
-function! s:kinds_from_candidate(candidate)  "{{{2
-  return s:kinds_from_kind_names(has_key(a:candidate, 'ku__kinds')
-  \                              ? a:candidate.ku__kinds
-  \                              : a:candidate.ku__source.kind_names)
+function! s:kind_from_candidate(candidate) abort  "{{{2
+  return has_key(a:candidate.user_data, 'ku__kind')
+  \      ? a:candidate.user_data.ku__kind
+  \      : a:candidate.user_data.ku__source.kind
 endfunction
 
 
 
 
-function! s:kinds_from_kind_names(kind_names)  "{{{2
-  return map(copy(a:kind_names), 's:available_kinds[v:val]')
-endfunction
-
-
-
-
-function! s:ku_active_p()  "{{{2
+function! s:ku_active_p() abort  "{{{2
   return bufexists(s:ku_bufnr) && bufwinnr(s:ku_bufnr) != -1
 endfunction
 
 
 
 
-function! s:lcandidates_from_pattern(pattern, sources)  "{{{2
-  " FIXME: Cache a result. / Use cache if available.
-
-  let args = {'pattern': a:pattern}
-  let all_lcandidates = []
-
-  for source in a:sources
-    let args.source = source
-
-    let raw_lcandidates = copy(source.gather_candidates(args))
-
-    let matched_lcandidates
-    \   = s:matched_lcandidates(raw_lcandidates, args, source)
-
-    let filtered_lcandidates
-    \   = s:filter_lcandidates(matched_lcandidates, args, source)
-
-    let sorted_lcandidates
-    \   = s:sort_lcandidates(filtered_lcandidates, args, source)
-
-    let normalized_lcandidates
-    \   = map(sorted_lcandidates, 's:normalize_candidate(v:val, source)')
-
-    call extend(all_lcandidates, normalized_lcandidates)
-  endfor
-
-  return all_lcandidates
-endfunction
-
-
-
-
-function! s:list_action_tables(kinds)  "{{{2
-  " NB: perf-dyn
-  let l_action_tables = []
-
-  for kind in a:kinds
-    call add(l_action_tables, s:custom_kind_action_table(kind.name))
-    call add(l_action_tables, s:default_kind_action_table(kind.name))
-  endfor
-  " source.kinds is normalized by ku#define_source(),
-  " so that it's not necessary to check tables for implicit kinds.
-
-  return l_action_tables
-endfunction
-
-
-
-
-function! s:list_key_tables(kinds)  "{{{2
-  " NB: perf-dyn
-  let l_key_tables = []
-
-  for kind in a:kinds
-    call add(l_key_tables, s:custom_kind_key_table(kind.name))
-    call add(l_key_tables, s:default_kind_key_table(kind.name))
-  endfor
-  " source.kinds is normalized by ku#define_source(),
-  " so that it's not necessary to check tables for implicit kinds.
-
-  return l_key_tables
-endfunction
-
-
-
-
-function! s:make_skip_regexp(s)  "{{{2
+function! s:make_skip_regexp(s) abort  "{{{2
   " 'abc' ==> '\Va*b*c'
   " '\!/' ==> '\V\\*!*/'
   " Here '*' means '\.\{-}'
@@ -1174,37 +882,38 @@ endfunction
 
 
 
-function! s:matched_lcandidates(lcandidates, args, source)  "{{{2
-  let matched_lcandidates = []
-
-  for Matches_p in a:source.matchers
-    call extend(matched_lcandidates,
-    \           filter(copy(a:lcandidates), 'Matches_p(v:val, a:args)'))
-    unlet Matches_p  " To avoid E705.
-  endfor
-
-  return matched_lcandidates
+function! s:normalize_candidate(candidate, position, score)  "{{{2
+  if !has_key(a:candidate, 'user_data')
+    let a:candidate.user_data = {}
+  endif
+  let a:candidate.user_data.ku__completed_p = s:TRUE
+  let a:candidate.user_data.ku__source = s:session.source
+  if !has_key(a:candidate, 'ku__sort_priority')
+    let a:candidate.ku__sort_priority = 0
+  endif
+  let a:candidate.ku__matching_position = a:position
+  let a:candidate.ku__matching_score = a:score
 endfunction
 
 
 
 
-function! s:new_session(source_names)  "{{{2
-  " Assumption: All sources in a:source_names are available.
+function! s:new_session(source) abort  "{{{2
   let session = {}
 
     " Use list to ensure returning different value for each time.
   let session.id = [localtime()]
   let session.inserted_by_acc_p = s:FALSE
-  let session.last_column = s:INVALID_COLUMN
-  let session.last_lcandidates = []
+  let session.last_column = -1
+  let session.last_candidates = []
   let session.last_pattern_raw = ''
   let session.now_quitting_p = s:FALSE
   let session.original_backspace = &backspace
+  let session.original_equalalways = &equalalways
   let session.original_completeopt = &completeopt
   let session.original_curwinnr = winnr()
   let session.original_winrestcmd = winrestcmd()
-  let session.sources = map(copy(a:source_names), 's:available_sources[v:val]')
+  let session.source = a:source
 
   return session
 endfunction
@@ -1212,18 +921,58 @@ endfunction
 
 
 
-function! s:normalize_candidate(candidate, source)  "{{{2
-  let a:candidate.dup = s:TRUE
-  let a:candidate.ku__source = a:source
-  let a:candidate.menu = a:source.name
-
-  return a:candidate
+function! s:omnifunc_compare_items(x, y)  "{{{2
+  if a:x.ku__matching_position != a:y.ku__matching_position
+    if a:x.ku__matching_score > a:y.ku__matching_score
+      return -1
+    endif
+    if a:x.ku__matching_score < a:y.ku__matching_score
+      return 1
+    endif
+  endif
+  if a:x.ku__sort_priority < a:y.ku__sort_priority
+    return -1
+  endif
+  if a:x.ku__sort_priority > a:y.ku__sort_priority
+    return 1
+  endif
+  if a:x.word < a:y.word
+    return -1
+  endif
+  if a:x.word > a:y.word
+    return 1
+  endif
+  return 0
 endfunction
 
 
 
 
-function! s:on_CursorMovedI()  "{{{2
+function! s:omnifunc_core(pattern) abort  "{{{2
+  let candidates = s:session.source.gather_candidates(a:pattern)
+
+  if a:pattern == ''
+    let candidates = candidates[:g:ku_limit_candidates]
+    for candidate in candidates
+      call s:normalize_candidate(candidate, [0, 0], 0)
+    endfor
+  else
+    let [candidates, positions, scores] =
+    \   matchfuzzypos(candidates, a:pattern, {'key': 'word', 'limit': g:ku_limit_candidates})
+    for i in range(len(candidates))
+      call s:normalize_candidate(candidates[i], positions[i], scores[i])
+    endfor
+  endif
+
+  call sort(candidates, function('s:omnifunc_compare_items'))
+
+  return candidates
+endfunction
+
+
+
+
+function! s:on_CursorMovedI() abort  "{{{2
   let cursor_column = col('.')
   let line = getline('.')
 
@@ -1236,12 +985,13 @@ function! s:on_CursorMovedI()  "{{{2
     " Move the cursor out of the prompt if it is in the prompt.
     let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
   elseif len(line) < cursor_column && cursor_column != s:session.last_column
+    let sep = line[-1:]
     " New character is inserted.  Let's complete automatically.
     if (!s:session.inserted_by_acc_p)
-    \  && 0 <= stridx(g:ku_component_separators, line[-1:])
     \  && len(s:PROMPT) + 2 <= len(line)
+    \  && s:session.source.special_char_p(sep)
       " (1) The last inserted character is not inserted by ACC.
-      " (2) It is a special character in g:ku_component_separators.
+      " (2) It is a special character for current source
       " (3) It seems not to be the 1st one in line.
       "
       " The (3) is necessary to input a special character as the 1st character
@@ -1249,24 +999,24 @@ function! s:on_CursorMovedI()  "{{{2
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       "
-      " FIXME: Is s:session.last_lcandidates reliable?  If user types several
+      " FIXME: Is s:session.last_candidates reliable?  If user types several
       "        characters quickely, Vim doesn't call 'omnifunc' for all but
       "        the last character.  So here we have to ensure that
-      "        s:session.last_lcandidates contains reliable value,
+      "        s:session.last_candidates contains reliable value,
       "        by calling 'omnifunc' appropriately.
       "
       " FIXME: But what should we do if user quickely types two or more
       "        special character?  It's hard to make
-      "        s:session.last_lcandidates reliable, isn't it?
+      "        s:session.last_candidates reliable, isn't it?
       "        At this moment, we simply ignore such case.
-      let text = s:acc_text(line, s:session.last_lcandidates)
+      let acc_text = s:acc_text(line, sep, s:session.last_candidates)
       let s:session.inserted_by_acc_p = s:TRUE
-      if text != ''
+      if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
           " FIXME: Should we update l:line for s:session.last_pattern_raw?
-        call setline('.', text)
-        let keys = "\<End>" . line[-1:]
+        call setline('.', acc_text)
+        let keys = "\<End>" . sep
         let s:session.inserted_by_acc_p = s:TRUE
       else
         let keys = s:KEYS_TO_START_COMPLETION
@@ -1288,9 +1038,9 @@ endfunction
 
 
 
-function! s:on_InsertEnter()  "{{{2
+function! s:on_InsertEnter() abort  "{{{2
   let s:session.inserted_by_acc_p = s:FALSE
-  let s:session.last_column = s:INVALID_COLUMN
+  let s:session.last_column = -1
   let s:session.last_pattern_raw = ''
   return s:on_CursorMovedI()
 endfunction
@@ -1298,7 +1048,7 @@ endfunction
 
 
 
-function! s:quit_session()  "{{{2
+function! s:quit_session() abort  "{{{2
   " Assumption: The current buffer is the ku buffer.
 
   " We have to check s:session.now_quitting_p to avoid unnecessary
@@ -1308,12 +1058,14 @@ function! s:quit_session()  "{{{2
   endif
 
   let s:session.now_quitting_p = s:TRUE
-    close
+  call s:session.source.on_source_leave()
+  close
 
-    let &backspace = s:session.original_backspace
-    let &completeopt = s:session.original_completeopt
-    execute s:session.original_curwinnr 'wincmd w'
-    execute s:session.original_winrestcmd
+  let &backspace = s:session.original_backspace
+  let &equalalways = s:session.original_equalalways
+  let &completeopt = s:session.original_completeopt
+  execute s:session.original_curwinnr 'wincmd w'
+  execute s:session.original_winrestcmd
   let s:session.now_quitting_p = s:FALSE
 
   return s:TRUE
@@ -1322,66 +1074,9 @@ endfunction
 
 
 
-function! s:remove_prompt(s)  "{{{2
+function! s:remove_prompt(s) abort  "{{{2
   return s:contains_the_prompt_p(a:s) ? a:s[len(s:PROMPT):] : a:s
 endfunction
-
-
-
-
-function! s:sort_lcandidates(lcandidates, args, source)  "{{{2
-  let sorted_lcandidates = a:lcandidates
-
-  for Sort in a:source.sorters
-    let sorted_lcandidates = Sort(sorted_lcandidates, a:args)
-    unlet Sort  " To avoid E705.
-  endfor
-
-  return sorted_lcandidates
-endfunction
-
-
-
-
-function! s:valid_key_p(definition, key, type)  "{{{2
-  let [basic_type, item_type]
-  \ = matchlist(a:type, '^\(\S\+\)\%( of \(\S\+\)s\)\?$')[1:2]
-
-  if !has_key(a:definition, a:key)
-    echoerr 'Invalild definition: Without key' string(a:key)
-    return s:FALSE
-  endif
-
-  let TYPES = {
-  \     'dictionary': type({}),
-  \     'function': type(function('function')),
-  \     'list': type([]),
-  \     'number': type(0),
-  \     'string': type(''),
-  \   }
-  if type(a:definition[a:key]) != get(TYPES, basic_type, -2009)
-    echoerr 'Invalild definition: Key' string(a:key) 'must be' a:type
-    \       'but given value is' string(a:definition[a:key])
-    return s:FALSE
-  endif
-
-  if item_type != ''
-    for Item in a:definition[a:key]
-      if type(Item) != get(TYPES, item_type, -2009)
-        echoerr 'Invalild definition: Key' string(a:key) 'must be' a:type
-        \       'but given value is' string(a:definition[a:key])
-        \       'and it contains' string(Item)
-        return s:FALSE
-      endif
-    endfor
-  endif
-
-  return s:TRUE
-endfunction
-
-
-
-
 
 
 

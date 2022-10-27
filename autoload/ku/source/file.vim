@@ -1,52 +1,77 @@
 " ku source: file
-" Version: 0.2.0
-" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
-" License: MIT license  {{{
-"     Permission is hereby granted, free of charge, to any person obtaining
-"     a copy of this software and associated documentation files (the
-"     "Software"), to deal in the Software without restriction, including
-"     without limitation the rights to use, copy, modify, merge, publish,
-"     distribute, sublicense, and/or sell copies of the Software, and to
-"     permit persons to whom the Software is furnished to do so, subject to
-"     the following conditions:
-"
-"     The above copyright notice and this permission notice shall be included
-"     in all copies or substantial portions of the Software.
-"
-"     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-"     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-"     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-"     IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-"     CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-"     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-"     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-" }}}
-" Interface  "{{{1
-function! ku#source#file#gather_candidates(args)  "{{{2
-  " NB: Here we call any candidate which basename starts with a dot "dotfile".
-  let _ = s:parse_pattern(a:args.pattern)
+" Module  "{{{1
 
-  if _.type ==# 'directory'
-    let candidates = s:candidates_from_directory(_)
-  elseif _.type ==# 'archive'
-    let candidates = s:candidates_from_archive(_)
-  else
-    throw printf('ku:file:e1: Unexpected _.type: _ = %s / a: = %s',
-    \            string(_), string(a:))
-  endif
+let s:SOURCE_TEMPLATE = {
+\   'gather_candidates': function('ku#source#file#gather_candidates'),
+\   'kind': g:ku#kind#file#module,
+\   'name': 'file',
+\   'on_action': function('ku#source#default#on_action'),
+\   'on_source_enter': function('ku#source#default#on_source_enter'),
+\   'on_source_leave': function('ku#source#default#on_source_leave'),
+\   'special_char_p': function('ku#source#file#special_char_p'),
+\   'valid_for_acc_p': function('ku#source#file#valid_for_acc_p'),
+\ }
 
-  return candidates
+function! ku#source#file#new() abort
+  return extend({'_cached_candidates': {}}, s:SOURCE_TEMPLATE, 'keep')
 endfunction
 
 
 
 
-function! ku#source#file#valid_for_acc_p(candidate)  "{{{2
-  " ACC should be disabled for the following case:
-  " - User try to explore the content of a directory which is listed by ku.
 
-  let candidate_from_directory_p = !has_key(a:candidate, 'ku_file_path')
-  return !(candidate_from_directory_p && !isdirectory(a:candidate.word))
+
+
+
+" Interface  "{{{1
+function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
+  let separator = s:path_separator()
+  let [directory, show_dotfiles_p] = s:parse_pattern(a:pattern, separator)
+
+  if !has_key(self._cached_candidates, directory)
+    let candidates = []
+    let real_directory = expandcmd(directory)
+    let prefix = directory == './' ? '' : directory
+    for filename in readdir(real_directory)
+      let path = prefix . filename
+      let real_path = real_directory . filename
+      let kind = getftype(real_path)
+      let is_directory = kind == 'dir'
+      \                  || kind == 'link' && isdirectory(real_path)
+      call add(candidates, {
+      \   'word': path,
+      \   'abbr': path . (is_directory ? separator : ''),
+      \   'menu': kind,
+      \   'user_data': {
+      \     'ku_file_path': real_path,
+      \   },
+      \   'ku_dotfile_p': filename[:0] ==# '.',
+      \   'ku_is_direcotry': is_directory,
+      \ })
+    endfor
+    let self._cached_candidates[directory] = candidates
+  endif
+
+  if !show_dotfiles_p
+    return filter(copy(self._cached_candidates[directory]),
+    \             '!v:val.ku_dotfile_p')
+  endif
+
+  return self._cached_candidates[directory]
+endfunction
+
+
+
+
+function! ku#source#file#special_char_p(char) abort dict  "{{{2
+  return a:char == s:path_separator() || a:char == '.'
+endfunction
+
+
+
+
+function! ku#source#file#valid_for_acc_p(candidate, sep) abort dict  "{{{2
+  return a:candidate.ku_is_direcotry && a:sep == s:path_separator()
 endfunction
 
 
@@ -57,72 +82,27 @@ endfunction
 
 
 " Misc.  "{{{1
-function! ku#source#file#_sid_prefix()  "{{{2
-  nnoremap <SID>  <SID>
-  return maparg('<SID>', 'n')
-endfunction
-
-
-
-
-function! s:candidates_from_archive(pattern_info)  "{{{2
-  return []  " FIXME: NIY
-endfunction
-
-
-
-
-function! s:candidates_from_directory(pattern_info)  "{{{2
-  " Assumption: pattern_info.components[:-2] don't contain any wildcard.
-  " FIXME: path separator normalization
-  let _ = a:pattern_info
-
-    " On Microsoft Windows, glob('{,.}*') doesn't list dotfiles,
-    " so that here we have to list dotfiles and other items separately.
-  let wildcards = _.user_seems_want_dotfiles_p ? ['*', '.?*'] : ['*']
-    " glob_prefix must be followed by ku#path_separator()
-    " to list content of a directory.
-  if len(_.components) == 1  " no path separator
-    let glob_prefix = ''
-  elseif _.root_directory_pattern_p
-    let glob_prefix = ku#path_separator()
-  else  " more than one path separators
-    let glob_prefix = ku#make_path(_.components[:-2]) . ku#path_separator()
+function! s:parse_pattern(pattern, separator) abort  "{{{2
+  if strridx(a:pattern, a:separator) == 0  " root directory
+    return ['/', 0]
+  else
+    let components = split(a:pattern, a:separator, 1)
+    if len(components) == 1  " no path separator
+      let directory = './'
+    else  " more than one path separators
+      let directory = trim(join(components[:-2], a:separator), a:separator, 2)
+      \             . a:separator
+    endif
+    let want_dotfiles_p = components[-1][:0] ==# '.'
+    return [directory, want_dotfiles_p]
   endif
-
-  let candidates = []
-  for wildcard in wildcards
-    for entry in split(glob(glob_prefix . wildcard), "\n")
-      call add(candidates, {
-      \      'word': entry,
-      \      'abbr': entry . (isdirectory(entry) ? ku#path_separator() : ''),
-      \    })
-    endfor
-  endfor
-
-    " Remove the '..' item if user seems to find files under the root
-    " directory, because it is strange for such situation.
-    " FIXME: Drive letter and other cases on Microsoft Windows.  E.g. 'C:\'.
-  if fnamemodify(glob_prefix, ':p') == ku#path_separator()  " root directory?
-    let parent_directory_name = glob_prefix . '..'
-    call filter(candidates, 'v:val.word !=# parent_directory_name')
-  endif
-
-  return candidates
 endfunction
 
 
 
 
-function! s:parse_pattern(pattern)  "{{{2
-  " FIXME: Support "recursive archives".
-  let _ = {}
-  let _.components = split(a:pattern, ku#path_separator(), !0)
-
-  let _.type = 'directory'
-  let _.root_directory_pattern_p = strridx(a:pattern, ku#path_separator()) == 0
-  let _.user_seems_want_dotfiles_p = _.components[-1][:0] == '.'
-  return _
+function! s:path_separator() abort  "{{{2
+  return (exists('+shellslash') && !&shellslash) ? '\' : '/'
 endfunction
 
 

@@ -1,42 +1,60 @@
 " ku source: args
-" Version: 0.2.0
-" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
-" License: MIT license  {{{
-"     Permission is hereby granted, free of charge, to any person obtaining
-"     a copy of this software and associated documentation files (the
-"     "Software"), to deal in the Software without restriction, including
-"     without limitation the rights to use, copy, modify, merge, publish,
-"     distribute, sublicense, and/or sell copies of the Software, and to
-"     permit persons to whom the Software is furnished to do so, subject to
-"     the following conditions:
-"
-"     The above copyright notice and this permission notice shall be included
-"     in all copies or substantial portions of the Software.
-"
-"     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-"     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-"     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-"     IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-"     CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-"     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-"     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-" }}}
-" Interface  "{{{1
-function! ku#source#args#action_argdelete(candidate)  "{{{2
-  let v:errmsg = ''
-  silent! execute 'argdelete' fnameescape(a:candidate.word)
-  return v:errmsg == '' ? 0 : v:errmsg
+" Module  "{{{1
+
+let s:SOURCE_TEMPLATE = {
+\   'gather_candidates': function('ku#source#args#gather_candidates'),
+\   'kind': {
+\     'action_table': {
+\       'argdelete': function('ku#source#args#action_argdelete'),
+\     },
+\     'key_table': {
+\       'D': 'argdelete',
+\     },
+\     'prototype': g:ku#kind#buffer#module,
+\   },
+\   'name': 'args',
+\   'on_action': function('ku#source#default#on_action'),
+\   'on_source_enter': function('ku#source#args#on_source_enter'),
+\   'on_source_leave': function('ku#source#default#on_source_leave'),
+\   'special_char_p': function('ku#source#default#special_char_p'),
+\   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
+\ }
+
+function! ku#source#args#new() abort
+  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
 endfunction
 
 
 
 
-function! ku#source#args#gather_candidates(args)  "{{{2
-  let lcandidates = []
 
-  let lcandidates = map(argv(), '{"word": v:val}')
 
-  return lcandidates
+
+
+" Interface  "{{{1
+function! ku#source#args#gather_candidates(pattern) abort dict  "{{{2
+  return self._cached_candidates
+endfunction
+
+
+
+
+function! ku#source#args#on_source_enter() abort dict  "{{{2
+  let self._cached_candidates = map(argv(), '{"word": v:val}')
+endfunction
+
+
+
+
+
+
+
+
+" Actions  "{{{1
+function! ku#source#args#action_argdelete(item)  "{{{2
+  let v:errmsg = ''
+  silent! execute 'argdelete' fnameescape(a:item.word)
+  return v:errmsg == '' ? 0 : v:errmsg
 endfunction
 
 
