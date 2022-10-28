@@ -35,6 +35,9 @@ endfunction
 " Misc.  "{{{1
 function! s:open(bang, candidate) abort  "{{{2
   let path = s:path_from_candidate(a:candidate)
+  if path == ''
+    return 'No file chosen'
+  endif
   execute 'edit'.a:bang '`=path`'
   return 0
 endfunction
@@ -46,7 +49,7 @@ function! s:path_from_candidate(candidate) abort  "{{{2
   return has_key(a:candidate, 'user_data')
   \      && has_key(a:candidate.user_data, 'ku_file_path')
   \       ? a:candidate.user_data.ku_file_path
-  \       : a:candidate.word
+  \       : expandcmd(a:candidate.word)
 endfunction
 
 

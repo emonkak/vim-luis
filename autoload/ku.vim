@@ -154,14 +154,6 @@ endfunction
 
 
 
-function! ku#do_action(action_name, candidate) abort  "{{{2
-  let kind = s:kind_from_candidate(a:candidate)
-  return s:do_action(a:action_name, a:candidate, kind)
-endfunction
-
-
-
-
 function! ku#refresh_candidates() abort  "{{{2
   if !s:ku_active_p()
     return s:FALSE
@@ -328,6 +320,14 @@ endfunction
 
 
 " Misc.  "{{{1
+function! ku#_do_action(action_name, candidate) abort  "{{{2
+  let kind = s:kind_from_candidate(a:candidate)
+  return s:do_action(a:action_name, a:candidate, kind)
+endfunction
+
+
+
+
 function! ku#_omnifunc(findstart, base) abort  "{{{2
   if a:findstart
     " FIXME: For in-line completion.
@@ -901,8 +901,6 @@ endfunction
 function! s:new_session(source) abort  "{{{2
   let session = {}
 
-    " Use list to ensure returning different value for each time.
-  let session.id = [localtime()]
   let session.inserted_by_acc_p = s:FALSE
   let session.last_column = -1
   let session.last_candidates = []

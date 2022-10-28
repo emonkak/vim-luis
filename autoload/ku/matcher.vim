@@ -19,6 +19,14 @@ endif
 
 
 " Interface  "{{{1
+function! ku#matcher#any_match(candidates, pattern, source) abort  "{{{2
+  return map(a:candidates[:g:ku#matcher#limit_candidates],
+  \          'ku#matcher#normalize_candidate(v:val, a:source, [0, 0], 0)')
+endfunction
+
+
+
+
 function! ku#matcher#fuzzy_match(candidates, pattern, source) abort  "{{{2
   if a:pattern == ''
     let candidates =
@@ -35,18 +43,8 @@ function! ku#matcher#fuzzy_match(candidates, pattern, source) abort  "{{{2
     \                                                    positions[v:key],
     \                                                    scores[v:key])')
   endif
-
-  call sort(candidates, function('s:omnifunc_compare_items'))
-
+  call sort(candidates, function('s:compare_items'))
   return candidates
-endfunction
-
-
-
-
-function! ku#matcher#any_match(candidates, pattern, source) abort  "{{{2
-  return map(a:candidates[:g:ku#matcher#limit_candidates],
-  \          'ku#matcher#normalize_candidate(v:val, a:source, [0, 0], 0)')
 endfunction
 
 
@@ -74,7 +72,7 @@ endfunction
 
 
 " Misc.  "{{{1
-function! s:omnifunc_compare_items(x, y)  "{{{2
+function! s:compare_items(x, y)  "{{{2
   if a:x.ku__matching_position != a:y.ku__matching_position
     if a:x.ku__matching_score > a:y.ku__matching_score
       return -1

@@ -33,14 +33,9 @@ endfunction
 
 
 function! ku#source#oldfiles#on_source_enter() abort dict  "{{{2
-  redir => output
-  silent oldfiles
-  redir END
   let candidates = []
-  let lines = split(output, "\n")
-  for i in range(len(lines))
-    let line = lines[i]
-    let path = matchstr(line, '^\d\+:\s\zs.*')
+  for i in range(len(v:oldfiles))
+    let path = v:oldfiles[i]
     if !filereadable(path)
       continue
     endif

@@ -36,12 +36,14 @@ function! ku#source#buffer#on_source_enter() abort dict  "{{{2
   let candidates = []
   for i in range(1, bufnr('$'))
     if bufexists(i) && buflisted(i)
+      let bufname = bufname(i)
       call add(candidates, {
-      \   'word': bufname(i),
+      \   'word': bufname,
       \   'menu': printf('buffer %*d', len(bufnr('$')), i),
       \   'user_data': {
       \     'ku_buffer_nr': i,
-      \   }
+      \   },
+      \   'ku__sort_priority': bufname ==# fnamemodify(bufname, ':p'),
       \ })
     endif
   endfor

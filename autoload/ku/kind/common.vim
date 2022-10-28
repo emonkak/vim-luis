@@ -132,7 +132,7 @@ endfunction
 
 
 function! ku#kind#common#action_default(candidate) abort  "{{{2
-  return ku#do_action('open', a:candidate)
+  return ku#_do_action('open', a:candidate)
 endfunction
 
 
@@ -172,7 +172,7 @@ endfunction
 
 
 function! ku#kind#common#action_open_x(candidate) abort  "{{{2
-  return ku#do_action('open', a:candidate)
+  return ku#_do_action('open', a:candidate)
 endfunction
 
 
@@ -244,7 +244,7 @@ function! s:open_with_split(direction, candidate) abort  "{{{2
     return v:errmsg
   endif
 
-  let _ = ku#do_action('open', a:candidate)
+  let _ = ku#_do_action('open', a:candidate)
 
   if _ is 0
     return 0
