@@ -6,6 +6,9 @@ if !exists('g:ku_source_async_runner_command')
   \   ['fuzzy-filter', '-l', g:ku#matcher#limit_candidates, '--']
 endif
 
+let s:INVALID_CHANNEL = -1
+let s:INVALID_TIMER = -1
+
 
 
 
@@ -35,11 +38,13 @@ function! ku#source#async#new(command, SelectorFn) abort
   \   'name': 'async/' . name,
   \   '_command': a:command,
   \   '_selector_fn': a:SelectorFn,
-  \   '_channel': 0,
-  \   '_pattern_count': 0,
-  \   '_last_pattern': 0,
+  \   '_channel': s:INVALID_CHANNEL,
+  \   '_timer': s:INVALID_TIMER,
+  \   '_sequence': 0,
   \   '_last_line': 0,
-  \   '_cached_candidates': [],
+  \   '_last_pattern': 0,
+  \   '_current_candidates': [],
+  \   '_pending_candidates': [],
   \ }, s:SOURCE_TEMPLATE, 'keep')
 endfunction
 
@@ -51,6 +56,22 @@ endfunction
 
 
 " Interface  "{{{1
+function! ku#source#async#gather_candidates(pattern) abort dict  "{{{2
+  if self._channel isnot s:INVALID_CHANNEL
+  \  && (self._last_pattern is 0 || a:pattern !=# self._last_pattern)
+    let self._last_pattern = a:pattern
+    if self._timer isnot s:INVALID_TIMER
+      call timer_stop(self._timer)
+    endif
+    " defer update the pattern
+    let self._timer = timer_start(100, function('s:on_timer', [], self))
+  endif
+  return self._current_candidates
+endfunction
+
+
+
+
 function! ku#source#async#on_source_enter() abort dict "{{{2
   let command = g:ku_source_async_runner_command + self._command
   if has('nvim')
@@ -64,40 +85,22 @@ function! ku#source#async#on_source_enter() abort dict "{{{2
     \   'exit_cb': function('s:on_vim_job_exit', [], self),
     \ })
   endif
-  let self._last_pattern = 0
+  let self._sequence = 0
   let self._last_line = ''
-  let self._cached_candidates = []
 endfunction
 
 
 
 
 function! ku#source#async#on_source_leave() abort dict "{{{2
-  if self._channel isnot 0
+  if self._channel isnot s:INVALID_CHANNEL
     if has('nvim')
       call jobclose(self._channel)
     else
       call job_stop(self._channel)
     endif
+    let self._channel = s:INVALID_CHANNEL
   endif
-endfunction
-
-
-
-
-function! ku#source#async#gather_candidates(pattern) abort dict  "{{{2
-  if self._channel isnot 0
-  \  && (self._last_pattern is 0 || a:pattern !=# self._last_pattern)
-    let self._pattern_count += 1
-    let self._last_pattern = a:pattern
-    let self._cached_candidates = []
-    if has('nvim')
-      call chansend(self._channel, a:pattern . "\n")
-    else
-      call ch_sendraw(self._channel, a:pattern . "\n")
-    endif
-  endif
-  return self._cached_candidates
 endfunction
 
 
@@ -109,25 +112,25 @@ endfunction
 
 " Misc.  "{{{1
 function! s:on_nvim_job_stdout(channel, data, event) abort dict  "{{{2
-  let has_changed = 0
+  let eof_was_reached_p = 0
 
   let line = self._last_line . a:data[0]
   if line != ''
     if s:process_line(self, line)
-      let has_changed = 1
+      let eof_was_reached_p = 1
     endif
   endif
 
   for line in a:data[1:-2]
     if s:process_line(self, line)
-      let has_changed = 1
+      let eof_was_reached_p = 1
     endif
   endfor
 
   let self._last_line = a:data[-1]
 
-  if has_changed
-    call ku#refresh_candidates()
+  if eof_was_reached_p
+    call ku#request_update_candidates()
   endif
 endfunction
 
@@ -136,7 +139,7 @@ endfunction
 
 function! s:on_nvim_job_exit(channel, exit_code, event) abort dict  "{{{2
   if self._channel == a:channel
-    let self._channel = 0
+    let self._channel = s:INVALID_CHANNEL
   endif
 endfunction
 
@@ -144,16 +147,16 @@ endfunction
 
 
 function! s:on_vim_job_stdout(channel, message) abort dict  "{{{2
-  let has_changed = 0
+  let eof_was_reached_p = 0
 
   for line in split(a:message, "\n")
     if s:process_line(self, line)
-      let has_changed = 1
+      let eof_was_reached_p = 1
     endif
   endfor
 
-  if has_changed
-    call ku#refresh_candidates()
+  if eof_was_reached_p
+    call ku#request_update_candidates()
   endif
 endfunction
 
@@ -162,31 +165,45 @@ endfunction
 
 function! s:on_vim_job_exit(channel, status) abort dict  "{{{2
   if self._channel == a:channel
-    let self._channel = 0
+    let self._channel = s:INVALID_CHANNEL
   endif
 endfunction
 
 
 
 
-function! s:process_line(self, line) abort  "{{{2
+function! s:on_timer(timer) abort dict  "{{{2
+  if self._channel isnot s:INVALID_CHANNEL
+    if has('nvim')
+      call chansend(self._channel, self._last_pattern . "\n")
+    else
+      call ch_sendraw(self._channel, self._last_pattern . "\n")
+    endif
+    let self._pending_candidates = []
+    let self._sequence += 1
+  endif
+  let self._timer = s:INVALID_TIMER
+endfunction
+
+
+
+
+function! s:process_line(source, line) abort  "{{{2
   let components = split(a:line, '^\d\+\zs\s', 1)
-  if len(components) < 2
+  if components[0] != a:source._sequence
     return 0
   endif
 
-  let [sequence, body] = components
-  if sequence != a:self._pattern_count
-    return 0
-  endif
-
-  let candidate = a:self._selector_fn(body)
-  if candidate is 0
-    return 0
+  if len(components) == 1  " EOF
+    let a:source._current_candidates = a:source._pending_candidates
+    return 1
   else
-
-  call add(a:self._cached_candidates, candidate)
-  return 1
+    let candidate = a:source._selector_fn(components[1])
+    if candidate isnot 0
+      call add(a:source._pending_candidates, candidate)
+    endif
+    return 0
+  endif
 endfunction
 
 

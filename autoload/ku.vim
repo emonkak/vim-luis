@@ -127,7 +127,6 @@ let s:ku_bufnr = -1
 
 
 
-
 " Interface  "{{{1
 function! ku#define_default_ui_key_mappings() abort  "{{{2
   nmap <buffer> <C-c> <Plug>(ku-quit-session)
@@ -151,18 +150,13 @@ endfunction
 
 
 
-function! ku#refresh_candidates() abort  "{{{2
-  if !s:ku_active_p()
-    return s:FALSE
+function! ku#request_update_candidates() abort  "{{{2
+  if s:ku_active_p()
+    let complete_info = complete_info(['mode'])
+    if complete_info.mode != ''
+      call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
+    endif
   endif
-
-  let complete_info = complete_info(['mode'])
-  if complete_info.mode == ''
-    return s:FALSE
-  endif
-
-  call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
-  return s:TRUE
 endfunction
 
 

@@ -1,14 +1,15 @@
 #!/bin/bash -eu
 
 limit=$1
-buffer="$("${@:2}")"
-count=1
+source="$("${@:2}")"
+sequence=1
 
 while read line
 do
-  echo "${buffer}" | fzf -f "$line" | head -n $limit | while read line
+  echo "${source}" | fzf -f "$line" | head -n $limit | while read body
   do
-    echo $count $line
+    echo $sequence $body
   done
-  count=$(( count + 1 ))
+  echo $sequence
+  sequence=$(( sequence + 1 ))
 done
