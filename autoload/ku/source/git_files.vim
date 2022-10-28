@@ -20,9 +20,10 @@ let s:FILE_STATUSES_BY_TAG = {
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#git_files#gather_candidates'),
-\   'kind': g:ku#kind#file#module,
 \   'name': 'git_files',
+\   'kind': g:ku#kind#file#module,
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#git_files#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#git_files#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

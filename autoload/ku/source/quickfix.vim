@@ -2,16 +2,17 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#quickfix#gather_candidates'),
+\   'name': 'quickfix',
 \   'kind': {
 \     'action_table': {
 \       'open': function('ku#source#quickfix#action_open'),
 \       'open!': function('ku#source#quickfix#action_open_x'),
 \     },
 \     'key_table': {},
+\     'prototype': g:ku#kind#buffer#module,
 \   },
-\   'prototype': g:ku#kind#buffer#module,
-\   'name': 'quickfix',
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#quickfix#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#quickfix#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

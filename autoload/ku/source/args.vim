@@ -2,7 +2,7 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#args#gather_candidates'),
+\   'name': 'args',
 \   'kind': {
 \     'action_table': {
 \       'argdelete': function('ku#source#args#action_argdelete'),
@@ -12,7 +12,8 @@ let s:SOURCE_TEMPLATE = {
 \     },
 \     'prototype': g:ku#kind#buffer#module,
 \   },
-\   'name': 'args',
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#args#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#args#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

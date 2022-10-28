@@ -2,9 +2,10 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#buffer#gather_candidates'),
-\   'kind': g:ku#kind#buffer#module,
 \   'name': 'buffer',
+\   'kind': g:ku#kind#buffer#module,
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#buffer#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#buffer#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

@@ -42,10 +42,6 @@ let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
 let s:SOURCE_SPEC = {
 \   'constraint': 'struct',
 \   'body': {
-\     'gather_candidates': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
 \     'name': {
 \       'constraint': 'type',
 \       'body': v:t_string,
@@ -67,7 +63,28 @@ let s:SOURCE_SPEC = {
 \             'body': v:t_string,
 \           }
 \         },
+\         'prototype': {
+\           'constraint': 'dictionary',
+\           'optional': 1,
+\           'body': {
+\             'constraint': 'type',
+\             'body': v:t_dict,
+\           }
+\         },
 \       },
+\     },
+\     'matcher': {
+\       'constraint': 'struct',
+\       'body': {
+\          'match_candidates': {
+\            'constraint': 'type',
+\            'body': v:t_func,
+\          },
+\        },
+\     },
+\     'gather_candidates': {
+\       'constraint': 'type',
+\       'body': v:t_func,
 \     },
 \     'on_source_enter': {
 \       'constraint': 'type',
@@ -103,10 +120,6 @@ let s:session = {}
 
 " buffer number of the ku buffer
 let s:ku_bufnr = -1
-
-if !exists('g:ku_limit_candidates')
-  let g:ku_limit_candidates = 1000
-endif
 
 
 
@@ -326,7 +339,10 @@ function! ku#_omnifunc(findstart, base) abort  "{{{2
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let s:session.last_candidates = s:omnifunc_core(pattern)
+    let source = s:session.source
+    let candidates = source.gather_candidates(pattern)
+    let s:session.last_candidates =
+    \   source.matcher.match_candidates(candidates, pattern, source)
     return s:session.last_candidates
   endif
 endfunction
@@ -778,7 +794,7 @@ function! s:initialize_ku_buffer() abort  "{{{2
   inoremap <buffer> <expr> <SID>(delete-backward-char)
   \        pumvisible() ? '<C-y><BS>' : '<BS>'
   inoremap <buffer> <expr> <SID>(delete-backward-line)
-  \        pumvisible() ? '<C-y><C-u>' : '<C-u>'
+  \        pumvisible() ? '<C-e><C-u>' : '<C-u>'
   inoremap <buffer> <expr> <SID>(delete-backward-component)
   \ (pumvisible() ? '<C-y>' : '')
   \ . <SID>keys_to_delete_backward_component()
@@ -882,22 +898,6 @@ endfunction
 
 
 
-function! s:normalize_candidate(candidate, position, score)  "{{{2
-  if !has_key(a:candidate, 'user_data')
-    let a:candidate.user_data = {}
-  endif
-  let a:candidate.user_data.ku__completed_p = s:TRUE
-  let a:candidate.user_data.ku__source = s:session.source
-  if !has_key(a:candidate, 'ku__sort_priority')
-    let a:candidate.ku__sort_priority = 0
-  endif
-  let a:candidate.ku__matching_position = a:position
-  let a:candidate.ku__matching_score = a:score
-endfunction
-
-
-
-
 function! s:new_session(source) abort  "{{{2
   let session = {}
 
@@ -916,57 +916,6 @@ function! s:new_session(source) abort  "{{{2
   let session.source = a:source
 
   return session
-endfunction
-
-
-
-
-function! s:omnifunc_compare_items(x, y)  "{{{2
-  if a:x.ku__matching_position != a:y.ku__matching_position
-    if a:x.ku__matching_score > a:y.ku__matching_score
-      return -1
-    endif
-    if a:x.ku__matching_score < a:y.ku__matching_score
-      return 1
-    endif
-  endif
-  if a:x.ku__sort_priority < a:y.ku__sort_priority
-    return -1
-  endif
-  if a:x.ku__sort_priority > a:y.ku__sort_priority
-    return 1
-  endif
-  if a:x.word < a:y.word
-    return -1
-  endif
-  if a:x.word > a:y.word
-    return 1
-  endif
-  return 0
-endfunction
-
-
-
-
-function! s:omnifunc_core(pattern) abort  "{{{2
-  let candidates = s:session.source.gather_candidates(a:pattern)
-
-  if a:pattern == ''
-    let candidates = candidates[:g:ku_limit_candidates]
-    for candidate in candidates
-      call s:normalize_candidate(candidate, [0, 0], 0)
-    endfor
-  else
-    let [candidates, positions, scores] =
-    \   matchfuzzypos(candidates, a:pattern, {'key': 'word', 'limit': g:ku_limit_candidates})
-    for i in range(len(candidates))
-      call s:normalize_candidate(candidates[i], positions[i], scores[i])
-    endfor
-  endif
-
-  call sort(candidates, function('s:omnifunc_compare_items'))
-
-  return candidates
 endfunction
 
 

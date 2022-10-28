@@ -2,8 +2,9 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#metarw#gather_candidates'),
 \   'kind': g:ku#kind#file#module,
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#metarw#gather_candidates'),
 \   'on_action': function('ku#source#metarw#on_action'),
 \   'on_source_enter': function('ku#source#default#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),
@@ -13,7 +14,7 @@ let s:SOURCE_TEMPLATE = {
 
 function! ku#source#metarw#new(scheme) abort
   return extend({
-  \   'name': 'metarw' . a:scheme,
+  \   'name': 'metarw/' . a:scheme,
   \   '_scheme': a:scheme,
   \ }, s:SOURCE_TEMPLATE, 'keep')
 endfunction

@@ -2,9 +2,10 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#async_command#gather_candidates'),
-\   'kind': g:ku#kind#file#module,
 \   'name': 'async_command',
+\   'kind': g:ku#kind#file#module,
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#async_command#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#async_command#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

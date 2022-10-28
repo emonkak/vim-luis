@@ -22,7 +22,7 @@ let s:AVAILABLE_REGISTERS = '"'
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#register#gather_candidates'),
+\   'name': 'register',
 \   'kind': {
 \     'action_table': {
 \       'Put': function('ku#source#register#action_Put'),
@@ -38,7 +38,8 @@ let s:SOURCE_TEMPLATE = {
 \     },
 \     'prototype': g:ku#kind#common#module,
 \   },
-\   'name': 'register',
+\   'matcher': g:ku#matcher#default,
+\   'gather_candidates': function('ku#source#register#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#register#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),

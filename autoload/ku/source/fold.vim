@@ -2,7 +2,7 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'gather_candidates': function('ku#source#fold#gather_candidates'),
+\   'name': 'fold',
 \   'kind': {
 \     'action_table': {
 \       'open': function('ku#source#fold#action_open'),
@@ -10,7 +10,8 @@ let s:SOURCE_TEMPLATE = {
 \     'key_table': {},
 \     'prototype': g:ku#kind#common#module,
 \   },
-\   'name': 'fold',
+\   'gather_candidates': function('ku#source#fold#gather_candidates'),
+\   'matcher': g:ku#matcher#default,
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#fold#on_source_enter'),
 \   'on_source_leave': function('ku#source#default#on_source_leave'),
