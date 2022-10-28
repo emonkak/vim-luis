@@ -129,26 +129,23 @@ let s:ku_bufnr = -1
 
 
 " Interface  "{{{1
-function! ku#define_default_ui_key_mappings(override_p) abort  "{{{2
-  " Define key mappings for the current buffer.
-  let args = a:override_p ? '<buffer>' : '<unique> <buffer>'
+function! ku#define_default_ui_key_mappings() abort  "{{{2
+  nmap <buffer> <C-c> <Plug>(ku-quit-session)
+  nmap <buffer> <C-i> <Plug>(ku-choose-action)
+  nmap <buffer> <C-m> <Plug>(ku-do-default-action)
+  nmap <buffer> <Return> <Plug>(ku-do-default-action)
+  nmap <buffer> <Tab> <Plug>(ku-choose-action)
 
-  for command in ['nmap', 'imap']
-    execute command args '<C-c>' '<Plug>(ku-quit-session)'
-    execute command args '<C-c>' '<Plug>(ku-quit-session)'
-    execute command args '<C-i>' '<Plug>(ku-choose-action)'
-    execute command args '<C-m>' '<Plug>(ku-do-default-action)'
-    execute command args '<Enter>' '<Plug>(ku-do-default-action)'
-    execute command args '<Return>' '<Plug>(ku-do-default-action)'
-    execute command args '<Tab>' '<Plug>(ku-choose-action)'
-  endfor
+  imap <buffer> <C-c> <Plug>(ku-quit-session)
+  imap <buffer> <C-i> <Plug>(ku-choose-action)
+  imap <buffer> <C-m> <Plug>(ku-do-default-action)
+  imap <buffer> <Return> <Plug>(ku-do-default-action)
+  imap <buffer> <Tab> <Plug>(ku-choose-action)
 
-  execute 'imap' args '<BS>' '<Plug>(ku-delete-backward-char)'
-  execute 'imap' args '<C-h>' '<Plug>(ku-delete-backward-char)'
-  execute 'imap' args '<C-u>' '<Plug>(ku-delete-backward-line)'
-  execute 'imap' args '<C-w>' '<Plug>(ku-delete-backward-component)'
-
-  return
+  imap <buffer> <BS>  <Plug>(ku-delete-backward-char)
+  imap <buffer> <C-h>  <Plug>(ku-delete-backward-char)
+  imap <buffer> <C-u>  <Plug>(ku-delete-backward-line)
+  imap <buffer> <C-w>  <Plug>(ku-delete-backward-component)
 endfunction
 
 
@@ -825,8 +822,8 @@ function! s:initialize_ku_buffer() abort  "{{{2
   setfiletype ku
 
   " Key mappings - user interface.
-  if !(exists('#FileType#ku') || exists('b:did_ftplugin'))
-    call ku#define_default_ui_key_mappings(s:TRUE)
+  if !exists('#FileType#ku') && !exists('b:did_ftplugin')
+    call ku#define_default_ui_key_mappings()
   endif
 
   return
@@ -1024,6 +1021,10 @@ endfunction
 function! s:remove_prompt(s) abort  "{{{2
   return s:contains_the_prompt_p(a:s) ? a:s[len(s:PROMPT):] : a:s
 endfunction
+
+
+
+
 
 
 
