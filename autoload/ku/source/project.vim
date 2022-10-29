@@ -63,8 +63,7 @@ endfunction
 
 " Actions  "{{{1
 function! ku#source#project#action_open(candidate) abort  "{{{2
-  if has_key(a:candidate, 'user_data')
-  \  && has_key(a:candidate.user_data, 'ku_file_path')
+  if has_key(a:candidate.user_data, 'ku_file_path')
     cd `=a:candidate.user_data.ku_file_path`
     call ku#start(a:candidate.user_data.ku__source._source)
     return 0

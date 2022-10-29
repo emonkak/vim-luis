@@ -12,7 +12,7 @@ let s:SOURCE_TEMPLATE = {
 \       "\<C-d>": 'delete',
 \       'd': 'delete',
 \     },
-\     'prototype': g:ku#kind#buffer#module,
+\     'prototype': g:ku#kind#common#module,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#marks#gather_candidates'),
@@ -69,8 +69,7 @@ endfunction
 
 " Actions  "{{{1
 function! ku#source#marks#action_delete(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_mark')
+  if !has_key(a:candidate.user_data, 'ku_mark')
     return 'No mark found'
   endif
   execute 'delmarks' a:candidate.user_data.ku_mark
@@ -82,8 +81,7 @@ endfunction
 
 
 function! ku#source#marks#action_open(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_mark')
+  if !has_key(a:candidate.user_data, 'ku_mark')
     return 'No mark found'
   endif
   execute 'normal!' '`' . a:candidate.user_data.ku_mark

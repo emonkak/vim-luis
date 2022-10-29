@@ -199,9 +199,7 @@ function! ku#take_action(action_name = 0) abort  "{{{2
     return s:FALSE
   endif
 
-  let candidate = has_key(v:completed_item, 'user_data')
-  \               && type(v:completed_item.user_data) == v:t_dict
-  \               && has_key(v:completed_item.user_data, 'ku__completed_p')
+  let candidate = exists('v:completed_item.user_data.ku__completed_p')
   \               && v:completed_item.user_data.ku__completed_p
   \             ? v:completed_item
   \             : s:guess_candidate()

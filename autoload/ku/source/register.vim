@@ -95,8 +95,7 @@ endfunction
 
 " Actions  "{{{1
 function! ku#source#register#action_Put(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_register')
+  if !has_key(a:candidate.user_data, 'ku_register')
     return 'No register found'
   endif
   execute 'normal! "' . a:candidate.user_data.ku_register . 'P'
@@ -108,8 +107,7 @@ endfunction
 
 
 function! ku#source#register#action_delete(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_register')
+  if !has_key(a:candidate.user_data, 'ku_register')
     return 'No register found'
   endif
   call setreg(a:candidate.user_data.ku_register, '')
@@ -121,8 +119,7 @@ endfunction
 
 
 function! ku#source#register#action_put(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_register')
+  if !has_key(a:candidate.user_data, 'ku_register')
     return 'No register found'
   endif
   execute 'normal! "' . a:candidate.user_data.ku_register . 'p'

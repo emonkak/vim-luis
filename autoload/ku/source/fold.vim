@@ -91,8 +91,7 @@ endfunction
 
 " Actions  "{{{1
 function! ku#source#fold#action_open(candidate) abort  "{{{2
-  if !has_key(a:candidate, 'user_data')
-  \  || !has_key(a:candidate.user_data, 'ku_fold_lnum')
+  if !has_key(a:candidate.user_data, 'ku_fold_lnum')
     return 'No fold lnum specified'
   endif
   call cursor(a:candidate.user_data.ku_fold_lnum, 1)
