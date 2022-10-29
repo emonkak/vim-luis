@@ -19,10 +19,11 @@ let s:SOURCE_TEMPLATE = {
 \   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
-function! ku#source#project#new(project_directory) abort
+function! ku#source#project#new(project_directory, source) abort
   return extend({
-  \   '_cached_candidates': [],
+  \   '_source': a:source,
   \   '_project_directory': a:project_directory,
+  \   '_cached_candidates': [],
   \ }, s:SOURCE_TEMPLATE, 'keep')
 endfunction
 
@@ -61,11 +62,11 @@ endfunction
 
 
 " Actions  "{{{1
-function! ku#source#project#action_open(candidate)  "{{{2
+function! ku#source#project#action_open(candidate) abort  "{{{2
   if has_key(a:candidate, 'user_data')
   \  && has_key(a:candidate.user_data, 'ku_file_path')
     cd `=a:candidate.user_data.ku_file_path`
-    call ku#start(ku#source#file#new())
+    call ku#start(a:candidate.user_data.ku__source._source)
     return 0
   else
     return 'No such directory: ' . string(a:candidate.word)
