@@ -1,13 +1,22 @@
 " ku source: async
 " Constants  "{{{1
 
+let s:INVALID_CHANNEL = -1
+let s:INVALID_TIMER = -1
+
+
+
+
+
+
+
+
+" Variables  "{{{1
+
 if !exists('g:ku_source_async_runner_command')
   let g:ku_source_async_runner_command =
   \   ['fuzzy-filter', '-l', g:ku#matcher#limit_candidates, '--']
 endif
-
-let s:INVALID_CHANNEL = -1
-let s:INVALID_TIMER = -1
 
 
 
@@ -20,7 +29,6 @@ let s:INVALID_TIMER = -1
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'async',
-\   'kind': g:ku#kind#file#module,
 \   'matcher': {
 \      'match_candidates': function('ku#matcher#any_match')
 \   },
@@ -32,10 +40,11 @@ let s:SOURCE_TEMPLATE = {
 \   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
-function! ku#source#async#new(command, SelectorFn) abort
+function! ku#source#async#new(kind, command, SelectorFn) abort
   let name = a:command[0]
   return extend({
   \   'name': 'async/' . name,
+  \   'kind': a:kind,
   \   '_command': a:command,
   \   '_selector_fn': a:SelectorFn,
   \   '_channel': s:INVALID_CHANNEL,
