@@ -54,7 +54,7 @@ endfunction
 
 
 " Actions  "{{{1
-function! ku#source#colorscheme#action_open(candidate)  "{{{2
+function! ku#source#colorscheme#action_open(candidate) abort  "{{{2
   let v:errmsg = ''
   execute 'colorscheme' a:candidate.word
   return v:errmsg == '' ? 0 : v:errmsg

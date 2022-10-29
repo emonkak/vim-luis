@@ -162,7 +162,7 @@ endfunction
 
 
 
-function! ku#restart()  "{{{2
+function! ku#restart() abort  "{{{2
   if empty(s:session)
     echohl ErrorMsg
     echo 'ku: Not started yet'

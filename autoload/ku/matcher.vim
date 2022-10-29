@@ -72,7 +72,7 @@ endfunction
 
 
 " Misc.  "{{{1
-function! s:compare_items(x, y)  "{{{2
+function! s:compare_items(x, y) abort  "{{{2
   if a:x.ku__matching_position != a:y.ku__matching_position
     if a:x.ku__matching_score > a:y.ku__matching_score
       return -1
