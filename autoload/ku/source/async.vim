@@ -183,7 +183,7 @@ endfunction
 
 
 function! s:on_vim_job_exit(channel, status) abort dict  "{{{2
-  if self._channel == a:channel
+  if self._channel is a:channel
     let self._channel = s:INVALID_CHANNEL
   endif
 endfunction
