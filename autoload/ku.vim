@@ -891,6 +891,7 @@ endfunction
 function! s:new_session(source) abort  "{{{2
   let session = {}
 
+  let session.started_p = s:TRUE
   let session.inserted_by_acc_p = s:FALSE
   let session.last_column = -1
   let session.last_candidates = []
@@ -937,6 +938,9 @@ endfunction
 
 function! s:quit_session() abort  "{{{2
   " Assumption: The current buffer is the ku buffer.
+  if !s:session.started_p
+    return s:FALSE
+  endif
 
   " We have to check s:session.now_quitting_p to avoid unnecessary
   " :close'ing, because s:quit_session() may be called recursively.
@@ -954,6 +958,7 @@ function! s:quit_session() abort  "{{{2
   execute s:session.original_curwinnr 'wincmd w'
   execute s:session.original_winrestcmd
   let s:session.now_quitting_p = s:FALSE
+  let s:session.started_p = s:FALSE
 
   return s:TRUE
 endfunction
