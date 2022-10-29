@@ -32,6 +32,85 @@ let s:TYPE_NAMES = {
 
 
 
+" Specs  "{{{1
+" Kind  "{{{2
+
+let g:ku#spec#kind = {
+\   'constraint': 'struct',
+\   'body': {
+\     'action_table': {
+\       'constraint': 'dictionary',
+\       'body': {
+\         'constraint': 'type',
+\         'body': v:t_func,
+\       }
+\     },
+\     'key_table': {
+\       'constraint': 'dictionary',
+\       'body': {
+\         'constraint': 'type',
+\         'body': v:t_string,
+\       }
+\     },
+\     'prototype': {
+\       'constraint': 'dictionary',
+\       'optional': 1,
+\       'body': {
+\         'constraint': 'type',
+\         'body': v:t_dict,
+\       }
+\     },
+\   },
+\ }
+
+
+
+
+" Source  "{{{2
+
+let g:ku#spec#source = {
+\   'constraint': 'struct',
+\   'body': {
+\     'name': {
+\       'constraint': 'type',
+\       'body': v:t_string,
+\     },
+\     'kind': g:ku#spec#kind,
+\     'matcher': {
+\       'constraint': 'struct',
+\       'body': {
+\          'match_candidates': {
+\            'constraint': 'type',
+\            'body': v:t_func,
+\          },
+\        },
+\     },
+\     'gather_candidates': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'on_source_enter': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'on_source_leave': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'special_char_p': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\     'valid_for_acc_p': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\   },
+\ }
+
+
+
+
 " Interface  "{{{1
 function! ku#spec#validate(data, spec) abort  "{{{2
   let errors = []

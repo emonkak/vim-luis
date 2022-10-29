@@ -39,72 +39,6 @@ let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
 
-let s:SOURCE_SPEC = {
-\   'constraint': 'struct',
-\   'body': {
-\     'name': {
-\       'constraint': 'type',
-\       'body': v:t_string,
-\     },
-\     'kind': {
-\       'constraint': 'struct',
-\       'body': {
-\         'action_table': {
-\           'constraint': 'dictionary',
-\           'body': {
-\             'constraint': 'type',
-\             'body': v:t_func,
-\           }
-\         },
-\         'key_table': {
-\           'constraint': 'dictionary',
-\           'body': {
-\             'constraint': 'type',
-\             'body': v:t_string,
-\           }
-\         },
-\         'prototype': {
-\           'constraint': 'dictionary',
-\           'optional': 1,
-\           'body': {
-\             'constraint': 'type',
-\             'body': v:t_dict,
-\           }
-\         },
-\       },
-\     },
-\     'matcher': {
-\       'constraint': 'struct',
-\       'body': {
-\          'match_candidates': {
-\            'constraint': 'type',
-\            'body': v:t_func,
-\          },
-\        },
-\     },
-\     'gather_candidates': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
-\     'on_source_enter': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
-\     'on_source_leave': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
-\     'special_char_p': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
-\     'valid_for_acc_p': {
-\       'constraint': 'type',
-\       'body': v:t_func,
-\     },
-\   },
-\ }
-
 
 
 
@@ -185,7 +119,7 @@ function! ku#start(source, initial_pattern = '') abort  "{{{2
     return s:FALSE
   endif
 
-  let errors = ku#spec#validate(a:source, s:SOURCE_SPEC)
+  let errors = ku#spec#validate(a:source, g:ku#spec#source)
   if !empty(errors)
     echoerr 'ku: Invalid format for source'
     for error in errors

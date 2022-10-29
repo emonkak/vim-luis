@@ -11,20 +11,6 @@ let s:INVALID_TIMER = -1
 
 
 
-" Variables  "{{{1
-
-if !exists('g:ku_source_async_runner_command')
-  let g:ku_source_async_runner_command =
-  \   ['fuzzy-filter', '-l', g:ku#matcher#limit_candidates, '--']
-endif
-
-
-
-
-
-
-
-
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
@@ -40,13 +26,35 @@ let s:SOURCE_TEMPLATE = {
 \   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
-function! ku#source#async#new(kind, command, SelectorFn) abort
-  let name = a:command[0]
+let s:OPTIONS_SPEC = {
+\   'constraint': 'struct',
+\   'body': {
+\     'name': {
+\       'constraint': 'type',
+\       'body': v:t_string,
+\     },
+\     'kind': g:ku#spec#kind,
+\     'command': {
+\       'constraint': 'list',
+\       'body': {
+\         'constraint': 'type',
+\         'body': v:t_string,
+\       },
+\     },
+\     'selector_fn': {
+\       'constraint': 'type',
+\       'body': v:t_func,
+\     },
+\   },
+\ }
+
+function! ku#source#async#new(options) abort
+  call ku#spec#validate(a:options, s:OPTIONS_SPEC)
   return extend({
-  \   'name': 'async/' . name,
-  \   'kind': a:kind,
-  \   '_command': a:command,
-  \   '_selector_fn': a:SelectorFn,
+  \   'name': 'async/' . a:options.name,
+  \   'kind': a:options.kind,
+  \   '_command': a:options.command,
+  \   '_selector_fn': a:options.selector_fn,
   \   '_channel': s:INVALID_CHANNEL,
   \   '_timer': s:INVALID_TIMER,
   \   '_sequence': 0,
@@ -82,14 +90,13 @@ endfunction
 
 
 function! ku#source#async#on_source_enter() abort dict "{{{2
-  let command = g:ku_source_async_runner_command + self._command
   if has('nvim')
-    let self._channel = jobstart(command, {
+    let self._channel = jobstart(self._command, {
     \   'on_stdout': function('s:on_nvim_job_stdout', [], self),
     \   'on_exit': function('s:on_nvim_job_exit', [], self),
     \ })
   else
-    let self._channel = job_start(command, {
+    let self._channel = job_start(self._command, {
     \   'out_cb': function('s:on_vim_job_stdout', [], self),
     \   'exit_cb': function('s:on_vim_job_exit', [], self),
     \ })
