@@ -764,8 +764,9 @@ function! s:initialize_ku_buffer() abort  "{{{2
 
   " Autocommands.
   augroup plugin-ku
-    autocmd InsertEnter <buffer>  call feedkeys(s:on_InsertEnter(), 'n')
-    autocmd CursorMovedI <buffer>  call feedkeys(s:on_CursorMovedI(), 'n')
+    autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
+    autocmd InsertEnter <buffer>  call s:on_InsertEnter()
+    autocmd TextChangedP <buffer>  call s:on_TextChangedP()
     autocmd BufLeave <buffer>  call s:quit_session()
     autocmd WinLeave <buffer>  call s:quit_session()
     autocmd BufUnload <buffer>  let s:ku_bufnr = -1
@@ -821,6 +822,72 @@ function! s:initialize_ku_buffer() abort  "{{{2
   endif
 
   return
+endfunction
+
+
+
+
+function! s:keys_to_complete() abort  "{{{2
+  let cursor_column = col('.')
+  let line = getline('.')
+
+  " The order of the following conditions are important.
+  if !s:contains_the_prompt_p(line)
+    " Complete the prompt if it doesn't exist for some reasons.
+    let keys = repeat("\<Right>", len(s:PROMPT))
+    call s:complete_the_prompt()
+  elseif cursor_column <= len(s:PROMPT)
+    " Move the cursor out of the prompt if it is in the prompt.
+    let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
+  elseif len(line) < cursor_column && cursor_column != s:session.last_column
+    let sep = line[-1:]
+    " New character is inserted.  Let's complete automatically.
+    if (!s:session.inserted_by_acc_p)
+    \  && len(s:PROMPT) + 2 <= len(line)
+    \  && s:session.source.special_char_p(sep)
+      " (1) The last inserted character is not inserted by ACC.
+      " (2) It is a special character for current source
+      " (3) It seems not to be the 1st one in line.
+      "
+      " The (3) is necessary to input a special character as the 1st character
+      " in line.  For example, without this condition, user cannot input the
+      " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
+      " character.
+      "
+      " FIXME: Is s:session.last_candidates reliable?  If user types several
+      "        characters quickely, Vim doesn't call 'omnifunc' for all but
+      "        the last character.  So here we have to ensure that
+      "        s:session.last_candidates contains reliable value,
+      "        by calling 'omnifunc' appropriately.
+      "
+      " FIXME: But what should we do if user quickely types two or more
+      "        special character?  It's hard to make
+      "        s:session.last_candidates reliable, isn't it?
+      "        At this moment, we simply ignore such case.
+      let acc_text = s:acc_text(line, sep, s:session.last_candidates)
+      let s:session.inserted_by_acc_p = s:TRUE
+      if acc_text != ''
+        " The last special character must be inserted in this way to forcedly
+        " show the completion menu.
+          " FIXME: Should we update l:line for s:session.last_pattern_raw?
+        call setline('.', acc_text)
+        let keys = "\<End>" . sep
+        let s:session.inserted_by_acc_p = s:TRUE
+      else
+        let keys = s:KEYS_TO_START_COMPLETION
+        let s:session.inserted_by_acc_p = s:FALSE
+      endif
+    else
+      let keys = s:KEYS_TO_START_COMPLETION
+      let s:session.inserted_by_acc_p = s:FALSE
+    endif
+  else
+    let keys = ''
+  endif
+
+  let s:session.last_column = cursor_column
+  let s:session.last_pattern_raw = line
+  return keys
 endfunction
 
 
@@ -911,66 +978,7 @@ endfunction
 
 
 function! s:on_CursorMovedI() abort  "{{{2
-  let cursor_column = col('.')
-  let line = getline('.')
-
-  " The order of the following conditions are important.
-  if !s:contains_the_prompt_p(line)
-    " Complete the prompt if it doesn't exist for some reasons.
-    let keys = repeat("\<Right>", len(s:PROMPT))
-    call s:complete_the_prompt()
-  elseif cursor_column <= len(s:PROMPT)
-    " Move the cursor out of the prompt if it is in the prompt.
-    let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
-  elseif len(line) < cursor_column && cursor_column != s:session.last_column
-    let sep = line[-1:]
-    " New character is inserted.  Let's complete automatically.
-    if (!s:session.inserted_by_acc_p)
-    \  && len(s:PROMPT) + 2 <= len(line)
-    \  && s:session.source.special_char_p(sep)
-      " (1) The last inserted character is not inserted by ACC.
-      " (2) It is a special character for current source
-      " (3) It seems not to be the 1st one in line.
-      "
-      " The (3) is necessary to input a special character as the 1st character
-      " in line.  For example, without this condition, user cannot input the
-      " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
-      " character.
-      "
-      " FIXME: Is s:session.last_candidates reliable?  If user types several
-      "        characters quickely, Vim doesn't call 'omnifunc' for all but
-      "        the last character.  So here we have to ensure that
-      "        s:session.last_candidates contains reliable value,
-      "        by calling 'omnifunc' appropriately.
-      "
-      " FIXME: But what should we do if user quickely types two or more
-      "        special character?  It's hard to make
-      "        s:session.last_candidates reliable, isn't it?
-      "        At this moment, we simply ignore such case.
-      let acc_text = s:acc_text(line, sep, s:session.last_candidates)
-      let s:session.inserted_by_acc_p = s:TRUE
-      if acc_text != ''
-        " The last special character must be inserted in this way to forcedly
-        " show the completion menu.
-          " FIXME: Should we update l:line for s:session.last_pattern_raw?
-        call setline('.', acc_text)
-        let keys = "\<End>" . sep
-        let s:session.inserted_by_acc_p = s:TRUE
-      else
-        let keys = s:KEYS_TO_START_COMPLETION
-        let s:session.inserted_by_acc_p = s:FALSE
-      endif
-    else
-      let keys = s:KEYS_TO_START_COMPLETION
-      let s:session.inserted_by_acc_p = s:FALSE
-    endif
-  else
-    let keys = ''
-  endif
-
-  let s:session.last_column = cursor_column
-  let s:session.last_pattern_raw = line
-  return keys
+  call feedkeys(s:keys_to_complete(), 'n')
 endfunction
 
 
@@ -980,7 +988,16 @@ function! s:on_InsertEnter() abort  "{{{2
   let s:session.inserted_by_acc_p = s:FALSE
   let s:session.last_column = -1
   let s:session.last_pattern_raw = ''
-  return s:on_CursorMovedI()
+  call feedkeys(s:keys_to_complete(), 'n')
+endfunction
+
+
+
+
+function! s:on_TextChangedP() abort  "{{{2
+  if empty(v:completed_item)
+    call feedkeys(s:keys_to_complete(), 'n')
+  endif
 endfunction
 
 

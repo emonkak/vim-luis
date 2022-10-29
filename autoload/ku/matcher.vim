@@ -59,6 +59,7 @@ function! ku#matcher#normalize_candidate(candidate, source, position, score) abo
   if !has_key(a:candidate, 'ku__sort_priority')
     let a:candidate.ku__sort_priority = 0
   endif
+  let a:candidate.equal = 1
   let a:candidate.ku__matching_position = a:position
   let a:candidate.ku__matching_score = a:score
   return a:candidate
