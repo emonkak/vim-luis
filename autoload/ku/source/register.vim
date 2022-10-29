@@ -71,7 +71,7 @@ function! ku#source#register#on_source_enter() abort dict  "{{{2
   for i in range(len(s:AVAILABLE_REGISTERS))
     let register = s:AVAILABLE_REGISTERS[i]
     let reginfo = getreginfo(register)
-    if empty(reginfo)
+    if empty(reginfo) || empty(reginfo.regcontents)
       continue
     endif
     call add(candidates, {
