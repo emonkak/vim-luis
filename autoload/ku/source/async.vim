@@ -42,6 +42,9 @@ let s:OPTIONS_SCHEMA = {
 \     'selector_fn': {
 \       'type': v:t_func,
 \     },
+\     'debounce_time': {
+\       'type': v:t_number,
+\     },
 \   },
 \ }
 
@@ -52,6 +55,7 @@ function! ku#source#async#new(options) abort
   \   'kind': a:options.kind,
   \   '_command': a:options.command,
   \   '_selector_fn': a:options.selector_fn,
+  \   '_debounce_time': get(a:options, 'debounce_time', 100),
   \   '_channel': s:INVALID_CHANNEL,
   \   '_timer': s:INVALID_TIMER,
   \   '_sequence': 0,
@@ -77,8 +81,10 @@ function! ku#source#async#gather_candidates(pattern) abort dict  "{{{2
     if self._timer isnot s:INVALID_TIMER
       call timer_stop(self._timer)
     endif
-    " defer update the pattern
-    let self._timer = timer_start(100, function('s:on_timer', [], self))
+    let self._timer = timer_start(self._debounce_time,
+    \                             function('s:on_timer',
+    \                             [],
+    \                             self))
   endif
   return self._current_candidates
 endfunction
