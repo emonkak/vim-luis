@@ -119,7 +119,7 @@ function! ku#start(source, initial_pattern = '') abort  "{{{2
     return s:FALSE
   endif
 
-  let errors = ku#spec#validate(a:source, g:ku#spec#source)
+  let errors = ku#schema#validate(a:source, g:ku#schema#source)
   if !empty(errors)
     echoerr 'ku: Invalid format for source'
     for error in errors

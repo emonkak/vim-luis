@@ -26,30 +26,27 @@ let s:SOURCE_TEMPLATE = {
 \   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
-let s:OPTIONS_SPEC = {
-\   'constraint': 'struct',
-\   'body': {
+let s:OPTIONS_SCHEMA = {
+\   'type': 'struct',
+\   'properties': {
 \     'name': {
-\       'constraint': 'type',
-\       'body': v:t_string,
+\       'type': v:t_string,
 \     },
-\     'kind': g:ku#spec#kind,
+\     'kind': g:ku#schema#kind,
 \     'command': {
-\       'constraint': 'list',
-\       'body': {
-\         'constraint': 'type',
-\         'body': v:t_string,
+\       'type': 'list',
+\       'item_type': {
+\         'type': v:t_string,
 \       },
 \     },
 \     'selector_fn': {
-\       'constraint': 'type',
-\       'body': v:t_func,
+\       'type': v:t_func,
 \     },
 \   },
 \ }
 
 function! ku#source#async#new(options) abort
-  call ku#spec#validate(a:options, s:OPTIONS_SPEC)
+  call ku#schema#validate(a:options, s:OPTIONS_SCHEMA)
   return extend({
   \   'name': 'async/' . a:options.name,
   \   'kind': a:options.kind,
