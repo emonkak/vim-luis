@@ -16,7 +16,7 @@ let s:INVALID_TIMER = -1
 let s:SOURCE_TEMPLATE = {
 \   'name': 'async',
 \   'matcher': {
-\      'match_candidates': function('ku#matcher#any_match')
+\      'match_candidates': function('ku#matcher#raw_match')
 \   },
 \   'gather_candidates': function('ku#source#async#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
