@@ -55,6 +55,21 @@ let g:ku#schema#kind.properties.prototype = {
 
 
 
+" Matcher  "{{{2
+
+let g:ku#schema#matcher = {
+\   'type': 'struct',
+\   'properties': {
+\      'match_candidates': {
+\        'type': v:t_func,
+\      },
+\    },
+\ }
+
+
+
+
+
 " Source  "{{{2
 
 let g:ku#schema#source = {
@@ -64,14 +79,7 @@ let g:ku#schema#source = {
 \       'type': v:t_string,
 \     },
 \     'kind': g:ku#schema#kind,
-\     'matcher': {
-\       'type': 'struct',
-\       'properties': {
-\          'match_candidates': {
-\            'type': v:t_func,
-\          },
-\        },
-\     },
+\     'matcher': g:ku#schema#matcher,
 \     'gather_candidates': {
 \       'type': v:t_func,
 \     },
@@ -114,7 +122,8 @@ endfunction
 function! ku#schema#to_string(schema)  abort "{{{2
   let optional_marker = get(a:schema, 'optional', 0) ? '?' : ''
   if type(a:schema.type) == v:t_number
-    return get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown') . optional_marker
+    return get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown')
+    \      . optional_marker
   elseif a:schema.type ==# s:TYPE_LIST
     return 'list<' . ku#schema#to_string(a:schema.item_type) . '>'
     \      . optional_marker
@@ -211,7 +220,8 @@ function! s:validate(data, schema, path, errors) abort  "{{{2
     endfor
     let error = printf('Key %s must be either %s but given value is %s',
     \           string(a:path),
-    \           join(map(a:schema.variants, 'string(ku#schema#to_string(v:val))'), ', '),
+    \           join(map(a:schema.variants,
+    \                    'string(ku#schema#to_string(v:val))'), ', '),
     \           string(a:data))
     call add(a:errors, error)
     return 0
