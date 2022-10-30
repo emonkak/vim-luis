@@ -75,8 +75,9 @@ function! ku#source#register#on_source_enter() abort dict  "{{{2
       continue
     endif
     call add(candidates, {
-    \   'word': register,
-    \   'abbr': '"' . register . ' ' . reginfo.regcontents[0],
+    \   'word': reginfo.regcontents[0],
+    \   'menu': 'register ' . register,
+    \   'dup': 1,
     \   'user_data': {
     \     'ku_register': register,
     \   },
