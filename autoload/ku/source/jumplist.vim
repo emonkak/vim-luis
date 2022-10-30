@@ -43,12 +43,12 @@ function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
   let candidates = []
   let last_winnr = winnr('#')
   if last_winnr == 0
-    return []
+    return candidates
   endif
   let [locations, last_position] = getjumplist(last_winnr)
   let position = last_position
   for location in locations
-    if !bufexists(location.bufnr) || !buflisted(location.bufnr)
+    if !bufexists(location.bufnr) || getbufvar(location.bufnr, '&buftype') != ''
       continue
     endif
     let bufname = bufname(location.bufnr)
