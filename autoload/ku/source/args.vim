@@ -52,9 +52,9 @@ endfunction
 
 
 " Actions  "{{{1
-function! ku#source#args#action_argdelete(item)  "{{{2
+function! ku#source#args#action_argdelete(candidate) abort  "{{{2
   let v:errmsg = ''
-  silent! execute 'argdelete' fnameescape(a:item.word)
+  silent! execute 'argdelete' fnameescape(a:candidate.word)
   return v:errmsg == '' ? 0 : v:errmsg
 endfunction
 
