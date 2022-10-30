@@ -199,8 +199,7 @@ function! ku#take_action(action_name = 0) abort  "{{{2
     return s:FALSE
   endif
 
-  let candidate = exists('v:completed_item.user_data.ku__completed_p')
-  \               && v:completed_item.user_data.ku__completed_p
+  let candidate = s:completed_from_ku_p(v:completed_item)
   \             ? v:completed_item
   \             : s:guess_candidate()
   if candidate is 0
@@ -430,6 +429,14 @@ function! s:choose_action(candidate, kind) abort  "{{{2
     \    '-- nothing happened.'
     return 0
   endif
+endfunction
+
+
+
+
+function! s:completed_from_ku_p(completed_item) abort  "{{{2
+  return exists('a:completed_item.user_data.ku__completed_p')
+  \      && a:completed_item.user_data.ku__completed_p
 endfunction
 
 
