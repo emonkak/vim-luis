@@ -11,10 +11,8 @@ let g:ku#kind#common#module = {
 \     'above': function('ku#kind#common#action_above'),
 \     'below': function('ku#kind#common#action_below'),
 \     'cancel': function('ku#kind#common#action_cancel'),
-\     'cd': function('ku#kind#common#action_cd'),
 \     'default': function('ku#kind#common#action_default'),
 \     'ex': function('ku#kind#common#action_ex'),
-\     'lcd': function('ku#kind#common#action_lcd'),
 \     'left': function('ku#kind#common#action_left'),
 \     'open': function('ku#kind#common#action_open'),
 \     'open!': function('ku#kind#common#action_open_x'),
@@ -37,10 +35,8 @@ let g:ku#kind#common#module = {
 \     "\<C-r>": 'select',
 \     "\<C-t>": 'tab-Right',
 \     "\<Esc>": 'cancel',
-\     '/': 'cd',
 \     ':': 'ex',
 \     ';': 'ex',
-\     '?': 'lcd',
 \     'H': 'Left',
 \     'J': 'Bottom',
 \     'K': 'Top',
@@ -122,15 +118,6 @@ endfunction
 
 
 
-function! ku#kind#common#action_cd(candidate) abort  "{{{2
-  let v:errmsg = ''
-  silent! cd `=fnamemodify(a:candidate.word, ':p:h')`
-  return v:errmsg == '' ? 0 : v:errmsg
-endfunction
-
-
-
-
 function! ku#kind#common#action_default(candidate) abort  "{{{2
   return ku#_do_action('open', a:candidate)
 endfunction
@@ -142,15 +129,6 @@ function! ku#kind#common#action_ex(candidate) abort  "{{{2
   " Resultl is ':| {candidate}', here '|' means the cursor position.
   call feedkeys(printf(": %s\<C-b>", fnameescape(a:candidate.word)), 'n')
   return 0
-endfunction
-
-
-
-
-function! ku#kind#common#action_lcd(candidate) abort  "{{{2
-  let v:errmsg = ''
-  silent! lcd `=fnamemodify(a:candidate.word, ':p:h')`
-  return v:errmsg == '' ? 0 : v:errmsg
 endfunction
 
 

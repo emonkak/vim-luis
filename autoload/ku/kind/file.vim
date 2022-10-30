@@ -3,10 +3,15 @@
 
 let g:ku#kind#file#module = {
 \   'action_table': {
+\     'cd': function('ku#kind#file#action_cd'),
+\     'lcd': function('ku#kind#file#action_lcd'),
 \     'open!': function('ku#kind#file#action_open_x'),
 \     'open': function('ku#kind#file#action_open'),
 \   },
-\   'key_table': {},
+\   'key_table': {
+\     '/': 'cd',
+\     '?': 'lcd',
+\  },
 \   'prototype': g:ku#kind#common#module,
 \ }
 
@@ -18,6 +23,26 @@ let g:ku#kind#file#module = {
 
 
 " Actions  "{{{1
+function! ku#kind#file#action_cd(candidate) abort  "{{{2
+  let path = s:path_from_candidate(a:candidate)
+  let v:errmsg = ''
+  silent! cd `=fnamemodify(path, ':p:h')`
+  return v:errmsg == '' ? 0 : v:errmsg
+endfunction
+
+
+
+
+function! ku#kind#file#action_lcd(candidate) abort  "{{{2
+  let path = s:path_from_candidate(a:candidate)
+  let v:errmsg = ''
+  silent! lcd `=fnamemodify(patht, ':p:h')`
+  return v:errmsg == '' ? 0 : v:errmsg
+endfunction
+
+
+
+
 function! ku#kind#file#action_open(candidate) abort  "{{{2
   return s:open('', a:candidate)
 endfunction
@@ -28,6 +53,10 @@ endfunction
 function! ku#kind#file#action_open_x(candidate) abort  "{{{2
   return s:open('!', a:candidate)
 endfunction
+
+
+
+
 
 
 
