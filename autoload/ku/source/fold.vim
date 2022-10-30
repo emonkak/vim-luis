@@ -48,7 +48,7 @@ function! ku#source#fold#on_source_enter() abort dict  "{{{2
 
   split
   setlocal foldtext&
-  silent! %foldclose!
+  normal! zM
 
   let candidates = []
 
