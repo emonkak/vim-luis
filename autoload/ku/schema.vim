@@ -41,13 +41,6 @@ let g:ku#schema#kind = {
 \         'type': v:t_string,
 \       },
 \     },
-\     'prototype': {
-\       'type': 'dictionary',
-\       'item_type': {
-\         'type': v:t_dict,
-\       },
-\       'optional': 1,
-\     },
 \   },
 \ }
 
