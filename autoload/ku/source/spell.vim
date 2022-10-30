@@ -5,10 +5,14 @@ let s:SOURCE_TEMPLATE = {
 \   'name': 'spell',
 \   'kind': {
 \     'action_table': {
-\       'open!': function('ku#source#spell#action_open_x'),
 \       'open': function('ku#source#spell#action_open'),
+\       'put!': function('ku#source#spell#action_put_x'),
+\       'put': function('ku#source#spell#action_put'),
 \     },
-\     'key_table': {},
+\     'key_table': {
+\       'P': 'put!',
+\       'p': 'put',
+\     },
 \     'prototype': g:ku#kind#common#module,
 \   },
 \   'matcher': {
@@ -43,6 +47,14 @@ endfunction
 
 " Actions  "{{{1
 function! ku#source#spell#action_open(candidate) abort  "{{{2
+  execute 'normal!' "i\<C-r>" . '=a:candidate.word' . "\<CR>\<Esc>"
+  return 0
+endfunction
+
+
+
+
+function! ku#source#spell#action_put(candidate) abort  "{{{2
   put =a:candidate.word
   return 0
 endfunction
@@ -50,7 +62,7 @@ endfunction
 
 
 
-function! ku#source#spell#action_open_x(candidate) abort  "{{{2
+function! ku#source#spell#action_put_x(candidate) abort  "{{{2
   put! =a:candidate.word
   return 0
 endfunction
