@@ -49,7 +49,7 @@ function! ku#source#marks#on_source_enter() abort dict  "{{{2
     call add(candidates, {
     \   'word': mark.file,
     \   'abbr': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
-    \   'menu': mark.mark,
+    \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {
     \     'ku_mark': mark_name,
