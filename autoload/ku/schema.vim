@@ -7,13 +7,14 @@ let s:TYPE_STRUCT = 'struct'
 let s:TYPE_UNION = 'union'
 
 let s:PRIMITIVE_TYPE_NAMES = {
-\   v:t_number: 'number',
-\   v:t_string: 'string',
-\   v:t_func: 'function',
-\   v:t_list: 'list',
+\   v:t_blob: 'blob',
+\   v:t_bool: 'boolean',
 \   v:t_dict: 'dictionary',
 \   v:t_float: 'float',
-\   v:t_bool: 'boolean',
+\   v:t_func: 'function',
+\   v:t_list: 'list',
+\   v:t_number: 'number',
+\   v:t_string: 'string',
 \ }
 
 
