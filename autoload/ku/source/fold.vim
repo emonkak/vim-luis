@@ -56,12 +56,17 @@ function! ku#source#fold#on_source_enter() abort dict  "{{{2
   while lnum < line('$')
     if foldclosed(lnum) > 0
       let foldtext = foldtextresult(lnum)
-      let foldlevel = foldlevel(lnum)
-      let subject = matchstr(foldtext, '^+-\+\s*\d\+\slines:\s\zs.\{-}\ze\s*$')
-      let indent = repeat(' ', (foldlevel - 1) * 2)
+      let matches = matchlist(foldtext, '^+-\+\s*\(\d\+\)\slines:\s\zs\(.\{-}\)\ze\s*$')
+      if empty(matches)
+        continue
+      endif
+      let num_lines = matches[1]
+      let heading = matches[2]
+      let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
       call add(candidates, {
-      \   'word': subject,
-      \   'abbr': indent . subject,
+      \   'word': heading,
+      \   'abbr': indent . heading,
+      \   'menu': num_lines . ' lines',
       \   'dup': 1,
       \   'user_data': {
       \     'ku_fold_lnum': lnum,
@@ -92,7 +97,7 @@ endfunction
 " Actions  "{{{1
 function! ku#source#fold#action_open(candidate) abort  "{{{2
   if !has_key(a:candidate.user_data, 'ku_fold_lnum')
-    return 'No fold lnum specified'
+    return 'No such fold'
   endif
   call cursor(a:candidate.user_data.ku_fold_lnum, 1)
   normal! zMzvzt
