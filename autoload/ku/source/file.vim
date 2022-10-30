@@ -37,17 +37,17 @@ function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
       let path = prefix . filename
       let real_path = real_directory . filename
       let kind = getftype(real_path)
-      let is_directory = kind == 'dir'
-      \                  || kind == 'link' && isdirectory(real_path)
+      let directory_p = kind == 'dir'
+      \                 || kind == 'link' && isdirectory(real_path)
       call add(candidates, {
       \   'word': path,
-      \   'abbr': path . (is_directory ? separator : ''),
+      \   'abbr': path . (directory_p ? separator : ''),
       \   'menu': kind,
       \   'user_data': {
       \     'ku_file_path': real_path,
       \   },
       \   'ku_dotfile_p': filename[:0] ==# '.',
-      \   'ku_is_direcotry': is_directory,
+      \   'ku_directory_p': directory_p,
       \ })
     endfor
     let self._cached_candidates[directory] = candidates
@@ -72,7 +72,7 @@ endfunction
 
 
 function! ku#source#file#valid_for_acc_p(candidate, sep) abort dict  "{{{2
-  return a:candidate.ku_is_direcotry && a:sep == s:path_separator()
+  return a:candidate.ku_directory_p && a:sep == s:path_separator()
 endfunction
 
 
