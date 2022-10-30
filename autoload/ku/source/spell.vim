@@ -11,7 +11,9 @@ let s:SOURCE_TEMPLATE = {
 \     'key_table': {},
 \     'prototype': g:ku#kind#common#module,
 \   },
-\   'matcher': g:ku#matcher#default,
+\   'matcher': {
+\      'match_candidates': function('ku#matcher#raw_match')
+\   },
 \   'gather_candidates': function('ku#source#spell#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#default#on_source_enter'),
