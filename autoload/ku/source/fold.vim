@@ -100,7 +100,7 @@ function! ku#source#fold#action_open(candidate) abort  "{{{2
     return 'No such fold'
   endif
   call cursor(a:candidate.user_data.ku_fold_lnum, 1)
-  normal! zMzvzt
+  normal! zvzt
   return 0
 endfunction
 
