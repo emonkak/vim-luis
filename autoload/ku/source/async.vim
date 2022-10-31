@@ -14,7 +14,6 @@ let s:INVALID_TIMER = -1
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'name': 'async',
 \   'matcher': {
 \      'match_candidates': function('ku#matcher#raw_match')
 \   },
@@ -51,7 +50,7 @@ let s:OPTIONS_SCHEMA = {
 function! ku#source#async#new(options) abort
   call ku#schema#validate(a:options, s:OPTIONS_SCHEMA)
   return extend({
-  \   'name': 'async/' . a:options.name,
+  \   'name': a:options.name,
   \   'kind': a:options.kind,
   \   '_command': a:options.command,
   \   '_selector_fn': a:options.selector_fn,
