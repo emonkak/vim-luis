@@ -37,14 +37,26 @@ function! ku#source#buffer#on_source_enter() abort dict  "{{{2
   for i in range(1, bufnr('$'))
     if bufexists(i) && buflisted(i)
       let bufname = bufname(i)
-      call add(candidates, {
-      \   'word': bufname,
-      \   'menu': printf('buffer %*d', len(bufnr('$')), i),
-      \   'user_data': {
-      \     'ku_buffer_nr': i,
-      \   },
-      \   'ku__sort_priority': bufname ==# fnamemodify(bufname, ':p'),
-      \ })
+      if empty(bufname)
+        call add(candidates, {
+        \   'word': '[No Name]',
+        \   'menu': printf('buffer %*d', len(bufnr('$')), i),
+        \   'user_data': {
+        \     'ku_buffer_nr': i,
+        \   },
+        \   'dup': 1,
+        \   'ku__sort_priority': 2,
+        \ })
+      else
+        call add(candidates, {
+        \   'word': bufname,
+        \   'menu': printf('buffer %*d', len(bufnr('$')), i),
+        \   'user_data': {
+        \     'ku_buffer_nr': i,
+        \   },
+        \   'ku__sort_priority': bufname ==# fnamemodify(bufname, ':p'),
+        \ })
+      endif
     endif
   endfor
   let self._cached_candidates = candidates
