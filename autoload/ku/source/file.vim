@@ -65,7 +65,7 @@ endfunction
 
 
 function! ku#source#file#special_char_p(char) abort dict  "{{{2
-  return a:char == s:path_separator() || a:char == '.'
+  return a:char == s:path_separator()
 endfunction
 
 
