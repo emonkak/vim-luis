@@ -727,8 +727,7 @@ function! s:initialize_ku_buffer() abort  "{{{2
   inoremap <buffer> <expr> <SID>(delete-backward-line)
   \        pumvisible() ? '<C-e><C-u>' : '<C-u>'
   inoremap <buffer> <expr> <SID>(delete-backward-component)
-  \ (pumvisible() ? '<C-y>' : '')
-  \ . <SID>keys_to_delete_backward_component()
+  \        <SID>keys_to_delete_backward_component()
 
   nnoremap <buffer> <script> <Plug>(ku-choose-action)
   \        <SID>(choose-action)
@@ -851,15 +850,15 @@ function! s:keys_to_delete_backward_component() abort  "{{{2
     for i in range(len(line) - 2, 0, -1)
       if s:session.source.special_char_p(line[i:i])
         let num_chars = strchars(line[i + 1:])
-        return repeat("\<BS>", num_chars)
+        return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
       endif
     endfor
     " No component separator - delete everything.
-    return "\<C-u>"
+    return (pumvisible() ? "\<C-e>" : '') . "\<C-u>"
   else
     " Don't consider cases that the cursor doesn't point the end of the
     " current line.
-    return "\<C-w>"
+    return (pumvisible() ? "\<C-e>" : '') . "\<C-w>"
   endif
 endfunction
 
