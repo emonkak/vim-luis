@@ -53,8 +53,7 @@ function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
     endif
     let bufname = bufname(location.bufnr)
     call add(candidates, {
-    \   'word': bufname,
-    \   'abbr': bufname . ':' . location.lnum . ':' . location.col,
+    \   'word': bufname . ':' . location.lnum . ':' . location.col,
     \   'menu': 'jump ' . position,
     \   'dup': 1,
     \   'user_data': {

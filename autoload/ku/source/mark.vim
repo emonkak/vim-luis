@@ -49,8 +49,7 @@ function! ku#source#mark#on_source_enter() abort dict  "{{{2
   for mark in getmarklist(bufnr)  " buffer local marks
     let mark_name = mark.mark[1:]
     call add(candidates, {
-    \   'word': bufname,
-    \   'abbr': bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
+    \   'word': bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
     \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {
@@ -62,8 +61,7 @@ function! ku#source#mark#on_source_enter() abort dict  "{{{2
   for mark in getmarklist()  " global maarks
     let mark_name = mark.mark[1:]
     call add(candidates, {
-    \   'word': mark.file,
-    \   'abbr': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
+    \   'word': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
     \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {

@@ -37,8 +37,8 @@ function! ku#source#metarw#gather_candidates(pattern) abort dict  "{{{2
   for path in metarw#{scheme}#complete(pattern, pattern, 0)[0]
     let path_without_scheme = matchstr(path, '^' . scheme . ':\zs.*$')
     call add(candidates, {
-    \   'abbr': path_without_scheme,
     \   'word': trim(path_without_scheme, ':/', 2),
+    \   'abbr': path_without_scheme,
     \   'user_data': {
     \     'ku_file_path': path,
     \   }
