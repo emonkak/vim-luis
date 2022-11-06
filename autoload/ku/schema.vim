@@ -32,13 +32,13 @@ let g:ku#schema#kind = {
 \   'properties': {
 \     'action_table': {
 \       'type': 'dictionary',
-\       'item_type': {
+\       'item': {
 \         'type': v:t_func,
 \       },
 \     },
 \     'key_table': {
 \       'type': 'dictionary',
-\       'item_type': {
+\       'item': {
 \         'type': v:t_string,
 \       },
 \     },
@@ -125,10 +125,10 @@ function! ku#schema#to_string(schema)  abort "{{{2
     return get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown')
     \      . optional_marker
   elseif a:schema.type ==# s:TYPE_LIST
-    return 'list<' . ku#schema#to_string(a:schema.item_type) . '>'
+    return 'list<' . ku#schema#to_string(a:schema.item) . '>'
     \      . optional_marker
   elseif a:schema.type ==# s:TYPE_DICTIONARY
-    return 'dictionary<' . ku#schema#to_string(a:schema.item_type) . '>'
+    return 'dictionary<' . ku#schema#to_string(a:schema.item) . '>'
     \      . optional_marker
   elseif a:schema.type ==# s:TYPE_STRUCT
     let props = []
@@ -174,7 +174,7 @@ function! s:validate(data, schema, path, errors) abort  "{{{2
     let success = 1
     for i in range(len(a:data))
       let path = a:path . '[' . i . ']'
-      if !s:validate(a:data[i], a:schema.item_type, path, a:errors)
+      if !s:validate(a:data[i], a:schema.item, path, a:errors)
         let success = 0
       endif
     endfor
@@ -187,7 +187,7 @@ function! s:validate(data, schema, path, errors) abort  "{{{2
     let success = 1
     for [key, Value] in items(a:data)
       let path = trim(a:path, '.') . '.' . key
-      if !s:validate(Value, a:schema.item_type, path, a:errors)
+      if !s:validate(Value, a:schema.item, path, a:errors)
         let success = 0
       endif
     endfor

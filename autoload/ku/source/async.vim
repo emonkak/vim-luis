@@ -34,7 +34,7 @@ let s:OPTIONS_SCHEMA = {
 \     'kind': g:ku#schema#kind,
 \     'command': {
 \       'type': 'list',
-\       'item_type': {
+\       'item': {
 \         'type': v:t_string,
 \       },
 \     },
