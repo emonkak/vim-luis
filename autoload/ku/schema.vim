@@ -1,4 +1,4 @@
-" ku: spec
+" ku: schema
 " Constants  "{{{1
 
 let s:TYPE_LIST = 'list'
@@ -226,7 +226,7 @@ function! s:validate(data, schema, path, errors) abort  "{{{2
     call add(a:errors, error)
     return 0
   else
-    throw printf('Unexpected type "%s". Allowed values are "%s", "%s", "%s", "%s" or v:t_ variable',
+    throw printf('Unexpected type "%s". Allowed values are "%s", "%s", "%s", "%s" or v:t_ variables',
     \            a:schema.type,
     \            s:TYPE_LIST,
     \            s:TYPE_DICTIONARY,
