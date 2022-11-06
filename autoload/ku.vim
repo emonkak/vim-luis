@@ -50,10 +50,14 @@ let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
 
 " Contains the information of a ku session.
 " See s:new_session() for the details of content.
-let s:session = {}
+if !exists('s:session')
+  let s:session = {}
+endif
 
 " buffer number of the ku buffer
-let s:ku_bufnr = -1
+if !exists('s:ku_bufnr')
+  let s:ku_bufnr = -1
+endif
 
 
 
