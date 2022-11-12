@@ -77,7 +77,7 @@ endfunction
 function! s:path_from_candidate(candidate) abort  "{{{2
   return has_key(a:candidate.user_data, 'ku_file_path')
   \       ? a:candidate.user_data.ku_file_path
-  \       : expandcmd(a:candidate.word)
+  \       : a:candidate.word
 endfunction
 
 
