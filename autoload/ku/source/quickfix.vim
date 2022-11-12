@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'quickfix',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open': function('ku#source#quickfix#action_open'),
 \       'open!': function('ku#source#quickfix#action_open_x'),

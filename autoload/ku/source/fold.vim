@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'fold',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open': function('ku#source#fold#action_open'),
 \     },

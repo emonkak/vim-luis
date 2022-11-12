@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'lsp_symbol',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open!': function('ku#source#lsp_symbol#action_open_x'),
 \       'open': function('ku#source#lsp_symbol#action_open'),

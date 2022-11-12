@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'oldfiles',
-\   'kind': g:ku#kind#file#module,
+\   'default_kind': g:ku#kind#file#module,
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#oldfiles#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),

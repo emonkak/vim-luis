@@ -78,7 +78,7 @@ let g:ku#schema#source = {
 \     'name': {
 \       'type': v:t_string,
 \     },
-\     'kind': g:ku#schema#kind,
+\     'default_kind': g:ku#schema#kind,
 \     'matcher': g:ku#schema#matcher,
 \     'gather_candidates': {
 \       'type': v:t_func,

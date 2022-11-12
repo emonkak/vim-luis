@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'jumplist',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open': function('ku#source#jumplist#action_open'),
 \       'open_x': function('ku#source#jumplist#action_open_x'),

@@ -23,7 +23,7 @@ let s:AVAILABLE_REGISTERS = '"'
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'register',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'Put': function('ku#source#register#action_Put'),
 \       'default': function('ku#source#register#action_put'),

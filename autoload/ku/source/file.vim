@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'file',
-\   'kind': g:ku#kind#file#module,
+\   'default_kind': g:ku#kind#file#module,
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#file#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),
@@ -36,13 +36,13 @@ function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
     for filename in readdir(expanded_directory)
       let path = prefix . filename
       let expanded_path = expanded_directory . filename
-      let kind = getftype(expanded_path)
-      let directory_p = kind == 'dir'
-      \                 || (kind == 'link' && isdirectory(expanded_path))
+      let type = getftype(expanded_path)
+      let directory_p = type == 'dir'
+      \                 || (type == 'link' && isdirectory(expanded_path))
       call add(candidates, {
       \   'word': path,
       \   'abbr': path . (directory_p ? separator : ''),
-      \   'menu': kind,
+      \   'menu': type,
       \   'user_data': {
       \     'ku_file_path': expanded_path,
       \   },

@@ -31,7 +31,7 @@ let s:OPTIONS_SCHEMA = {
 \     'name': {
 \       'type': v:t_string,
 \     },
-\     'kind': g:ku#schema#kind,
+\     'default_kind': g:ku#schema#kind,
 \     'command': {
 \       'type': 'list',
 \       'item': {
@@ -51,7 +51,7 @@ function! ku#source#async#new(options) abort
   call ku#schema#validate(a:options, s:OPTIONS_SCHEMA)
   return extend({
   \   'name': a:options.name,
-  \   'kind': a:options.kind,
+  \   'default_kind': a:options.default_kind,
   \   '_command': a:options.command,
   \   '_selector_fn': a:options.selector_fn,
   \   '_debounce_time': get(a:options, 'debounce_time', 100),

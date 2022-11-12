@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'buffer',
-\   'kind': g:ku#kind#buffer#module,
+\   'default_kind': g:ku#kind#buffer#module,
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#buffer#gather_candidates'),
 \   'on_action': function('ku#source#default#on_action'),

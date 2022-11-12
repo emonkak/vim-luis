@@ -872,7 +872,7 @@ endfunction
 function! s:kind_from_candidate(candidate) abort  "{{{2
   return has_key(a:candidate.user_data, 'ku__kind')
   \      ? a:candidate.user_data.ku__kind
-  \      : a:candidate.user_data.ku__source.kind
+  \      : a:candidate.user_data.ku__source.default_kind
 endfunction
 
 

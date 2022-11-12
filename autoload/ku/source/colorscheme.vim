@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'colorscheme',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open': function('ku#source#colorscheme#action_open'),
 \     },

@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'spell',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'open': function('ku#source#spell#action_open'),
 \       'put!': function('ku#source#spell#action_put_x'),

@@ -2,7 +2,7 @@
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'kind': g:ku#kind#file#module,
+\   'default_kind': g:ku#kind#file#module,
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#metarw#gather_candidates'),
 \   'on_action': function('ku#source#metarw#on_action'),

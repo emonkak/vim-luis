@@ -3,7 +3,7 @@
 
 let s:SOURCE_TEMPLATE = {
 \   'name': 'args',
-\   'kind': {
+\   'default_kind': {
 \     'action_table': {
 \       'argdelete': function('ku#source#args#action_argdelete'),
 \     },
