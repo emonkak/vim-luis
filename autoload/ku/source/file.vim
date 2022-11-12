@@ -31,20 +31,20 @@ function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
 
   if !has_key(self._cached_candidates, directory)
     let candidates = []
-    let real_directory = expandcmd(directory)
+    let expanded_directory = expandcmd(directory)
     let prefix = directory == './' ? '' : directory
-    for filename in readdir(real_directory)
+    for filename in readdir(expanded_directory)
       let path = prefix . filename
-      let real_path = real_directory . filename
-      let kind = getftype(real_path)
+      let expanded_path = expanded_directory . filename
+      let kind = getftype(expanded_path)
       let directory_p = kind == 'dir'
-      \                 || kind == 'link' && isdirectory(real_path)
+      \                 || (kind == 'link' && isdirectory(expanded_path))
       call add(candidates, {
       \   'word': path,
       \   'abbr': path . (directory_p ? separator : ''),
       \   'menu': kind,
       \   'user_data': {
-      \     'ku_file_path': real_path,
+      \     'ku_file_path': expanded_path,
       \   },
       \   'ku_dotfile_p': filename[:0] ==# '.',
       \   'ku_directory_p': directory_p,
