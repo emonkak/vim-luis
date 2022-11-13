@@ -64,6 +64,13 @@ endfunction
 
 
 
+function! ku#source#file#on_source_enter() abort dict  "{{{2
+  let self._cached_candidates = []
+endfunction
+
+
+
+
 function! ku#source#file#special_char_p(char) abort dict  "{{{2
   return a:char == s:path_separator()
 endfunction
