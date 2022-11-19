@@ -32,10 +32,10 @@ endif
 syntax case match
 
 syntax match kuStatusLine /\%1l.*/
-\            contains=kuSourcePrompt,kuSourceSeparator,kuSourceNames
+\            contains=kuSourcePrompt,kuSourceSeparator,kuSourceName
 syntax match kuSourcePrompt /^Source/ contained nextgroup=kuSourceSeparator
-syntax match kuSourceSeparator /: / contained nextgroup=kuSourceNames
-syntax match kuSourceNames /[a-z/_-]\+/ contained
+syntax match kuSourceSeparator /: / contained nextgroup=kuSourceName
+syntax match kuSourceName /[a-z/_-]\+/ contained
 
 syntax match kuInputLine /\%2l.*/ contains=kuInputPrompt
 syntax match kuInputPrompt /^>/ contained nextgroup=kuInputPattern
@@ -44,7 +44,7 @@ syntax match kuInputPattern /.*/ contained
 
 
 
-highlight default link kuSourceNames  Type
+highlight default link kuSourceName  Type
 highlight default link kuSourcePrompt  Statement
 highlight default link kuSourceSeparator  NONE
 
@@ -58,7 +58,7 @@ highlight default link kuChooseCandidate  NONE
 highlight default link kuChooseKey  SpecialKey
 highlight default link kuChooseMessage  NONE
 highlight default link kuChoosePrompt  kuSourcePrompt
-highlight default link kuChooseSource  kuSourceNames
+highlight default link kuChooseSource  kuSourceName
 
 
 
