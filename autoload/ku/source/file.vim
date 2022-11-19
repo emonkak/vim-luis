@@ -7,14 +7,17 @@ let s:SOURCE_TEMPLATE = {
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#file#gather_candidates'),
 \   'on_action': function('ku#source#file#on_action'),
-\   'on_source_enter': function('ku#source#default#on_source_enter'),
-\   'on_source_leave': function('ku#source#default#on_source_leave'),
+\   'on_source_enter': function('ku#source#file#on_source_enter'),
+\   'on_source_leave': function('ku#source#file#on_source_leave'),
 \   'special_char_p': function('ku#source#file#special_char_p'),
 \   'valid_for_acc_p': function('ku#source#file#valid_for_acc_p'),
 \ }
 
-function! ku#source#file#new() abort
-  return extend({'_cached_candidates': {}}, s:SOURCE_TEMPLATE, 'keep')
+function! ku#source#file#new(search_directory = 0) abort
+  return extend({
+  \  '_cached_candidates': {},
+  \  '_search_directory': a:search_directory,
+  \  }, s:SOURCE_TEMPLATE, 'keep')
 endfunction
 
 
@@ -35,16 +38,16 @@ function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
     let prefix = directory == './' ? '' : directory
     for filename in readdir(expanded_directory)
       let path = prefix . filename
-      let expanded_path = expanded_directory . filename
-      let type = getftype(expanded_path)
+      let absolute_path = fnamemodify(expanded_directory . filename, ':p')
+      let type = getftype(absolute_path)
       let directory_p = type == 'dir'
-      \                 || (type == 'link' && isdirectory(expanded_path))
+      \                 || (type == 'link' && isdirectory(absolute_path))
       call add(candidates, {
       \   'word': path,
       \   'abbr': path . (directory_p ? separator : ''),
       \   'menu': type,
       \   'user_data': {
-      \     'ku_file_path': expanded_path,
+      \     'ku_file_path': absolute_path,
       \   },
       \   'ku_dotfile_p': filename[:0] ==# '.',
       \   'ku_directory_p': directory_p,
@@ -65,7 +68,19 @@ endfunction
 
 
 function! ku#source#file#on_source_enter() abort dict  "{{{2
-  let self._cached_candidates = []
+  let self._cached_candidates = {}
+  if self._search_directory isnot 0
+    lcd `=self._search_directory`
+  endif
+endfunction
+
+
+
+
+function! ku#source#file#on_source_leave() abort dict  "{{{2
+  if self._search_directory isnot 0
+    lcd -
+  endif
 endfunction
 
 
@@ -73,7 +88,8 @@ endfunction
 
 function! ku#source#file#on_action(candidate) abort dict  "{{{2
   if !a:candidate.user_data.ku__completed_p
-    let a:candidate.user_data.ku_file_path = expandcmd(a:candidate.word)
+    let a:candidate.user_data.ku_file_path =
+    \   fnamemodify(expandcmd(a:candidate.word), ':p')
   endif
   return a:candidate
 endfunction

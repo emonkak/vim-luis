@@ -216,6 +216,11 @@ function! ku#take_action(action_name = 0) abort  "{{{2
   \               ? s:choose_action(candidate, kind)
   \               : a:action_name
 
+  if action_name isnot 0
+    let source = candidate.user_data.ku__source
+    let candidate = source.on_action(candidate)
+  endif
+
   " Close the ku window, because some kind of actions does something on the
   " current buffer/window and user expects that such actions do something on
   " the buffer/window which was the current one until the ku buffer became
@@ -586,11 +591,7 @@ function! s:do_action(action_name, candidate, kind) abort  "{{{2
   if ActionFn is 0
     return 'There is no such action:' string(a:action_name)
   endif
-
-  let source = a:candidate.user_data.ku__source
-  let candidate = source.on_action(a:candidate)
-
-  return ActionFn(candidate)
+  return ActionFn(a:candidate)
 endfunction
 
 
