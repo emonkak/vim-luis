@@ -111,8 +111,8 @@ function! s:parse_pattern(pattern, separator) abort  "{{{2
       let directory = trim(join(components[:-2], a:separator), a:separator, 2)
       \             . a:separator
     endif
-    let want_dotfiles_p = components[-1][:0] ==# '.'
-    return [directory, want_dotfiles_p]
+    let show_dotfiles_p = components[-1][:0] ==# '.'
+    return [directory, show_dotfiles_p]
   endif
 endfunction
 
