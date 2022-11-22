@@ -15,10 +15,10 @@ let s:SOURCE_TEMPLATE = {
 \   'on_source_enter': function('ku#source#project#on_source_enter'),
 \ }
 
-function! ku#source#project#new(project_directory, source) abort
+function! ku#source#project#new(directory, source) abort
   return extend({
   \   '_source': a:source,
-  \   '_project_directory': a:project_directory,
+  \   '_directory': a:directory,
   \   '_cached_candidates': [],
   \ }, s:SOURCE_TEMPLATE, 'keep')
 endfunction
@@ -40,10 +40,8 @@ endfunction
 
 function! ku#source#project#on_source_enter() abort dict "{{{2
   let candidates = []
-  for path in globpath(self._project_directory, '*', 0, 1)
-    if !isdirectory(path)
-      continue
-    endif
+  for path in globpath(self._directory, '*/', 0, 1)
+    let path = trim(path, '/', 2)
     call add(candidates, {
     \   'word': fnamemodify(path, ':t'),
     \   'user_data': {
