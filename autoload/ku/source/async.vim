@@ -18,11 +18,8 @@ let s:SOURCE_TEMPLATE = {
 \      'match_candidates': function('ku#matcher#raw_match')
 \   },
 \   'gather_candidates': function('ku#source#async#gather_candidates'),
-\   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#async#on_source_enter'),
 \   'on_source_leave': function('ku#source#async#on_source_leave'),
-\   'special_char_p': function('ku#source#default#special_char_p'),
-\   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
 let s:OPTIONS_SCHEMA = {

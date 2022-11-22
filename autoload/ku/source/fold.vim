@@ -12,11 +12,7 @@ let s:SOURCE_TEMPLATE = {
 \   },
 \   'gather_candidates': function('ku#source#fold#gather_candidates'),
 \   'matcher': g:ku#matcher#default,
-\   'on_action': function('ku#source#default#on_action'),
 \   'on_source_enter': function('ku#source#fold#on_source_enter'),
-\   'on_source_leave': function('ku#source#default#on_source_leave'),
-\   'special_char_p': function('ku#source#default#special_char_p'),
-\   'valid_for_acc_p': function('ku#source#default#valid_for_acc_p'),
 \ }
 
 function! ku#source#fold#new() abort

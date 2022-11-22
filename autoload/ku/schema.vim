@@ -85,15 +85,23 @@ let g:ku#schema#source = {
 \     },
 \     'on_source_enter': {
 \       'type': v:t_func,
+\       'optional': 1,
 \     },
 \     'on_source_leave': {
 \       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_action': {
+\       'type': v:t_func,
+\       'optional': 1,
 \     },
 \     'special_char_p': {
 \       'type': v:t_func,
+\       'optional': 1,
 \     },
 \     'valid_for_acc_p': {
 \       'type': v:t_func,
+\       'optional': 1,
 \     },
 \   },
 \ }

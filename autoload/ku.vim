@@ -187,7 +187,9 @@ function! ku#start(source, initial_pattern = '') abort  "{{{2
   let typeahead_buffer = s:consume_typeahead_buffer()
   call feedkeys('A' . typeahead_buffer, 'n')
 
-  call a:source.on_source_enter()
+  if has_key(a:source, 'on_source_enter')
+    call a:source.on_source_enter()
+  endif
 
   return s:TRUE
 endfunction
@@ -218,7 +220,9 @@ function! ku#take_action(action_name = 0) abort  "{{{2
 
   if action_name isnot 0
     let source = candidate.user_data.ku__source
-    let candidate = source.on_action(candidate)
+    if has_key(source, 'on_action')
+      let candidate = source.on_action(candidate)
+    endif
   endif
 
   " Close the ku window, because some kind of actions does something on the
@@ -337,7 +341,8 @@ function! s:acc_text(line, sep, candidates) abort  "{{{2
       continue
     endif
 
-    if !candidate.user_data.ku__source.valid_for_acc_p(candidate, a:sep)
+    if has_key(candidate.user_data.ku__source, 'valid_for_acc_p')
+    \  && !candidate.user_data.ku__source.valid_for_acc_p(candidate, a:sep)
       continue
     endif
 
@@ -785,8 +790,9 @@ function! s:keys_to_complete() abort  "{{{2
   elseif len(line) < cursor_column && cursor_column != s:session.last_column
     let sep = line[-1:]
     " New character is inserted.  Let's complete automatically.
-    if (!s:session.inserted_by_acc_p)
+    if !s:session.inserted_by_acc_p
     \  && len(s:PROMPT) + 2 <= len(line)
+    \  && has_key(s:session.source, 'special_char_p')
     \  && s:session.source.special_char_p(sep)
       " (1) The last inserted character is not inserted by ACC.
       " (2) It is a special character for current source
@@ -852,12 +858,14 @@ function! s:keys_to_delete_backward_component() abort  "{{{2
 
   let line = getline('.')
   if len(line) < col('.')
-    for i in range(len(line) - 2, 0, -1)
-      if s:session.source.special_char_p(line[i:i])
-        let num_chars = strchars(line[i + 1:])
-        return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
-      endif
-    endfor
+    if has_key(s:session.source, 'special_char_p')
+      for i in range(len(line) - 2, 0, -1)
+        if s:session.source.special_char_p(line[i:i])
+          let num_chars = strchars(line[i + 1:])
+          return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
+        endif
+      endfor
+    endif
     " No component separator - delete everything.
     return (pumvisible() ? "\<C-e>" : '') . "\<C-u>"
   else
@@ -954,7 +962,9 @@ function! s:quit_session() abort  "{{{2
   endif
 
   let s:session.now_quitting_p = s:TRUE
-  call s:session.source.on_source_leave()
+  if has_key(s:session.source, 'on_source_leave')
+    call s:session.source.on_source_leave()
+  endif
   close
 
   let &backspace = s:session.original_backspace
