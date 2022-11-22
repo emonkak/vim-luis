@@ -35,29 +35,33 @@ endfunction
 function! ku#source#buffer#on_source_enter() abort dict  "{{{2
   let candidates = []
   for i in range(1, bufnr('$'))
-    if bufexists(i) && buflisted(i)
-      let bufname = bufname(i)
-      if empty(bufname)
-        call add(candidates, {
-        \   'word': '[No Name]',
-        \   'menu': printf('buffer %*d', len(bufnr('$')), i),
-        \   'user_data': {
-        \     'ku_buffer_nr': i,
-        \   },
-        \   'dup': 1,
-        \   'ku__sort_priority': 2,
-        \ })
+    if !bufexists(i) || !buflisted(i)
+      continue
+    endif
+    let bufname = bufname(i)
+    if empty(bufname)
+      let bufname = '[No Name]'
+      let dup = 1
+      let sort_priority = 3
+    else
+      let dup = 0
+      if getbufvar(i, '&buftype') != ''
+        let sort_priority = 2
+      elseif bufname ==# fnamemodify(bufname, ':p')
+        let sort_priority = 1
       else
-        call add(candidates, {
-        \   'word': bufname,
-        \   'menu': printf('buffer %*d', len(bufnr('$')), i),
-        \   'user_data': {
-        \     'ku_buffer_nr': i,
-        \   },
-        \   'ku__sort_priority': bufname ==# fnamemodify(bufname, ':p'),
-        \ })
+        let sort_priority = 0
       endif
     endif
+    call add(candidates, {
+    \   'word': bufname,
+    \   'menu': printf('buffer %*d', len(bufnr('$')), i),
+    \   'dup': dup,
+    \   'user_data': {
+    \     'ku_buffer_nr': i,
+    \   },
+    \   'ku__sort_priority': sort_priority,
+    \ })
   endfor
   let self._cached_candidates = candidates
 endfunction
