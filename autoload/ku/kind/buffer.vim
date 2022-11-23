@@ -4,15 +4,21 @@
 let g:ku#kind#buffer#module = {
 \   'action_table': {
 \     'delete': function('ku#kind#buffer#action_delete'),
+\     'delete!': function('ku#kind#buffer#action_delete_x'),
 \     'open!': function('ku#kind#buffer#action_open_x'),
 \     'open': function('ku#kind#buffer#action_open'),
 \     'unload': function('ku#kind#buffer#action_unload'),
+\     'unload!': function('ku#kind#buffer#action_unload_x'),
 \     'wipeout': function('ku#kind#buffer#action_wipeout'),
+\     'wipeout!': function('ku#kind#buffer#action_wipeout_x'),
 \   },
 \   'key_table': {
-\     'D': 'delete',
-\     'U': 'unload',
-\     'W': 'wipeout',
+\     'D': 'delete!',
+\     'U': 'unload!',
+\     'W': 'wipeout!',
+\     'd': 'delete',
+\     'u': 'unload',
+\     'w': 'wipeout',
 \   },
 \   'prototype': g:ku#kind#common#module,
 \ }
@@ -26,35 +32,56 @@ let g:ku#kind#buffer#module = {
 
 " Actions  "{{{1
 function! ku#kind#buffer#action_delete(candidate) abort  "{{{2
-  return s:delete('bdelete', a:candidate)
+  return s:do_command('bdelete', a:candidate)
+endfunction
+
+
+
+
+function! ku#kind#buffer#action_delete_x(candidate) abort  "{{{2
+  return s:do_command('bdelete!', a:candidate)
 endfunction
 
 
 
 
 function! ku#kind#buffer#action_open(candidate) abort  "{{{2
-  return s:open('', a:candidate)
+  return s:do_command('buffer', a:candidate)
 endfunction
 
 
 
 
 function! ku#kind#buffer#action_open_x(candidate) abort  "{{{2
-  return s:open('!', a:candidate)
+  return s:do_command('buffer!', a:candidate)
 endfunction
 
 
 
 
 function! ku#kind#buffer#action_unload(candidate) abort  "{{{2
-  return s:delete('bunload', a:candidate)
+  return s:do_command('bunload', a:candidate)
+endfunction
+
+
+
+
+function! ku#kind#buffer#action_unload_x(candidate) abort  "{{{2
+  return s:do_command('bunload!', a:candidate)
 endfunction
 
 
 
 
 function! ku#kind#buffer#action_wipeout(candidate) abort  "{{{2
-  return s:delete('bwipeout', a:candidate)
+  return s:do_command('bwipeout', a:candidate)
+endfunction
+
+
+
+
+function! ku#kind#buffer#action_wipeout_x(candidate) abort  "{{{2
+  return s:do_command('bwipeout!', a:candidate)
 endfunction
 
 
@@ -82,32 +109,15 @@ endfunction
 
 
 
-function! s:delete(delete_command, candidate) abort  "{{{2
+function! s:do_command(command, candidate) abort  "{{{2
   let bufnr = s:bufnr_from_candidate(a:candidate)
   if type(bufnr) != v:t_number
     return bufnr
   endif
   let v:errmsg = ''
-  execute bufnr a:delete_command
+  execute bufnr a:command
   return v:errmsg == '' ? 0 : v:errmsg
 endfunction
-
-
-
-
-function! s:open(bang, candidate) abort  "{{{2
-  let bufnr = s:bufnr_from_candidate(a:candidate)
-  if type(bufnr) != v:t_number
-    return bufnr
-  endif
-  let v:errmsg = ''
-  execute bufnr 'buffer'.a:bang
-  return v:errmsg == '' ? 0 : v:errmsg
-endfunction
-
-
-
-
 
 
 
