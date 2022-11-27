@@ -96,6 +96,11 @@ endfunction
 
 
 function! s:compare_candidates(x, y) abort  "{{{2
+  if a:x.ku__sort_priority < a:y.ku__sort_priority
+    return -1
+  elseif a:x.ku__sort_priority > a:y.ku__sort_priority
+    return 1
+  endif
   if a:x.ku__matching_position != a:y.ku__matching_position
     if a:x.ku__matching_score > a:y.ku__matching_score
       return -1
@@ -103,11 +108,7 @@ function! s:compare_candidates(x, y) abort  "{{{2
       return 1
     endif
   endif
-  if a:x.ku__sort_priority < a:y.ku__sort_priority
-    return -1
-  elseif a:x.ku__sort_priority > a:y.ku__sort_priority
-    return 1
-  elseif a:x.word < a:y.word
+  if a:x.word < a:y.word
     return -1
   elseif a:x.word > a:y.word
     return 1
