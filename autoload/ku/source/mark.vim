@@ -12,7 +12,7 @@ let s:SOURCE_TEMPLATE = {
 \       "\<C-d>": 'delete',
 \       'd': 'delete',
 \     },
-\     'prototype': g:ku#kind#common#module,
+\     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#mark#gather_candidates'),

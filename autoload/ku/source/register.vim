@@ -36,7 +36,7 @@ let s:SOURCE_TEMPLATE = {
 \       'd': 'delete',
 \       'p': 'put',
 \     },
-\     'prototype': g:ku#kind#common#module,
+\     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#register#gather_candidates'),

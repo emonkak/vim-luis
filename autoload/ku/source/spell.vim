@@ -13,7 +13,7 @@ let s:SOURCE_TEMPLATE = {
 \       'P': 'put!',
 \       'p': 'put',
 \     },
-\     'prototype': g:ku#kind#common#module,
+\     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': {
 \      'match_candidates': function('ku#matcher#raw_match')

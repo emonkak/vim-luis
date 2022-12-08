@@ -1,7 +1,7 @@
 " ku kind: buffer
 " Module  "{{{1
 
-let g:ku#kind#buffer#module = {
+let g:ku#kind#buffer#export = {
 \   'action_table': {
 \     'delete': function('ku#kind#buffer#action_delete'),
 \     'delete!': function('ku#kind#buffer#action_delete_x'),
@@ -20,7 +20,7 @@ let g:ku#kind#buffer#module = {
 \     'u': 'unload',
 \     'w': 'wipeout',
 \   },
-\   'prototype': g:ku#kind#common#module,
+\   'prototype': g:ku#kind#common#export,
 \ }
 
 

@@ -10,7 +10,7 @@ let s:SOURCE_TEMPLATE = {
 \     'key_table': {
 \       'D': 'argdelete',
 \     },
-\     'prototype': g:ku#kind#buffer#module,
+\     'prototype': g:ku#kind#buffer#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#args#gather_candidates'),

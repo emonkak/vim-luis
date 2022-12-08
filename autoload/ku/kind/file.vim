@@ -1,7 +1,7 @@
 " ku kind: file
 " Module  "{{{1
 
-let g:ku#kind#file#module = {
+let g:ku#kind#file#export = {
 \   'action_table': {
 \     'cd': function('ku#kind#file#action_cd'),
 \     'lcd': function('ku#kind#file#action_lcd'),
@@ -12,7 +12,7 @@ let g:ku#kind#file#module = {
 \     '/': 'cd',
 \     '?': 'lcd',
 \  },
-\   'prototype': g:ku#kind#common#module,
+\   'prototype': g:ku#kind#common#export,
 \ }
 
 

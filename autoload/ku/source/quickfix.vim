@@ -9,7 +9,7 @@ let s:SOURCE_TEMPLATE = {
 \       'open!': function('ku#source#quickfix#action_open_x'),
 \     },
 \     'key_table': {},
-\     'prototype': g:ku#kind#buffer#module,
+\     'prototype': g:ku#kind#buffer#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#quickfix#gather_candidates'),

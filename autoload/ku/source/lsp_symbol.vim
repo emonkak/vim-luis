@@ -9,7 +9,7 @@ let s:SOURCE_TEMPLATE = {
 \       'open': function('ku#source#lsp_symbol#action_open'),
 \     },
 \     'key_table': {},
-\     'prototype': g:ku#kind#file#module,
+\     'prototype': g:ku#kind#file#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#lsp_symbol#gather_candidates'),

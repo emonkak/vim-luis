@@ -1,7 +1,7 @@
 " ku kind: common - Common actions for all sources
 " Module  "{{{1
 
-let g:ku#kind#common#module = {
+let g:ku#kind#common#export = {
 \   'action_table': {
 \     'Bottom': function('ku#kind#common#action_Bottom'),
 \     'Left': function('ku#kind#common#action_Left'),

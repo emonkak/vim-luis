@@ -8,7 +8,7 @@ let s:SOURCE_TEMPLATE = {
 \       'open': function('ku#source#project#action_open'),
 \     },
 \     'key_table': {},
-\     'prototype': g:ku#kind#common#module,
+\     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': g:ku#matcher#default,
 \   'gather_candidates': function('ku#source#project#gather_candidates'),
