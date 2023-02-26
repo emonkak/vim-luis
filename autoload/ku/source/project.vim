@@ -15,9 +15,10 @@ let s:SOURCE_TEMPLATE = {
 \   'on_source_enter': function('ku#source#project#on_source_enter'),
 \ }
 
-function! ku#source#project#new(directory, source) abort
+function! ku#source#project#new(directory, source, options = {}) abort
   return extend({
   \   '_source': a:source,
+  \   '_options': a:options,
   \   '_directory': a:directory,
   \   '_cached_candidates': [],
   \ }, s:SOURCE_TEMPLATE, 'keep')
@@ -58,8 +59,10 @@ endfunction
 " Actions  "{{{1
 function! ku#source#project#action_open(candidate) abort  "{{{2
   if has_key(a:candidate.user_data, 'ku_file_path')
+    let source = a:candidate.user_data.ku__source._source
+    let options = a:candidate.user_data.ku__source._options
     cd `=a:candidate.user_data.ku_file_path`
-    call ku#start(a:candidate.user_data.ku__source._source)
+    call ku#start(source, options)
     return 0
   else
     return 'No such directory: ' . string(a:candidate.word)

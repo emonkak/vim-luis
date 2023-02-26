@@ -109,13 +109,16 @@ function! ku#restart() abort  "{{{2
   endif
   let last_source = s:session.source
   let last_pattern = s:remove_prompt(s:session.last_pattern_raw)
-  return ku#start(last_source, last_pattern)
+  let options = extend({ 'initial_pattern': last_pattern },
+  \                    s:session.options,
+  \                    'keep')
+  return ku#start(last_source, options)
 endfunction
 
 
 
 
-function! ku#start(source, initial_pattern = '') abort  "{{{2
+function! ku#start(source, options = {}) abort  "{{{2
   if s:ku_active_p()
     echohl ErrorMsg
     echo 'ku: Already active'
@@ -133,7 +136,7 @@ function! ku#start(source, initial_pattern = '') abort  "{{{2
   endif
 
   " Initialze session.
-  let s:session = s:new_session(a:source)
+  let s:session = s:new_session(a:source, a:options)
 
   " Open or create the ku buffer.
   let v:errmsg = ''
@@ -171,8 +174,9 @@ function! ku#start(source, initial_pattern = '') abort  "{{{2
   "       be done carefully.
   silent % delete _
   normal! o
+  let initial_pattern = get(a:options, 'initial_pattern', '')
   call setline(s:LNUM_STATUS, 'Source: ' . a:source.name)
-  call setline(s:LNUM_PATTERN, s:PROMPT . a:initial_pattern)
+  call setline(s:LNUM_PATTERN, s:PROMPT . initial_pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
 
   " Start Insert mode.
@@ -276,8 +280,9 @@ function! ku#_omnifunc(findstart, base) abort  "{{{2
     let pattern = s:remove_prompt(a:base)
     let source = s:session.source
     let candidates = source.gather_candidates(pattern)
+    let limit = get(s:session.options, 'limit', -1)
     let s:session.last_candidates =
-    \   source.matcher.match_candidates(candidates, pattern, source)
+    \   source.matcher.match_candidates(candidates, pattern, source, limit)
     return s:session.last_candidates
   endif
 endfunction
@@ -907,7 +912,7 @@ endfunction
 
 
 
-function! s:new_session(source) abort  "{{{2
+function! s:new_session(source, options) abort  "{{{2
   let session = {}
 
   let session.inserted_by_acc_p = s:FALSE
@@ -920,6 +925,7 @@ function! s:new_session(source) abort  "{{{2
   let session.original_completeopt = &completeopt
   let session.original_curwinnr = winnr()
   let session.source = a:source
+  let session.options = a:options
 
   return session
 endfunction

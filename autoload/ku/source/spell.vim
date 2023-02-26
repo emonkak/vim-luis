@@ -15,9 +15,7 @@ let s:SOURCE_TEMPLATE = {
 \     },
 \     'prototype': g:ku#kind#common#export,
 \   },
-\   'matcher': {
-\      'match_candidates': function('ku#matcher#raw_match')
-\   },
+\   'matcher': g:ku#matcher#raw,
 \   'gather_candidates': function('ku#source#spell#gather_candidates'),
 \ }
 

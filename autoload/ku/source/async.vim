@@ -14,9 +14,7 @@ let s:INVALID_TIMER = -1
 " Module  "{{{1
 
 let s:SOURCE_TEMPLATE = {
-\   'matcher': {
-\      'match_candidates': function('ku#matcher#raw_match')
-\   },
+\   'matcher': g:ku#matcher#raw,
 \   'gather_candidates': function('ku#source#async#gather_candidates'),
 \   'on_source_enter': function('ku#source#async#on_source_enter'),
 \   'on_source_leave': function('ku#source#async#on_source_leave'),
