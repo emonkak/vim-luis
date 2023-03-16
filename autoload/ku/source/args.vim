@@ -37,7 +37,7 @@ endfunction
 
 
 function! ku#source#args#on_source_enter() abort dict  "{{{2
-  let self._cached_candidates = map(argv(), '{"word": v:val}')
+  let self._cached_candidates = map(argv(), '{ "word": v:val }')
 endfunction
 
 
