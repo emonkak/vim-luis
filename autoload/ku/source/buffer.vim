@@ -30,7 +30,8 @@ endfunction
 
 function! ku#source#buffer#on_source_enter() abort dict  "{{{2
   let candidates = []
-  for i in range(1, bufnr('$'))
+  let max_bufnr = bufnr('$')
+  for i in range(1, max_bufnr)
     if !bufexists(i) || !buflisted(i)
       continue
     endif
@@ -51,7 +52,7 @@ function! ku#source#buffer#on_source_enter() abort dict  "{{{2
     endif
     call add(candidates, {
     \   'word': bufname,
-    \   'menu': printf('buffer %*d', len(bufnr('$')), i),
+    \   'menu': printf('buffer %*d', len(max_bufnr), i),
     \   'dup': dup,
     \   'user_data': {
     \     'ku_buffer_nr': i,
