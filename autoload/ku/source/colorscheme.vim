@@ -38,7 +38,7 @@ function! ku#source#colorscheme#on_source_enter() abort dict  "{{{2
   let colorschemes = globpath(&runtimepath, 'colors/*.vim', 0, 1)
   let self._cached_candidates = map(colorschemes, '{
   \   "word": fnamemodify(v:val, ":t:r"),
-  \   "menu": fnamemodify(v:val, ":p:h:h:~"),
+  \   "menu": fnamemodify(v:val, ":p:h:h"),
   \ }')
 endfunction
 
