@@ -53,23 +53,22 @@ function! ku#source#fold#on_source_enter() abort dict  "{{{2
     if foldclosed(lnum) > 0
       let foldtext = foldtextresult(lnum)
       let matches = matchlist(foldtext, '^+-\+\s*\(\d\+\)\slines:\s\zs\(.\{-}\)\ze\s*$')
-      if empty(matches)
-        continue
+      if len(matches) > 0
+        let num_lines = matches[1]
+        let heading = matches[2]
+        let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
+        call add(candidates, {
+        \   'word': heading,
+        \   'abbr': indent . heading,
+        \   'menu': num_lines . ' lines',
+        \   'dup': 1,
+        \   'user_data': {
+        \     'ku_fold_lnum': lnum,
+        \   },
+        \   'ku__sort_priority': lnum,
+        \ })
+        execute lnum 'foldopen'
       endif
-      let num_lines = matches[1]
-      let heading = matches[2]
-      let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
-      call add(candidates, {
-      \   'word': heading,
-      \   'abbr': indent . heading,
-      \   'menu': num_lines . ' lines',
-      \   'dup': 1,
-      \   'user_data': {
-      \     'ku_fold_lnum': lnum,
-      \   },
-      \   'ku__sort_priority': lnum,
-      \ })
-      execute lnum 'foldopen'
     endif
     let lnum += 1
   endwhile
