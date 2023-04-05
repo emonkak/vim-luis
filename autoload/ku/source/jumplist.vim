@@ -39,14 +39,10 @@ function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
   let candidates = []
   let last_winnr = winnr('#')
   if last_winnr == 0
-    return candidates
+    return
   endif
-  let [locations, last_position] = getjumplist(last_winnr)
-  let position = last_position
+  let [locations, position] = getjumplist(last_winnr)
   for location in locations
-    if !bufexists(location.bufnr) || getbufvar(location.bufnr, '&buftype') != ''
-      continue
-    endif
     let bufname = bufname(location.bufnr)
     call add(candidates, {
     \   'word': bufname . ':' . location.lnum . ':' . location.col,
@@ -56,7 +52,7 @@ function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
     \     'ku_buffer_nr': location.bufnr,
     \     'ku_cursor': [location.lnum, location.col],
     \   },
-    \   'ku__sort_priority': last_position - position,
+    \   'ku__sort_priority': position,
     \ })
     let position -= 1
   endfor
