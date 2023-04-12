@@ -31,7 +31,7 @@ let s:Source = {
 \     },
 \     'prototype': g:ku#kind#common#export,
 \   },
-\   'matcher': g:ku#matcher#raw,
+\   'matcher': g:ku#matcher#through#export,
 \   'gather_candidates': function('ku#source#spell#gather_candidates'),
 \ }
 

@@ -50,7 +50,7 @@ function! ku#source#async#new(options) abort
 endfunction
 
 let s:Source = {
-\   'matcher': g:ku#matcher#raw,
+\   'matcher': g:ku#matcher#through#export,
 \ }
 
 function! s:Source.gather_candidates(pattern) abort dict
