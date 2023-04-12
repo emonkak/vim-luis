@@ -1,41 +1,49 @@
-" ku source: jumplist
-" Module  "{{{1
+function! ku#source#jumplist#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+function! s:action_open(candidate) abort
+  let error = ku#kind#buffer#action_open(a:candidate)
+  if error isnot 0
+    return error
+  endif
+  if has_key(a:candidate.user_data, 'ku_cursor')
+    call cursor(a:candidate.user_data.ku_cursor)
+  endif
+  return 0
+endfunction
+
+function! s:action_open_x(candidate) abort
+  let error = ku#kind#buffer#action_open_x(a:candidate)
+  if error isnot 0
+    return error
+  endif
+  if has_key(a:candidate.user_data, 'ku_cursor')
+    call cursor(a:candidate.user_data.ku_cursor)
+  endif
+  return 0
+endfunction
+
+let s:Source = {
 \   'name': 'jumplist',
 \   'default_kind': {
 \     'action_table': {
-\       'open': function('ku#source#jumplist#action_open'),
-\       'open_x': function('ku#source#jumplist#action_open_x'),
+\       'open': function('s:action_open'),
+\       'open_x': function('s:action_open_x'),
 \     },
 \     'key_table': {},
 \     'prototype': g:ku#kind#buffer#export,
 \   },
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#jumplist#gather_candidates'),
-\   'on_source_enter': function('ku#source#jumplist#on_source_enter'),
 \ }
 
-function! ku#source#jumplist#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#jumplist#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let candidates = []
   let last_winnr = winnr('#')
   if last_winnr == 0
@@ -58,49 +66,3 @@ function! ku#source#jumplist#on_source_enter() abort dict  "{{{2
   endfor
   let self._cached_candidates = candidates
 endfunction
-
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#jumplist#action_open(candidate) abort  "{{{2
-  let error = ku#kind#buffer#action_open(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
-
-
-
-
-function! ku#source#jumplist#action_open_x(candidate) abort  "{{{2
-  let error = ku#kind#buffer#action_open_x(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker
-

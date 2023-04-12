@@ -1,12 +1,31 @@
-" ku source: mark
-" Module  "{{{1
+function! ku#source#mark#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+function! s:action_delete(candidate) abort  "{{{2
+  if !has_key(a:candidate.user_data, 'ku_mark')
+    return 'No mark found'
+  endif
+  execute 'delmarks' a:candidate.user_data.ku_mark
+  return 0
+endfunction
+
+function! s:action_open(candidate) abort
+  if !has_key(a:candidate.user_data, 'ku_mark')
+    return 'No mark found'
+  endif
+  execute 'normal!' '`' . a:candidate.user_data.ku_mark
+  return 0
+endfunction
+
+let s:Source = {
 \   'name': 'mark',
 \   'default_kind': {
 \     'action_table': {
-\       'open': function('ku#source#mark#action_open'),
-\       'delete': function('ku#source#mark#action_delete'),
+\       'open': function('s:action_open'),
+\       'delete': function('s:action_delete'),
 \     },
 \     'key_table': {
 \       "\<C-d>": 'delete',
@@ -15,30 +34,13 @@ let s:SOURCE_TEMPLATE = {
 \     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#mark#gather_candidates'),
-\   'on_source_enter': function('ku#source#mark#on_source_enter'),
 \ }
 
-function! ku#source#mark#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#mark#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#mark#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let candidates = []
   let bufnr = bufnr('#')
   let bufname = bufname(bufnr)
@@ -68,42 +70,3 @@ function! ku#source#mark#on_source_enter() abort dict  "{{{2
   endfor
   let self._cached_candidates = candidates
 endfunction
-
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#mark#action_delete(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_mark')
-    return 'No mark found'
-  endif
-  execute 'delmarks' a:candidate.user_data.ku_mark
-  return 0
-endfunction
-
-
-
-
-
-function! ku#source#mark#action_open(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_mark')
-    return 'No mark found'
-  endif
-  execute 'normal!' '`' . a:candidate.user_data.ku_mark
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

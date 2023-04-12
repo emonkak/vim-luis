@@ -1,34 +1,20 @@
-" ku source: buffer
-" Module  "{{{1
+function! ku#source#buffer#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+let s:Source = {
 \   'name': 'buffer',
 \   'default_kind': g:ku#kind#buffer#export,
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#buffer#gather_candidates'),
-\   'on_source_enter': function('ku#source#buffer#on_source_enter'),
 \ }
 
-function! ku#source#buffer#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#buffer#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#buffer#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let candidates = []
   let max_bufnr = bufnr('$')
   for i in range(1, max_bufnr)
@@ -62,13 +48,3 @@ function! ku#source#buffer#on_source_enter() abort dict  "{{{2
   endfor
   let self._cached_candidates = candidates
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

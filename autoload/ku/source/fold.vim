@@ -1,40 +1,35 @@
-" ku source: fold
-" Module  "{{{1
+function! ku#source#fold#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+function! s:action_open(candidate) abort  "{{{2
+  if !has_key(a:candidate.user_data, 'ku_fold_lnum')
+    return 'No such fold'
+  endif
+  call cursor(a:candidate.user_data.ku_fold_lnum, 1)
+  normal! zvzt
+  return 0
+endfunction
+
+let s:Source = {
 \   'name': 'fold',
 \   'default_kind': {
 \     'action_table': {
-\       'open': function('ku#source#fold#action_open'),
+\       'open': function('s:action_open'),
 \     },
 \     'key_table': {},
 \     'prototype': g:ku#kind#common#export,
 \   },
-\   'gather_candidates': function('ku#source#fold#gather_candidates'),
 \   'matcher': g:ku#matcher#default,
-\   'on_source_enter': function('ku#source#fold#on_source_enter'),
 \ }
 
-function! ku#source#fold#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#fold#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#fold#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let original_winnr = winnr()
   let original_lazyredraw = &lazyredraw
   let original_foldtext = &l:foldtext
@@ -81,30 +76,3 @@ function! ku#source#fold#on_source_enter() abort dict  "{{{2
 
   let self._cached_candidates = candidates
 endfunction
-
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#fold#action_open(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_fold_lnum')
-    return 'No such fold'
-  endif
-  call cursor(a:candidate.user_data.ku_fold_lnum, 1)
-  normal! zvzt
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

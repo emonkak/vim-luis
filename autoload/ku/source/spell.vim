@@ -1,13 +1,29 @@
-" ku source: spell
-" Module  "{{{1
+function! ku#source#spell#new() abort
+  return s:Source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+function! s:action_open(candidate) abort
+  execute 'normal!' "i\<C-r>" . '=a:candidate.word' . "\<CR>\<Esc>"
+  return 0
+endfunction
+
+function! s:action_put(candidate) abort
+  put =a:candidate.word
+  return 0
+endfunction
+
+function! s:action_put_x(candidate) abort
+  put! =a:candidate.word
+  return 0
+endfunction
+
+let s:Source = {
 \   'name': 'spell',
 \   'default_kind': {
 \     'action_table': {
-\       'open': function('ku#source#spell#action_open'),
-\       'put!': function('ku#source#spell#action_put_x'),
-\       'put': function('ku#source#spell#action_put'),
+\       'open': function('s:action_open'),
+\       'put!': function('s:action_put_x'),
+\       'put': function('s:action_put'),
 \     },
 \     'key_table': {
 \       'P': 'put!',
@@ -19,53 +35,6 @@ let s:SOURCE_TEMPLATE = {
 \   'gather_candidates': function('ku#source#spell#gather_candidates'),
 \ }
 
-function! ku#source#spell#new() abort
-  return copy(s:SOURCE_TEMPLATE)
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#spell#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return map(spellsuggest(a:pattern), '{ "word": v:val }')
 endfunction
-
-
-
-
-" Actions  "{{{1
-function! ku#source#spell#action_open(candidate) abort  "{{{2
-  execute 'normal!' "i\<C-r>" . '=a:candidate.word' . "\<CR>\<Esc>"
-  return 0
-endfunction
-
-
-
-
-function! ku#source#spell#action_put(candidate) abort  "{{{2
-  put =a:candidate.word
-  return 0
-endfunction
-
-
-
-
-function! ku#source#spell#action_put_x(candidate) abort  "{{{2
-  put! =a:candidate.word
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

@@ -1,30 +1,16 @@
-" ku source: metarw
-" Module  "{{{1
-
-let s:SOURCE_TEMPLATE = {
-\   'default_kind': g:ku#kind#file#export,
-\   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#metarw#gather_candidates'),
-\   'on_action': function('ku#source#metarw#on_action'),
-\   'special_char_p': function('ku#source#metarw#special_char_p'),
-\ }
-
 function! ku#source#metarw#new(scheme) abort
-  return extend({
-  \   'name': 'metarw/' . a:scheme,
-  \   '_scheme': a:scheme,
-  \ }, s:SOURCE_TEMPLATE, 'keep')
+  let source = copy(s:Source)
+  let source.name = 'metarw/' . a:scheme
+  let source._scheme = a:scheme
+  return source
 endfunction
 
+let s:Source = {
+\   'default_kind': g:ku#kind#file#export,
+\   'matcher': g:ku#matcher#default,
+\ }
 
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#metarw#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   " FIXME: caching - but each scheme may already do caching.
   " a:pattern is not always prefixed with "{scheme}:".
   let scheme = self._scheme
@@ -45,40 +31,16 @@ function! ku#source#metarw#gather_candidates(pattern) abort dict  "{{{2
   return candidates
 endfunction
 
-
-
-
-function! ku#source#metarw#on_action(candidate) abort dict  "{{{2
+function! s:Source.on_action(candidate) abort dict
   let candidate = copy(a:candidate)
   let candidate.ku_file_path = self._scheme . ':' . a:candidate.word
   return candidate
 endfunction
 
-
-
-
-function! ku#source#metarw#special_char_p(char) abort dict  "{{{2
+function! s:Source.special_char_p(char) abort dict
   return a:char == s:path_separator() || a:char == ':'
 endfunction
 
-
-
-
-
-
-
-
-" Misc.  "{{{1
-function! s:path_separator() abort  "{{{2
+function! s:path_separator() abort
   return (exists('+shellslash') && !&shellslash) ? '\' : '/'
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

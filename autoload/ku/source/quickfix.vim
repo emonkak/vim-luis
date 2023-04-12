@@ -1,41 +1,35 @@
-" ku source: quickfix
-" Module  "{{{1
+function! ku#source#quickfix#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+function! s:action_open(candidate) abort
+  return s:open('', a:candidate)
+endfunction
+
+function! s:action_open_x(candidate) abort
+  return s:open('!', a:candidate)
+endfunction
+
+let s:Source = {
 \   'name': 'quickfix',
 \   'default_kind': {
 \     'action_table': {
-\       'open': function('ku#source#quickfix#action_open'),
-\       'open!': function('ku#source#quickfix#action_open_x'),
+\       'open': function('s:action_open'),
+\       'open!': function('s:action_open_x'),
 \     },
 \     'key_table': {},
 \     'prototype': g:ku#kind#buffer#export,
 \   },
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#quickfix#gather_candidates'),
-\   'on_source_enter': function('ku#source#quickfix#on_source_enter'),
 \ }
 
-function! ku#source#quickfix#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#quickfix#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#quickfix#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let qflist = getqflist()
   let first_errors_for_buffer = {}  " buffer number -> error number
 
@@ -56,50 +50,16 @@ function! ku#source#quickfix#on_source_enter() abort dict  "{{{2
   \   }')
 endfunction
 
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#quickfix#action_open(candidate) abort  "{{{2
-  return s:open('', a:candidate)
-endfunction
-
-
-
-
-function! ku#source#quickfix#action_open_x(candidate) abort  "{{{2
-  return s:open('!', a:candidate)
-endfunction
-
-
-
-
-
-
-
-
-" Misc.  {{{1
-function! s:open(bang, candidate) abort  "{{{2
+function! s:open(bang, candidate) abort
   let v:errmsg = ''
 
   let original_switchbuf = &switchbuf
   let &switchbuf = ''
-  execute 'cc'.a:bang a:candidate.user_data.ku_quickfix_nr
-  let &switchbuf = original_switchbuf
+  try
+    execute ('cc' . a:bang) a:candidate.user_data.ku_quickfix_nr
+  finally
+    let &switchbuf = original_switchbuf
+  endtry
 
   return v:errmsg == '' ? 0 : v:errmsg
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

@@ -1,6 +1,3 @@
-" ku source: register
-" Constants  "{{{1
-
 let s:AVAILABLE_REGISTERS = '"'
 \                         . '0123456789'
 \                         . '-'
@@ -12,23 +9,35 @@ let s:AVAILABLE_REGISTERS = '"'
 \                         . '*+'
 \                         . '/'
 
+function! ku#source#register#new() abort
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  return source
+endfunction
 
+function! s:action_Put(candidate) abort
+  execute 'normal! "' . a:candidate.user_data.ku_register . 'P'
+  return 0
+endfunction
 
+function! s:action_delete(candidate) abort
+  call setreg(a:candidate.user_data.ku_register, '')
+  return 0
+endfunction
 
+function! s:action_put(candidate) abort
+  execute 'normal! "' . a:candidate.user_data.ku_register . 'p'
+  return 0
+endfunction
 
-
-
-
-" Module  "{{{1
-
-let s:SOURCE_TEMPLATE = {
+let s:Source = {
 \   'name': 'register',
 \   'default_kind': {
 \     'action_table': {
-\       'Put': function('ku#source#register#action_Put'),
-\       'default': function('ku#source#register#action_put'),
-\       'delete': function('ku#source#register#action_delete'),
-\       'put': function('ku#source#register#action_put'),
+\       'Put': function('s:action_Put'),
+\       'default': function('s:action_put'),
+\       'delete': function('s:action_delete'),
+\       'put': function('s:action_put'),
 \     },
 \     'key_table': {
 \       "\<C-d>": 'delete',
@@ -39,30 +48,13 @@ let s:SOURCE_TEMPLATE = {
 \     'prototype': g:ku#kind#common#export,
 \   },
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#register#gather_candidates'),
-\   'on_source_enter': function('ku#source#register#on_source_enter'),
 \ }
 
-function! ku#source#register#new() abort
-  return extend({'_cached_candidates': []}, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#register#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#register#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let candidates = []
   for i in range(len(s:AVAILABLE_REGISTERS))
     let register = s:AVAILABLE_REGISTERS[i]
@@ -82,53 +74,3 @@ function! ku#source#register#on_source_enter() abort dict  "{{{2
   endfor
   let self._cached_candidates = candidates
 endfunction
-
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#register#action_Put(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_register')
-    return 'No register found'
-  endif
-  execute 'normal! "' . a:candidate.user_data.ku_register . 'P'
-  return 0
-endfunction
-
-
-
-
-
-function! ku#source#register#action_delete(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_register')
-    return 'No register found'
-  endif
-  call setreg(a:candidate.user_data.ku_register, '')
-  return 0
-endfunction
-
-
-
-
-
-function! ku#source#register#action_put(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_register')
-    return 'No register found'
-  endif
-  execute 'normal! "' . a:candidate.user_data.ku_register . 'p'
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

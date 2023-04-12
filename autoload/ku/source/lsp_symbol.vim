@@ -1,112 +1,43 @@
-" ku source: lsp_symbol
-" Module  "{{{1
-
-let s:SOURCE_TEMPLATE = {
-\   'name': 'lsp_symbol',
-\   'default_kind': {
-\     'action_table': {
-\       'open!': function('ku#source#lsp_symbol#action_open_x'),
-\       'open': function('ku#source#lsp_symbol#action_open'),
-\     },
-\     'key_table': {},
-\     'prototype': g:ku#kind#file#export,
-\   },
-\   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#lsp_symbol#gather_candidates'),
-\   'on_source_enter': function('ku#source#lsp_symbol#on_source_enter'),
-\ }
-
 function! ku#source#lsp_symbol#new() abort
-  return extend({
-  \  '_cached_candidates': [],
-  \  '_seqence': 0,
-  \  }, s:SOURCE_TEMPLATE, 'keep')
+  let source = copy(s:Source)
+  let source._cached_candidates = []
+  let source._sequence = 0
+  return source
 endfunction
 
+let s:Source = {
+\   'name': 'lsp_symbol',
+\   'default_kind': g:ku#kind#file#export,
+\   'matcher': g:ku#matcher#default,
+\ }
 
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#lsp_symbol#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates
 endfunction
 
-
-
-
-function! ku#source#lsp_symbol#on_source_enter() abort dict  "{{{2
+function! s:Source.on_source_enter() abort dict
   let bufnr = bufnr('#')
   let self._cached_candidates = []
-  let self._seqence += 1
+  let self._sequence += 1
   for server in s:available_servers(bufnr)
-    echomsg 'send_request:' server
     call lsp#send_request(server, {
     \   'method': 'textDocument/documentSymbol',
     \   'params': {
     \     'textDocument': lsp#get_text_document_identifier(bufnr),
     \   },
     \   'on_notification': function('s:on_notification',
-    \                               [server, self._seqence],
+    \                               [server, self._sequence],
     \                               self),
     \ })
   endfor
 endfunction
 
-
-
-
-
-
-
-
-" Actions  "{{{1
-function! ku#source#lsp_symbol#action_open(candidate)  "{{{2
-  let error  = ku#kind#file#action_open(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
-
-
-
-
-function! ku#source#lsp_symbol#action_open_x(candidate)  "{{{2
-  let error  = ku#kind#file#action_open_x(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
-
-
-
-
-
-
-
-" Misc.  "{{{1
-function! s:available_servers(bufnr) abort  "{{{2
+function! s:available_servers(bufnr) abort
   return filter(lsp#get_allowed_servers(a:bufnr),
   \             'lsp#capabilities#has_document_symbol_provider(v:val)')
 endfunction
 
-
-
-
-function! s:candidate_from_symbol(server, symbol, depth) abort  "{{{2
+function! s:candidate_from_symbol(server, symbol, depth) abort
   let location = a:symbol.location
   let path = lsp#utils#uri_to_path(location.uri)
   let cursor = lsp#utils#position#lsp_to_vim(path, location.range.start)
@@ -124,12 +55,8 @@ function! s:candidate_from_symbol(server, symbol, depth) abort  "{{{2
   \ }
 endfunction
 
-
-
-
-
-function! s:on_notification(server, sequence, data) abort dict  "{{{2
-  if !has_key(a:data.response, 'result') || self._seqence != a:sequence
+function! s:on_notification(server, sequence, data) abort dict
+  if !has_key(a:data.response, 'result') || self._sequence != a:sequence
     return
   endif
 
@@ -165,13 +92,3 @@ function! s:on_notification(server, sequence, data) abort dict  "{{{2
     call ku#request_update_candidates()
   endif
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

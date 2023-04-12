@@ -1,34 +1,17 @@
-" ku source: file
-" Module  "{{{1
+function ku#source#file#new(search_directory = 0)
+  let source = copy(s:Source)
+  let source._cached_candidates = {}
+  let source._search_directory = a:search_directory
+  return source
+endfunction
 
-let s:SOURCE_TEMPLATE = {
+let s:Source = {
 \   'name': 'file',
 \   'default_kind': g:ku#kind#file#export,
 \   'matcher': g:ku#matcher#default,
-\   'gather_candidates': function('ku#source#file#gather_candidates'),
-\   'on_action': function('ku#source#file#on_action'),
-\   'on_source_enter': function('ku#source#file#on_source_enter'),
-\   'on_source_leave': function('ku#source#file#on_source_leave'),
-\   'special_char_p': function('ku#source#file#special_char_p'),
-\   'valid_for_acc_p': function('ku#source#file#valid_for_acc_p'),
 \ }
 
-function! ku#source#file#new(search_directory = 0) abort
-  return extend({
-  \  '_cached_candidates': {},
-  \  '_search_directory': a:search_directory,
-  \  }, s:SOURCE_TEMPLATE, 'keep')
-endfunction
-
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
+function! s:Source.gather_candidates(pattern) abort dict
   let separator = s:path_separator()
   let [directory, show_dotfiles_p] = s:parse_pattern(a:pattern, separator)
 
@@ -64,29 +47,7 @@ function! ku#source#file#gather_candidates(pattern) abort dict  "{{{2
   return self._cached_candidates[directory]
 endfunction
 
-
-
-
-function! ku#source#file#on_source_enter() abort dict  "{{{2
-  let self._cached_candidates = {}
-  if self._search_directory isnot 0
-    lcd `=self._search_directory`
-  endif
-endfunction
-
-
-
-
-function! ku#source#file#on_source_leave() abort dict  "{{{2
-  if self._search_directory isnot 0
-    lcd -
-  endif
-endfunction
-
-
-
-
-function! ku#source#file#on_action(candidate) abort dict  "{{{2
+function! s:Source.on_action(candidate) abort dict
   if !a:candidate.user_data.ku__completed_p
     let a:candidate.user_data.ku_file_path =
     \   fnamemodify(expandcmd(a:candidate.word), ':p')
@@ -94,29 +55,28 @@ function! ku#source#file#on_action(candidate) abort dict  "{{{2
   return a:candidate
 endfunction
 
+function! s:Source.on_source_enter() abort dict
+  let self._cached_candidates = {}
+  if self._search_directory isnot 0
+    lcd `=self._search_directory`
+  endif
+endfunction
 
+function! s:Source.on_source_leave() abort dict
+  if self._search_directory isnot 0
+    lcd -
+  endif
+endfunction
 
-
-function! ku#source#file#special_char_p(char) abort dict  "{{{2
+function! s:Source.special_char_p(char) abort dict
   return a:char == s:path_separator()
 endfunction
 
-
-
-
-function! ku#source#file#valid_for_acc_p(candidate, sep) abort dict  "{{{2
+function! s:Source.valid_for_acc_p(candidate, sep) abort dict
   return a:candidate.ku_directory_p && a:sep == s:path_separator()
 endfunction
 
-
-
-
-
-
-
-
-" Misc.  "{{{1
-function! s:parse_pattern(pattern, separator) abort  "{{{2
+function! s:parse_pattern(pattern, separator) abort
   if strridx(a:pattern, a:separator) == 0  " root directory
     return ['/', 0]
   else
@@ -132,19 +92,6 @@ function! s:parse_pattern(pattern, separator) abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! s:path_separator() abort  "{{{2
+function! s:path_separator() abort
   return (exists('+shellslash') && !&shellslash) ? '\' : '/'
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker
