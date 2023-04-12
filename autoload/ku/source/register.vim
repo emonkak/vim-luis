@@ -16,17 +16,26 @@ function! ku#source#register#new() abort
 endfunction
 
 function! s:action_Put(candidate) abort
-  execute 'normal! "' . a:candidate.user_data.ku_register . 'P'
+  if !has_key(a:candidate.user_data, 'ku_register_name')
+    return 'No register found'
+  endif
+  execute 'normal! "' . a:candidate.user_data.ku_register_name . 'P'
   return 0
 endfunction
 
 function! s:action_delete(candidate) abort
-  call setreg(a:candidate.user_data.ku_register, '')
+  if !has_key(a:candidate.user_data, 'ku_register_name')
+    return 'No register found'
+  endif
+  call setreg(a:candidate.user_data.ku_register_name, '')
   return 0
 endfunction
 
 function! s:action_put(candidate) abort
-  execute 'normal! "' . a:candidate.user_data.ku_register . 'p'
+  if !has_key(a:candidate.user_data, 'ku_register_name')
+    return 'No register found'
+  endif
+  execute 'normal! "' . a:candidate.user_data.ku_register_name . 'p'
   return 0
 endfunction
 
@@ -67,7 +76,7 @@ function! s:Source.on_source_enter() abort dict
     \   'menu': 'register ' . register,
     \   'dup': 1,
     \   'user_data': {
-    \     'ku_register': register,
+    \     'ku_register_name': register,
     \   },
     \   'ku__sort_priority': i,
     \ })

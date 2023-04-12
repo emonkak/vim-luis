@@ -209,8 +209,8 @@ function! ku#take_action(action_name = 0) abort  "{{{2
     return s:FALSE
   endif
 
-  let candidate = s:completed_from_ku_p(v:completed_item)
-  \             ? v:completed_item
+  let candidate = s:session.completed_item isnot 0
+  \             ? s:session.completed_item
   \             : s:guess_candidate()
   if candidate is 0
     " Ignore.  Assumes that error message is already displayed by caller.
@@ -223,9 +223,8 @@ function! ku#take_action(action_name = 0) abort  "{{{2
   \               : a:action_name
 
   if action_name isnot 0
-    let source = candidate.user_data.ku__source
-    if has_key(source, 'on_action')
-      let candidate = source.on_action(candidate)
+    if has_key(s:session.source, 'on_action')
+      let candidate = s:session.source.on_action(candidate)
     endif
   endif
 
@@ -277,12 +276,12 @@ function! ku#_omnifunc(findstart, base) abort  "{{{2
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
   else
-    let pattern = s:remove_prompt(a:base)
     let source = s:session.source
+    let pattern = s:remove_prompt(a:base)
     let candidates = source.gather_candidates(pattern)
     let limit = get(s:session.options, 'limit', -1)
     let s:session.last_candidates =
-    \   source.matcher.match_candidates(candidates, pattern, source, limit)
+    \   source.matcher.match_candidates(candidates, pattern, limit)
     return s:session.last_candidates
   endif
 endfunction
@@ -346,8 +345,8 @@ function! s:acc_text(line, sep, candidates) abort  "{{{2
       continue
     endif
 
-    if has_key(candidate.user_data.ku__source, 'valid_for_acc_p')
-    \  && !candidate.user_data.ku__source.valid_for_acc_p(candidate, a:sep)
+    if has_key(s:session.source, 'valid_for_acc_p')
+    \  && !s:session.source.valid_for_acc_p(candidate, a:sep)
       continue
     endif
 
@@ -427,7 +426,7 @@ function! s:choose_action(candidate, kind) abort  "{{{2
   echohl NONE
   echon ' ('
   echohl kuChooseSource
-  echon a:candidate.user_data.ku__source.name
+  echon s:session.source.name
   echohl NONE
   echon ')'
   call s:list_key_bindings_sorted_by_action_name(KEY_TABLE)
@@ -448,14 +447,6 @@ function! s:choose_action(candidate, kind) abort  "{{{2
     \    '-- nothing happened.'
     return 0
   endif
-endfunction
-
-
-
-
-function! s:completed_from_ku_p(completed_item) abort  "{{{2
-  return exists('a:completed_item.user_data.ku__completed_p')
-  \      && a:completed_item.user_data.ku__completed_p
 endfunction
 
 
@@ -580,7 +571,7 @@ function! s:consume_typeahead_buffer() abort  "{{{2
     if c is 0
       break
     endif
-    let buffer .= type(c) == type(0) ? nr2char(c) : c
+    let buffer .= type(c) is v:t_number ? nr2char(c) : c
   endwhile
 
   return buffer
@@ -597,11 +588,11 @@ endfunction
 
 
 function! s:do_action(action_name, candidate, kind) abort  "{{{2
-  let ActionFn = s:find_action(a:kind, a:action_name)
-  if ActionFn is 0
+  let Action = s:find_action(a:kind, a:action_name)
+  if Action is 0
     return 'There is no such action:' string(a:action_name)
   endif
-  return ActionFn(a:candidate)
+  return Action(a:candidate)
 endfunction
 
 
@@ -633,7 +624,7 @@ function! s:get_char(...) abort  "{{{2
   let _ = {}
 
   " Normalized result of getchar()
-  let _.s = type(n) == type(0) ? nr2char(n) : n
+  let _.s = type(n) is v:t_number ? nr2char(n) : n
 
   " Characters in s
   let _.cs = map(range(len(_.s)), '_.s[v:val]')
@@ -695,10 +686,7 @@ function! s:guess_candidate() abort  "{{{2
   " current_pattern_raw with fake sources.
   return {
   \   'word': s:remove_prompt(current_pattern_raw),
-  \   'user_data': {
-  \     'ku__completed_p': s:FALSE,
-  \     'ku__source': s:session.source,
-  \   }
+  \   'user_data': {},
   \ }
 endfunction
 
@@ -718,12 +706,13 @@ function! s:initialize_ku_buffer() abort  "{{{2
 
   " Autocommands.
   augroup plugin-ku
+    autocmd BufLeave <buffer>  call s:quit_session()
+    autocmd BufUnload <buffer>  let s:ku_bufnr = -1
+    autocmd CompleteDonePre <buffer>  call s:on_CompleteDonePre()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     autocmd TextChangedP <buffer>  call s:on_TextChangedP()
-    autocmd BufLeave <buffer>  call s:quit_session()
     autocmd WinLeave <buffer>  call s:quit_session()
-    autocmd BufUnload <buffer>  let s:ku_bufnr = -1
   augroup END
 
   " Key mappings - fundamentals.
@@ -884,9 +873,9 @@ endfunction
 
 
 function! s:kind_from_candidate(candidate) abort  "{{{2
-  return has_key(a:candidate.user_data, 'ku__kind')
-  \      ? a:candidate.user_data.ku__kind
-  \      : a:candidate.user_data.ku__source.default_kind
+  return has_key(a:candidate, 'ku_kind')
+  \      ? a:candidate.ku_kind
+  \      : s:session.source.default_kind
 endfunction
 
 
@@ -904,9 +893,9 @@ function! s:make_skip_regexp(s) abort  "{{{2
   " '\!/' ==> '\V\\*!*/'
   " Here '*' means '\.\{-}'
   let [xs, last] = [a:s[:-2], a:s[-1:]]
-  return ('\V'
-  \       . substitute(escape(xs, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
-  \       . escape(last, '\'))
+  return '\V'
+  \    . substitute(escape(xs, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
+  \    . escape(last, '\')
 endfunction
 
 
@@ -916,18 +905,29 @@ function! s:new_session(source, options) abort  "{{{2
   let session = {}
 
   let session.inserted_by_acc_p = s:FALSE
-  let session.last_column = -1
+  let session.completed_item = 0
   let session.last_candidates = []
+  let session.last_column = -1
   let session.last_pattern_raw = ''
   let session.now_quitting_p = s:FALSE
+  let session.options = a:options
   let session.original_backspace = &backspace
-  let session.original_equalalways = &equalalways
   let session.original_completeopt = &completeopt
   let session.original_curwinnr = winnr()
+  let session.original_equalalways = &equalalways
   let session.source = a:source
-  let session.options = a:options
 
   return session
+endfunction
+
+
+
+
+function! s:on_CompleteDonePre() abort  "{{{2
+  let complete_info = complete_info(['selected'])
+  let s:session.completed_item = complete_info['selected'] >= 0
+  \                            ? copy(v:completed_item)
+  \                            : 0
 endfunction
 
 
@@ -951,7 +951,8 @@ endfunction
 
 
 function! s:on_TextChangedP() abort  "{{{2
-  if empty(v:completed_item)
+  let complete_info = complete_info(['selected'])
+  if complete_info['selected'] == -1
     call feedkeys(s:keys_to_complete(), 'n')
   endif
 endfunction

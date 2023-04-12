@@ -43,14 +43,19 @@ function! s:Source.on_source_enter() abort dict
   let self._cached_candidates =
   \   map(items(first_errors_for_buffer), '{
   \     "word": bufname(v:val[0] + 0),
-  \     "user_data": {
-  \       "ku_buffer_nr": v:val[0] + 0,
-  \       "ku_quickfix_nr": v:val[1],
-  \     },
+  \      "user_data": {
+  \        "ku_buffer_bufnr": v:val[0] + 0,
+  \        "ku_quickfix_nr": v:val[1],
+  \      },
+  \      "ku__sort_priority": v:val[1],
   \   }')
 endfunction
 
 function! s:open(bang, candidate) abort
+  if !has_key(a:candidate.user_data, 'ku_quickfix_nr')
+    return 'No error found'
+  endif
+
   let v:errmsg = ''
 
   let original_switchbuf = &switchbuf

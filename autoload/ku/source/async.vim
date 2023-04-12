@@ -144,15 +144,15 @@ function! s:on_vim_job_exit(channel, status) abort dict  "{{{2
 endfunction
 
 function! s:on_vim_job_stdout(channel, message) abort dict  "{{{2
-  let eof_was_reached_p = 0
+  let should_update_candidates = 0
 
   for line in split(a:message, "\n")
     if s:process_line(self, line)
-      let eof_was_reached_p = 1
+      let should_update_candidates = 1
     endif
   endfor
 
-  if eof_was_reached_p
+  if should_update_candidates
     call ku#request_update_candidates()
   endif
 endfunction

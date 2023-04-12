@@ -24,7 +24,7 @@ function! s:Source.gather_candidates(pattern) abort dict
     \   'abbr': path_without_scheme,
     \   'user_data': {
     \     'ku_file_path': path,
-    \   }
+    \   },
     \ })
   endfor
 
@@ -32,9 +32,10 @@ function! s:Source.gather_candidates(pattern) abort dict
 endfunction
 
 function! s:Source.on_action(candidate) abort dict
-  let candidate = copy(a:candidate)
-  let candidate.ku_file_path = self._scheme . ':' . a:candidate.word
-  return candidate
+  if !has_key(a:candidate.user_data, 'ku_file_path')
+    let a:candidate.user_data.ku_file_path = self._scheme . ':' . a:candidate.word
+  endif
+  return a:candidate
 endfunction
 
 function! s:Source.special_char_p(char) abort dict

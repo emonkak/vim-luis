@@ -41,9 +41,9 @@ function! s:Source.on_source_enter() abort dict
     \   'menu': printf('buffer %*d', len(max_bufnr), i),
     \   'dup': dup,
     \   'user_data': {
-    \     'ku_buffer_nr': i,
+    \     'ku__sort_priority': sort_priority,
+    \     'ku_buffer_bufnr': i,
     \   },
-    \   'ku__sort_priority': sort_priority,
     \ })
   endfor
   let self._cached_candidates = candidates

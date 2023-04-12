@@ -5,18 +5,18 @@ function! ku#source#mark#new() abort
 endfunction
 
 function! s:action_delete(candidate) abort  "{{{2
-  if !has_key(a:candidate.user_data, 'ku_mark')
+  if !has_key(a:candidate.user_data, 'ku_mark_name')
     return 'No mark found'
   endif
-  execute 'delmarks' a:candidate.user_data.ku_mark
+  execute 'delmarks' a:candidate.user_data.ku_mark_name
   return 0
 endfunction
 
 function! s:action_open(candidate) abort
-  if !has_key(a:candidate.user_data, 'ku_mark')
+  if !has_key(a:candidate.user_data, 'ku_mark_name')
     return 'No mark found'
   endif
-  execute 'normal!' '`' . a:candidate.user_data.ku_mark
+  execute 'normal!' '`' . a:candidate.ku_mark_name
   return 0
 endfunction
 
@@ -51,19 +51,19 @@ function! s:Source.on_source_enter() abort dict
     \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {
-    \     'ku_mark': mark_name,
+    \     'ku_mark_name': mark_name,
     \   },
     \   'ku__sort_priority': char2nr(mark_name),
     \ })
   endfor
-  for mark in getmarklist()  " global maarks
+  for mark in getmarklist()  " global marks
     let mark_name = mark.mark[1:]
     call add(candidates, {
     \   'word': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
     \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {
-    \     'ku_mark': mark_name,
+    \     'ku_mark_name': mark_name,
     \   },
     \   'ku__sort_priority': char2nr(mark_name),
     \ })

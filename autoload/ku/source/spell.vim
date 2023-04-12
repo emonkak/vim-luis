@@ -3,7 +3,7 @@ function! ku#source#spell#new() abort
 endfunction
 
 function! s:action_open(candidate) abort
-  execute 'normal!' "i\<C-r>" . '=a:candidate.word' . "\<CR>\<Esc>"
+  execute 'normal!' "i\<C-r>=a:candidate.word\<CR>\<Esc>"
   return 0
 endfunction
 

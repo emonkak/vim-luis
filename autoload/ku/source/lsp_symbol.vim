@@ -49,7 +49,7 @@ function! s:candidate_from_symbol(server, symbol, depth) abort
   \   'menu': kind,
   \   'user_data': {
   \     'ku_file_path': path,
-  \     'ku_cursor': cursor,
+  \     'ku_file_cursor': cursor,
   \   },
   \   'ku__sort_priority': cursor[0] * 10000 + cursor[1],
   \ }
@@ -60,7 +60,7 @@ function! s:on_notification(server, sequence, data) abort dict
     return
   endif
 
-  let symbols = type(a:data.response.result) == v:t_dict
+  let symbols = type(a:data.response.result) is v:t_dict
   \             ? [a:data.response.result]
   \             : a:data.response.result
   if empty(symbols)  " some servers also return null

@@ -4,35 +4,10 @@ function! ku#source#jumplist#new() abort
   return source
 endfunction
 
-function! s:action_open(candidate) abort
-  let error = ku#kind#buffer#action_open(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
-function! s:action_open_x(candidate) abort
-  let error = ku#kind#buffer#action_open_x(a:candidate)
-  if error isnot 0
-    return error
-  endif
-  if has_key(a:candidate.user_data, 'ku_cursor')
-    call cursor(a:candidate.user_data.ku_cursor)
-  endif
-  return 0
-endfunction
-
 let s:Source = {
 \   'name': 'jumplist',
 \   'default_kind': {
-\     'action_table': {
-\       'open': function('s:action_open'),
-\       'open_x': function('s:action_open_x'),
-\     },
+\     'action_table': {},
 \     'key_table': {},
 \     'prototype': g:ku#kind#buffer#export,
 \   },
@@ -57,8 +32,8 @@ function! s:Source.on_source_enter() abort dict
     \   'menu': 'jump ' . position,
     \   'dup': 1,
     \   'user_data': {
-    \     'ku_buffer_nr': location.bufnr,
-    \     'ku_cursor': [location.lnum, location.col],
+    \     'ku_buffer_bufnr': location.bufnr,
+    \     'ku_buffer_cursor': [location.lnum, location.col],
     \   },
     \   'ku__sort_priority': position,
     \ })

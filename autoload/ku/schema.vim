@@ -1,6 +1,3 @@
-" ku: schema
-" Constants  "{{{1
-
 let s:TYPE_LIST = 'list'
 let s:TYPE_DICTIONARY = 'dictionary'
 let s:TYPE_STRUCT = 'struct'
@@ -16,16 +13,6 @@ let s:PRIMITIVE_TYPE_NAMES = {
 \   v:t_number: 'number',
 \   v:t_string: 'string',
 \ }
-
-
-
-
-
-
-
-
-" Definitions  "{{{1
-" Kind  "{{{2
 
 let g:ku#schema#kind = {
 \   'type': 'struct',
@@ -51,12 +38,6 @@ let g:ku#schema#kind.properties.prototype = {
 \   'optional': 1,
 \ }
 
-
-
-
-
-" Matcher  "{{{2
-
 let g:ku#schema#matcher = {
 \   'type': 'struct',
 \   'properties': {
@@ -65,12 +46,6 @@ let g:ku#schema#matcher = {
 \      },
 \    },
 \ }
-
-
-
-
-
-" Source  "{{{2
 
 let g:ku#schema#source = {
 \   'type': 'struct',
@@ -106,30 +81,15 @@ let g:ku#schema#source = {
 \   },
 \ }
 
-
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#schema#validate(data, schema) abort  "{{{2
+function! ku#schema#validate(data, schema) abort
   let errors = []
   call s:validate(a:data, a:schema, '.', errors)
   return errors
 endfunction
 
-
-
-
-
-
-
-
-function! ku#schema#to_string(schema)  abort "{{{2
+function! ku#schema#to_string(schema)  abort
   let optional_marker = get(a:schema, 'optional', 0) ? '?' : ''
-  if type(a:schema.type) == v:t_number
+  if type(a:schema.type) is v:t_number
     return get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown')
     \      . optional_marker
   elseif a:schema.type ==# s:TYPE_LIST
@@ -155,17 +115,9 @@ function! ku#schema#to_string(schema)  abort "{{{2
   endif
 endfunction
 
-
-
-
-
-
-
-
-" Misc.  "{{{1
-function! s:validate(data, schema, path, errors) abort  "{{{2
-  if type(a:schema.type) == v:t_number
-    if type(a:data) != a:schema.type
+function! s:validate(data, schema, path, errors) abort
+  if type(a:schema.type) is v:t_number
+    if type(a:data) isnot a:schema.type
       let error = printf('Key %s must be %s but given data is %s',
       \           string(a:path),
       \           string(ku#schema#to_string(a:schema)),
@@ -242,13 +194,3 @@ function! s:validate(data, schema, path, errors) abort  "{{{2
     \            s:TYPE_UNION)
   endif
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker

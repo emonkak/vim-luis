@@ -1,19 +1,18 @@
-function! ku#source#project#new(directory, source_func, options = {}) abort
+function! ku#source#project#new(directory, callback) abort
   let source = copy(s:Source)
   let source._directory = a:directory
-  let source._source_func = a:source_func
-  let source._options = a:options
+  let source._callback = a:callback
   let source._cached_candidates = []
   return source
 endfunction
 
 function! s:action_open(candidate) abort
-  if has_key(a:candidate.user_data, 'ku_file_path')
-    let source = a:candidate.user_data.ku__source._source_func()
-    let options = a:candidate.user_data.ku__source._options
-    cd `=a:candidate.user_data.ku_file_path`
-    call ku#start(source, options)
-    return 0
+  if has_key(a:candidate.user_data, 'ku_project_path')
+    let path = a:candidate.user_data.ku_project_path
+    let Callback = a:candidate.user_data.ku_project_callback
+    let v:errmsg = ''
+    call Callback(path)
+    return v:errmsg != '' ? v:errmsg : 0
   else
     return 'No such directory: ' . string(a:candidate.word)
   endif
@@ -42,7 +41,8 @@ function! s:Source.on_source_enter() abort dict
     call add(candidates, {
     \   'word': fnamemodify(path, ':t'),
     \   'user_data': {
-    \     'ku_file_path': path,
+    \     'ku_project_path': path,
+    \     'ku_project_callback': self._callback,
     \   },
     \ })
   endfor
