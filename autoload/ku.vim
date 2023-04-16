@@ -405,7 +405,7 @@ function! s:choose_action(kind, candidate) abort
   "
   " Here "Prompt" is highlighted with kuChoosePrompt,
   " "Candidate" is highlighted with kuChooseCandidate, and so forth.
-  let KEY_TABLE = ku#kind#composite_key_table(a:kind)
+  let key_table = ku#kind#composite_key_table(a:kind)
   " "Candidate: {candidate} ({source})"
   echohl NONE
   echo ''
@@ -421,7 +421,7 @@ function! s:choose_action(kind, candidate) abort
   echon s:session.source.name
   echohl NONE
   echon ')'
-  call s:list_key_bindings_sorted_by_action_name(KEY_TABLE)
+  call s:list_key_bindings_sorted_by_action_name(key_table)
   echohl kuChooseMessage
   echo 'What action? '
   echohl NONE
@@ -431,8 +431,8 @@ function! s:choose_action(kind, candidate) abort
   redraw  " clear the menu message lines to avoid hit-enter prompt.
 
   " Return the action bound to the key k.
-  if has_key(KEY_TABLE, k)
-    return KEY_TABLE[k]
+  if has_key(key_table, k)
+    return key_table[k]
   else
     " FIXME: loop to rechoose?
     echo 'The key' string(k) 'is not associated with any action'
@@ -702,18 +702,18 @@ function! s:ku_active_p() abort
 endfunction
 
 function! s:list_key_bindings_sorted_by_action_name(key_table) abort
-  " ACTIONS => {
+  " actions => {
   "   'keys': [[key_value, key_repr], ...],
   "   'label': label
   " }
-  let ACTIONS = {}
+  let actions = {}
   for [key, action] in items(a:key_table)
-    if !has_key(ACTIONS, action)
-      let ACTIONS[action] = {'keys': []}
+    if !has_key(actions, action)
+      let actions[action] = {'keys': []}
     endif
-    call add(ACTIONS[action].keys, [key, strtrans(key)])
+    call add(actions[action].keys, [key, strtrans(key)])
   endfor
-  for _ in values(ACTIONS)
+  for _ in values(actions)
     call sort(_.keys)
     let _.label = join(map(copy(_.keys), 'v:val[1]'), ' ')
   endfor
@@ -724,37 +724,37 @@ function! s:list_key_bindings_sorted_by_action_name(key_table) abort
   "  ^H  left  
   " -----------
   "   cell
-  let ACTION_NAMES = sort(keys(ACTIONS), 's:compare_ignorecase')
-  let MAX_ACTION_NAME_WIDTH = max(map(keys(ACTIONS), 'len(v:val)'))
-  let MAX_LABEL_WIDTH = max(map(values(ACTIONS), 'len(v:val.label)'))
-  let MAX_CELL_WIDTH = MAX_ACTION_NAME_WIDTH + 1 + MAX_LABEL_WIDTH
-  let SPACER = '   '
-  let COLUMNS = (&columns + len(SPACER) - 1) / (MAX_CELL_WIDTH + len(SPACER))
-  let COLUMNS = max([COLUMNS, 1])
-  let N = len(ACTIONS)
-  let ROWS = N / COLUMNS + (N % COLUMNS != 0)
+  let action_names = sort(keys(actions), 's:compare_ignorecase')
+  let max_action_name_width = max(map(keys(actions), 'len(v:val)'))
+  let max_label_width = max(map(values(actions), 'len(v:val.label)'))
+  let max_cell_width = max_action_name_width + 1 + max_label_width
+  let spacer = '   '
+  let columns = (&columns + len(spacer) - 1) / (max_cell_width + len(spacer))
+  let columns = max([columns, 1])
+  let n = len(actions)
+  let rows = n / columns + (n % columns != 0)
 
-  for row in range(ROWS)
-    for column in range(COLUMNS)
-      let i = column * ROWS + row
-      if !(i < N)
+  for row in range(rows)
+    for column in range(columns)
+      let i = column * rows + row
+      if !(i < n)
         continue
       endif
 
-      echon column == 0 ? "\n" : SPACER
+      echon column == 0 ? "\n" : spacer
 
       echohl kuChooseAction
-      let _ = ACTION_NAMES[i]
+      let _ = action_names[i]
       echon _
       echohl NONE
-      echon repeat(' ', MAX_ACTION_NAME_WIDTH - len(_))
+      echon repeat(' ', max_action_name_width - len(_))
 
       echohl kuChooseKey
       echon ' '
-      let _ = ACTIONS[ACTION_NAMES[i]].label
+      let _ = actions[action_names[i]].label
       echon _
       echohl NONE
-      echon repeat(' ', MAX_LABEL_WIDTH - len(_))
+      echon repeat(' ', max_label_width - len(_))
     endfor
   endfor
 
@@ -765,9 +765,9 @@ function! s:make_skip_regexp(s) abort
   " 'abc' ==> '\Va*b*c'
   " '\!/' ==> '\V\\*!*/'
   " Here '*' means '\.\{-}'
-  let [xs, last] = [a:s[:-2], a:s[-1:]]
+  let [init, last] = [a:s[:-2], a:s[-1:]]
   return '\V'
-  \    . substitute(escape(xs, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
+  \    . substitute(escape(init, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
   \    . escape(last, '\')
 endfunction
 
