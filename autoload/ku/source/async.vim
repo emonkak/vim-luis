@@ -1,43 +1,14 @@
 let s:INVALID_CHANNEL = -1
 let s:INVALID_TIMER = -1
 
-let s:OPTIONS_SCHEMA = {
-\   'type': 'struct',
-\   'properties': {
-\     'name': {
-\       'type': v:t_string,
-\     },
-\     'default_kind': g:ku#schema#kind,
-\     'command': {
-\       'type': 'list',
-\       'item': {
-\         'type': v:t_string,
-\       },
-\     },
-\     'selector_func': {
-\       'type': v:t_func,
-\     },
-\     'debounce_time': {
-\       'type': v:t_number,
-\       'optional': 1,
-\     },
-\   },
-\ }
-
-function! ku#source#async#new(options) abort
-  let errors = ku#schema#validate(a:options, s:OPTIONS_SCHEMA)
-  if !empty(errors)
-    echoerr 'ku.source.async: Invalid format for options'
-    for error in errors
-      echoerr error
-    endfor
-    return
-  endif
+function! ku#source#async#new(name, default_kind, command, options = {}) abort
   let source = copy(s:Source)
-  let source.name = a:options.name
-  let source.default_kind = a:options.default_kind
-  let source._command = a:options.command
-  let source._selector_func = a:options.selector_func
+  let source.name = a:name
+  let source.default_kind = a:default_kind
+  let source._command = a:command
+  let source._selector_func = has_key(a:options, 'selector_func')
+  \                         ? a:options.selector_func
+  \                         : { line -> { 'word': line } }
   let source._debounce_time = get(a:options, 100)
   let source._channel = s:INVALID_CHANNEL
   let source._timer = s:INVALID_TIMER

@@ -39,6 +39,73 @@ let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
 
+let s:SCHEMA_KIND = {
+\   'type': 'struct',
+\   'properties': {
+\     'action_table': {
+\       'type': 'dictionary',
+\       'item': {
+\         'type': v:t_func,
+\       },
+\     },
+\     'key_table': {
+\       'type': 'dictionary',
+\       'item': {
+\         'type': v:t_string,
+\       },
+\     },
+\   },
+\ }
+
+let s:SCHEMA_KIND.properties.prototype = {
+\   'type': 'struct',
+\   'properties': s:SCHEMA_KIND.properties,
+\   'optional': 1,
+\ }
+
+let s:SCHEMA_MATCHER = {
+\   'type': 'struct',
+\   'properties': {
+\      'match_candidates': {
+\        'type': v:t_func,
+\      },
+\    },
+\ }
+
+let s:SCHEMA_SOURCE = {
+\   'type': 'struct',
+\   'properties': {
+\     'name': {
+\       'type': v:t_string,
+\     },
+\     'default_kind': s:SCHEMA_KIND,
+\     'matcher': s:SCHEMA_MATCHER,
+\     'gather_candidates': {
+\       'type': v:t_func,
+\     },
+\     'on_source_enter': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_source_leave': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_action': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'special_char_p': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'valid_for_acc_p': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\   },
+\ }
+
 
 
 
@@ -126,7 +193,7 @@ function! ku#start(source, options = {}) abort  "{{{2
     return s:FALSE
   endif
 
-  let errors = ku#schema#validate(a:source, g:ku#schema#source)
+  let errors = ku#schema#validate(a:source, s:SCHEMA_SOURCE)
   if !empty(errors)
     echoerr 'ku: Invalid format for source'
     for error in errors
