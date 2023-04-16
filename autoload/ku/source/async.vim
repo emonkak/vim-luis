@@ -66,36 +66,36 @@ function! s:Source.on_source_leave() abort dict
   endif
 endfunction
 
-function! s:on_nvim_job_exit(channel, exit_code, event) abort dict  "{{{2
+function! s:on_nvim_job_exit(channel, exit_code, event) abort dict
   if self._channel == a:channel
     let self._channel = s:INVALID_CHANNEL
   endif
 endfunction
 
-function! s:on_nvim_job_stdout(channel, data, event) abort dict  "{{{2
-  let eof_was_reached_p = 0
+function! s:on_nvim_job_stdout(channel, data, event) abort dict
+  let is_eof = 0
 
   let line = self._last_line . a:data[0]
   if line != ''
     if s:process_line(self, line)
-      let eof_was_reached_p = 1
+      let is_eof = 1
     endif
   endif
 
   for line in a:data[1:-2]
     if s:process_line(self, line)
-      let eof_was_reached_p = 1
+      let is_eof = 1
     endif
   endfor
 
   let self._last_line = a:data[-1]
 
-  if eof_was_reached_p
-    call ku#request_update_candidates()
+  if is_eof
+    call ku#notify_update_candidates()
   endif
 endfunction
 
-function! s:on_timer(timer) abort dict  "{{{2
+function! s:on_timer(timer) abort dict
   if self._channel isnot s:INVALID_CHANNEL
     if has('nvim')
       call chansend(self._channel, self._last_pattern . "\n")
@@ -108,27 +108,27 @@ function! s:on_timer(timer) abort dict  "{{{2
   let self._timer = s:INVALID_TIMER
 endfunction
 
-function! s:on_vim_job_exit(channel, status) abort dict  "{{{2
+function! s:on_vim_job_exit(channel, status) abort dict
   if self._channel is a:channel
     let self._channel = s:INVALID_CHANNEL
   endif
 endfunction
 
-function! s:on_vim_job_stdout(channel, message) abort dict  "{{{2
-  let should_update_candidates = 0
+function! s:on_vim_job_stdout(channel, message) abort dict
+  let is_eof = 0
 
   for line in split(a:message, "\n")
     if s:process_line(self, line)
-      let should_update_candidates = 1
+      let is_eof = 1
     endif
   endfor
 
-  if should_update_candidates
-    call ku#request_update_candidates()
+  if is_eof
+    call ku#notify_update_candidates()
   endif
 endfunction
 
-function! s:process_line(source, line) abort  "{{{2
+function! s:process_line(source, line) abort
   let components = split(a:line, '^\d\+\zs\s', 1)
   if components[0] != a:source._sequence
     return 0

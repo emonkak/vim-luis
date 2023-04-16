@@ -4,7 +4,7 @@ function! ku#source#fold#new() abort
   return source
 endfunction
 
-function! s:action_open(candidate) abort  "{{{2
+function! s:action_open(candidate) abort
   if !has_key(a:candidate.user_data, 'ku_fold_lnum')
     return 'No such fold'
   endif

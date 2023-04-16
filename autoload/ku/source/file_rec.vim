@@ -34,6 +34,14 @@ function! s:Source.gather_candidates(pattern) dict abort
   return extend(file_candidates, directory_candidates)
 endfunction
 
+function! s:Source.is_special_char(char) dict abort
+  return self._file.is_special_char(a:char)
+endfunction
+
+function! s:Source.is_valid_for_acc(candidate, sep) dict abort
+  return self._file.is_valid_for_acc(a:candidate, a:sep)
+endfunction
+
 function! s:Source.on_action(candidate) dict abort
   return self._file.on_action(a:candidate)
 endfunction
@@ -44,12 +52,4 @@ endfunction
 
 function! s:Source.on_file_leave() dict abort
   call self._file.on_source_leave()
-endfunction
-
-function! s:Source.special_char_p(char) dict abort
-  return self._file.special_char_p(a:char)
-endfunction
-
-function! s:Source.valid_for_acc_p(candidate, sep) dict abort
-  return self._file.valid_for_acc_p(a:candidate, a:sep)
 endfunction

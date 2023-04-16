@@ -49,6 +49,14 @@ function! s:Source.gather_candidates(pattern) abort dict
   return self._cached_candidates[directory]
 endfunction
 
+function! s:Source.is_special_char(char) abort dict
+  return a:char == s:path_separator()
+endfunction
+
+function! s:Source.is_valid_for_acc(candidate, sep) abort dict
+  return a:candidate._is_directory && a:sep == s:path_separator()
+endfunction
+
 function! s:Source.on_action(candidate) abort dict
   if !has_key(a:candidate.user_data, 'ku_file_path')
     let a:candidate.user_data.ku_file_path =
@@ -68,14 +76,6 @@ function! s:Source.on_source_leave() abort dict
   if self._directory isnot 0
     lcd -
   endif
-endfunction
-
-function! s:Source.special_char_p(char) abort dict
-  return a:char == s:path_separator()
-endfunction
-
-function! s:Source.valid_for_acc_p(candidate, sep) abort dict
-  return a:candidate._is_directory && a:sep == s:path_separator()
 endfunction
 
 function! s:parse_pattern(pattern, separator) abort

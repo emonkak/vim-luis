@@ -5,7 +5,7 @@ function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict
   return map(candidates, 's:normalize(v:val)')
 endfunction
 
-function! s:normalize(candidate) abort  "{{{2
+function! s:normalize(candidate) abort
   let a:candidate.equal = 1
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}

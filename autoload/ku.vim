@@ -1,35 +1,10 @@
-" ku - Interface for everything
-" Version: 0.3.0
-" Copyright (C) 2008-2009 kana <http://whileimautomaton.net/>
-" License: MIT license  {{{
-"     Permission is hereby granted, free of charge, to any person obtaining
-"     a copy of this software and associated documentation files (the
-"     "Software"), to deal in the Software without restriction, including
-"     without limitation the rights to use, copy, modify, merge, publish,
-"     distribute, sublicense, and/or sell copies of the Software, and to
-"     permit persons to whom the Software is furnished to do so, subject to
-"     the following conditions:
-"
-"     The above copyright notice and this permission notice shall be included
-"     in all copies or substantial portions of the Software.
-"
-"     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-"     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-"     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-"     IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-"     CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-"     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-"     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-" }}}
-" Constants  "{{{1
-
 let s:FALSE = 0
 let s:TRUE = !s:FALSE
 
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
-if has('win16') || has('win32') || has('win64')  " on Microsoft Windows
+if has('win32') || has('win64')  " on Microsoft Windows
   let s:KU_BUFFER_NAME = '[ku]'
 else
   let s:KU_BUFFER_NAME = '*ku*'
@@ -95,25 +70,16 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'special_char_p': {
+\     'is_special_char': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'valid_for_acc_p': {
+\     'is_valid_for_acc': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
 \   },
 \ }
-
-
-
-
-
-
-
-
-" Variables  "{{{1
 
 " Contains the information of a ku session.
 " See s:new_session() for the details of content.
@@ -126,14 +92,7 @@ if !exists('s:ku_bufnr')
   let s:ku_bufnr = -1
 endif
 
-
-
-
-
-
-
-" Interface  "{{{1
-function! ku#define_default_ui_key_mappings() abort  "{{{2
+function! ku#define_default_ui_key_mappings() abort
   nmap <buffer> <C-c> <Plug>(ku-quit-session)
   nmap <buffer> <C-i> <Plug>(ku-choose-action)
   nmap <buffer> <C-m> <Plug>(ku-do-default-action)
@@ -152,10 +111,7 @@ function! ku#define_default_ui_key_mappings() abort  "{{{2
   imap <buffer> <C-w>  <Plug>(ku-delete-backward-component)
 endfunction
 
-
-
-
-function! ku#request_update_candidates() abort  "{{{2
+function! ku#notify_update_candidates() abort
   if s:ku_active_p()
     let complete_info = complete_info(['mode'])
     if complete_info.mode != ''
@@ -164,10 +120,7 @@ function! ku#request_update_candidates() abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! ku#restart() abort  "{{{2
+function! ku#restart() abort
   if empty(s:session)
     echohl ErrorMsg
     echo 'ku: Not started yet'
@@ -182,10 +135,7 @@ function! ku#restart() abort  "{{{2
   return ku#start(last_source, options)
 endfunction
 
-
-
-
-function! ku#start(source, options = {}) abort  "{{{2
+function! ku#start(source, options = {}) abort
   if s:ku_active_p()
     echohl ErrorMsg
     echo 'ku: Already active'
@@ -265,10 +215,7 @@ function! ku#start(source, options = {}) abort  "{{{2
   return s:TRUE
 endfunction
 
-
-
-
-function! ku#take_action(action_name = 0) abort  "{{{2
+function! ku#take_action(action_name = 0) abort
   if !s:ku_active_p()
     echohl ErrorMsg
     echo 'ku: Not active'
@@ -317,23 +264,12 @@ function! ku#take_action(action_name = 0) abort  "{{{2
   return s:TRUE
 endfunction
 
-
-
-
-
-
-
-
-" Misc.  "{{{1
-function! ku#_do_action(action_name, candidate) abort  "{{{2
+function! ku#_do_action(action_name, candidate) abort
   let kind = s:kind_from_candidate(a:candidate)
   return s:do_action(a:action_name, a:candidate, kind)
 endfunction
 
-
-
-
-function! ku#_omnifunc(findstart, base) abort  "{{{2
+function! ku#_omnifunc(findstart, base) abort
   if a:findstart
     " FIXME: For in-line completion.
 
@@ -353,10 +289,7 @@ function! ku#_omnifunc(findstart, base) abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! s:acc_text(line, sep, candidates) abort  "{{{2
+function! s:acc_text(line, sep, candidates) abort
   " ACC = Automatic Component Completion
 
   let user_input_raw = s:remove_prompt(a:line)
@@ -412,8 +345,8 @@ function! s:acc_text(line, sep, candidates) abort  "{{{2
       continue
     endif
 
-    if has_key(s:session.source, 'valid_for_acc_p')
-    \  && !s:session.source.valid_for_acc_p(candidate, a:sep)
+    if has_key(s:session.source, 'is_valid_for_acc')
+    \  && !s:session.source.is_valid_for_acc(candidate, a:sep)
       continue
     endif
 
@@ -464,10 +397,7 @@ function! s:acc_text(line, sep, candidates) abort  "{{{2
   return ''  " No proper candidate found
 endfunction
 
-
-
-
-function! s:choose_action(candidate, kind) abort  "{{{2
+function! s:choose_action(candidate, kind) abort
   " Prompt      Candidate Source
   "    |          |         |
   "   _^_______  _^______  _^__
@@ -516,73 +446,7 @@ function! s:choose_action(candidate, kind) abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! s:list_key_bindings_sorted_by_action_name(key_table) abort  "{{{2
-  " ACTIONS => {
-  "   'keys': [[key_value, key_repr], ...],
-  "   'label': label
-  " }
-  let ACTIONS = {}
-  for [key, action] in items(a:key_table)
-    if !has_key(ACTIONS, action)
-      let ACTIONS[action] = {'keys': []}
-    endif
-    call add(ACTIONS[action].keys, [key, strtrans(key)])
-  endfor
-  for _ in values(ACTIONS)
-    call sort(_.keys)
-    let _.label = join(map(copy(_.keys), 'v:val[1]'), ' ')
-  endfor
-  silent! unlet _
-
-  " key  action
-  " ---  ------
-  "  ^H  left  
-  " -----------
-  "   cell
-  let ACTION_NAMES = sort(keys(ACTIONS), 's:compare_ignorecase')
-  let MAX_ACTION_NAME_WIDTH = max(map(keys(ACTIONS), 'len(v:val)'))
-  let MAX_LABEL_WIDTH = max(map(values(ACTIONS), 'len(v:val.label)'))
-  let MAX_CELL_WIDTH = MAX_ACTION_NAME_WIDTH + 1 + MAX_LABEL_WIDTH
-  let SPACER = '   '
-  let COLUMNS = (&columns + len(SPACER) - 1) / (MAX_CELL_WIDTH + len(SPACER))
-  let COLUMNS = max([COLUMNS, 1])
-  let N = len(ACTIONS)
-  let ROWS = N / COLUMNS + (N % COLUMNS != 0)
-
-  for row in range(ROWS)
-    for column in range(COLUMNS)
-      let i = column * ROWS + row
-      if !(i < N)
-        continue
-      endif
-
-      echon column == 0 ? "\n" : SPACER
-
-      echohl kuChooseAction
-      let _ = ACTION_NAMES[i]
-      echon _
-      echohl NONE
-      echon repeat(' ', MAX_ACTION_NAME_WIDTH - len(_))
-
-      echohl kuChooseKey
-      echon ' '
-      let _ = ACTIONS[ACTION_NAMES[i]].label
-      echon _
-      echohl NONE
-      echon repeat(' ', MAX_LABEL_WIDTH - len(_))
-    endfor
-  endfor
-
-  return
-endfunction
-
-
-
-
-function! s:compare_ignorecase(x, y) abort  "{{{2
+function! s:compare_ignorecase(x, y) abort
   " Comparing function for sort() to do consistently case-insensitive sort.
   "
   " sort(list, 1) does case-insensitive sort,
@@ -600,18 +464,12 @@ function! s:compare_ignorecase(x, y) abort  "{{{2
   \    : 0)))
 endfunction
 
-
-
-
-function! s:complete_the_prompt() abort  "{{{2
+function! s:complete_the_prompt() abort
   call setline('.', s:PROMPT . getline('.'))
   return
 endfunction
 
-
-
-
-function! s:composite_key_table(kind) abort  "{{{2
+function! s:composite_key_table(kind) abort
   let key_table = {}
   let kind = a:kind
 
@@ -626,11 +484,7 @@ function! s:composite_key_table(kind) abort  "{{{2
   return key_table
 endfunction
 
-
-
-
-
-function! s:consume_typeahead_buffer() abort  "{{{2
+function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
   while s:TRUE
@@ -644,17 +498,11 @@ function! s:consume_typeahead_buffer() abort  "{{{2
   return buffer
 endfunction
 
-
-
-
-function! s:contains_the_prompt_p(s) abort  "{{{2
+function! s:contains_the_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
-
-
-
-function! s:do_action(action_name, candidate, kind) abort  "{{{2
+function! s:do_action(action_name, candidate, kind) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
     return 'There is no such action:' string(a:action_name)
@@ -662,10 +510,7 @@ function! s:do_action(action_name, candidate, kind) abort  "{{{2
   return Action(a:candidate)
 endfunction
 
-
-
-
-function! s:find_action(kind, action_name) abort  "{{{2
+function! s:find_action(kind, action_name) abort
   let kind = a:kind
 
   while 1
@@ -681,10 +526,7 @@ function! s:find_action(kind, action_name) abort  "{{{2
   return 0
 endfunction
 
-
-
-
-function! s:get_char(...) abort  "{{{2
+function! s:get_char(...) abort
   " Rich version of getchar()
 
   let n = call('getchar', a:000)
@@ -702,10 +544,7 @@ function! s:get_char(...) abort  "{{{2
   return _
 endfunction
 
-
-
-
-function! s:get_key() abort  "{{{2
+function! s:get_key() abort
   " Alternative getchar() to get a logical key such as <F1> and <M-{x}>.
 
   let k1 = s:get_char()
@@ -718,10 +557,7 @@ function! s:get_key() abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! s:guess_candidate() abort  "{{{2
+function! s:guess_candidate() abort
   let current_pattern_raw = getline(s:LNUM_PATTERN)
 
   if current_pattern_raw !=# s:session.last_pattern_raw
@@ -757,10 +593,7 @@ function! s:guess_candidate() abort  "{{{2
   \ }
 endfunction
 
-
-
-
-function! s:initialize_ku_buffer() abort  "{{{2
+function! s:initialize_ku_buffer() abort
   " The current buffer is initialized.
 
   " Basic settings.
@@ -833,15 +666,12 @@ function! s:initialize_ku_buffer() abort  "{{{2
   return
 endfunction
 
-
-
-
-function! s:keys_to_complete() abort  "{{{2
+function! s:keys_to_complete() abort
   let cursor_column = col('.')
   let line = getline('.')
 
   " The order of the following conditions are important.
-  if !s:contains_the_prompt_p(line)
+  if !s:contains_the_prompt(line)
     " Complete the prompt if it doesn't exist for some reasons.
     let keys = repeat("\<Right>", len(s:PROMPT))
     call s:complete_the_prompt()
@@ -850,46 +680,34 @@ function! s:keys_to_complete() abort  "{{{2
     let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
   elseif len(line) < cursor_column && cursor_column != s:session.last_column
     let sep = line[-1:]
-    " New character is inserted.  Let's complete automatically.
-    if !s:session.inserted_by_acc_p
+    " New character is inserted. Let's complete automatically.
+    if !s:session.is_inserted_by_acc
     \  && len(s:PROMPT) + 2 <= len(line)
-    \  && has_key(s:session.source, 'special_char_p')
-    \  && s:session.source.special_char_p(sep)
+    \  && has_key(s:session.source, 'is_special_char')
+    \  && s:session.source.is_special_char(sep)
       " (1) The last inserted character is not inserted by ACC.
       " (2) It is a special character for current source
       " (3) It seems not to be the 1st one in line.
       "
       " The (3) is necessary to input a special character as the 1st character
-      " in line.  For example, without this condition, user cannot input the
+      " in line. For example, without this condition, user cannot input the
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
-      "
-      " FIXME: Is s:session.last_candidates reliable?  If user types several
-      "        characters quickely, Vim doesn't call 'omnifunc' for all but
-      "        the last character.  So here we have to ensure that
-      "        s:session.last_candidates contains reliable value,
-      "        by calling 'omnifunc' appropriately.
-      "
-      " FIXME: But what should we do if user quickely types two or more
-      "        special character?  It's hard to make
-      "        s:session.last_candidates reliable, isn't it?
-      "        At this moment, we simply ignore such case.
       let acc_text = s:acc_text(line, sep, s:session.last_candidates)
-      let s:session.inserted_by_acc_p = s:TRUE
+      let s:session.is_inserted_by_acc = s:TRUE
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
-          " FIXME: Should we update l:line for s:session.last_pattern_raw?
         call setline('.', acc_text)
         let keys = "\<End>" . sep
-        let s:session.inserted_by_acc_p = s:TRUE
+        let s:session.is_inserted_by_acc = s:TRUE
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let s:session.inserted_by_acc_p = s:FALSE
+        let s:session.is_inserted_by_acc = s:FALSE
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let s:session.inserted_by_acc_p = s:FALSE
+      let s:session.is_inserted_by_acc = s:FALSE
     endif
   else
     let keys = ''
@@ -900,10 +718,7 @@ function! s:keys_to_complete() abort  "{{{2
   return keys
 endfunction
 
-
-
-
-function! s:keys_to_delete_backward_component() abort  "{{{2
+function! s:keys_to_delete_backward_component() abort
   " In the following figures,
   " '|' means the cursor position, and
   " '^' means characters to delete:
@@ -919,9 +734,9 @@ function! s:keys_to_delete_backward_component() abort  "{{{2
 
   let line = getline('.')
   if len(line) < col('.')
-    if has_key(s:session.source, 'special_char_p')
+    if has_key(s:session.source, 'is_special_char')
       for i in range(len(line) - 2, 0, -1)
-        if s:session.source.special_char_p(line[i:i])
+        if s:session.source.is_special_char(line[i:i])
           let num_chars = strchars(line[i + 1:])
           return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
         endif
@@ -936,26 +751,77 @@ function! s:keys_to_delete_backward_component() abort  "{{{2
   endif
 endfunction
 
-
-
-
-function! s:kind_from_candidate(candidate) abort  "{{{2
+function! s:kind_from_candidate(candidate) abort
   return has_key(a:candidate, 'ku_kind')
   \      ? a:candidate.ku_kind
   \      : s:session.source.default_kind
 endfunction
 
-
-
-
-function! s:ku_active_p() abort  "{{{2
+function! s:ku_active_p() abort
   return bufexists(s:ku_bufnr) && bufwinnr(s:ku_bufnr) != -1
 endfunction
 
+function! s:list_key_bindings_sorted_by_action_name(key_table) abort
+  " ACTIONS => {
+  "   'keys': [[key_value, key_repr], ...],
+  "   'label': label
+  " }
+  let ACTIONS = {}
+  for [key, action] in items(a:key_table)
+    if !has_key(ACTIONS, action)
+      let ACTIONS[action] = {'keys': []}
+    endif
+    call add(ACTIONS[action].keys, [key, strtrans(key)])
+  endfor
+  for _ in values(ACTIONS)
+    call sort(_.keys)
+    let _.label = join(map(copy(_.keys), 'v:val[1]'), ' ')
+  endfor
+  silent! unlet _
 
+  " key  action
+  " ---  ------
+  "  ^H  left  
+  " -----------
+  "   cell
+  let ACTION_NAMES = sort(keys(ACTIONS), 's:compare_ignorecase')
+  let MAX_ACTION_NAME_WIDTH = max(map(keys(ACTIONS), 'len(v:val)'))
+  let MAX_LABEL_WIDTH = max(map(values(ACTIONS), 'len(v:val.label)'))
+  let MAX_CELL_WIDTH = MAX_ACTION_NAME_WIDTH + 1 + MAX_LABEL_WIDTH
+  let SPACER = '   '
+  let COLUMNS = (&columns + len(SPACER) - 1) / (MAX_CELL_WIDTH + len(SPACER))
+  let COLUMNS = max([COLUMNS, 1])
+  let N = len(ACTIONS)
+  let ROWS = N / COLUMNS + (N % COLUMNS != 0)
 
+  for row in range(ROWS)
+    for column in range(COLUMNS)
+      let i = column * ROWS + row
+      if !(i < N)
+        continue
+      endif
 
-function! s:make_skip_regexp(s) abort  "{{{2
+      echon column == 0 ? "\n" : SPACER
+
+      echohl kuChooseAction
+      let _ = ACTION_NAMES[i]
+      echon _
+      echohl NONE
+      echon repeat(' ', MAX_ACTION_NAME_WIDTH - len(_))
+
+      echohl kuChooseKey
+      echon ' '
+      let _ = ACTIONS[ACTION_NAMES[i]].label
+      echon _
+      echohl NONE
+      echon repeat(' ', MAX_LABEL_WIDTH - len(_))
+    endfor
+  endfor
+
+  return
+endfunction
+
+function! s:make_skip_regexp(s) abort
   " 'abc' ==> '\Va*b*c'
   " '\!/' ==> '\V\\*!*/'
   " Here '*' means '\.\{-}'
@@ -965,18 +831,15 @@ function! s:make_skip_regexp(s) abort  "{{{2
   \    . escape(last, '\')
 endfunction
 
-
-
-
-function! s:new_session(source, options) abort  "{{{2
+function! s:new_session(source, options) abort
   let session = {}
 
-  let session.inserted_by_acc_p = s:FALSE
   let session.completed_item = 0
+  let session.is_inserted_by_acc = s:FALSE
+  let session.is_quitting = s:FALSE
   let session.last_candidates = []
   let session.last_column = -1
   let session.last_pattern_raw = ''
-  let session.now_quitting_p = s:FALSE
   let session.options = a:options
   let session.original_backspace = &backspace
   let session.original_completeopt = &completeopt
@@ -987,55 +850,40 @@ function! s:new_session(source, options) abort  "{{{2
   return session
 endfunction
 
-
-
-
-function! s:on_CompleteDonePre() abort  "{{{2
+function! s:on_CompleteDonePre() abort
   let complete_info = complete_info(['selected'])
   let s:session.completed_item = complete_info['selected'] >= 0
   \                            ? copy(v:completed_item)
   \                            : 0
 endfunction
 
-
-
-
-function! s:on_CursorMovedI() abort  "{{{2
+function! s:on_CursorMovedI() abort
   call feedkeys(s:keys_to_complete(), 'n')
 endfunction
 
-
-
-
-function! s:on_InsertEnter() abort  "{{{2
-  let s:session.inserted_by_acc_p = s:FALSE
+function! s:on_InsertEnter() abort
+  let s:session.is_inserted_by_acc = s:FALSE
   let s:session.last_column = -1
   let s:session.last_pattern_raw = ''
   call feedkeys(s:keys_to_complete(), 'n')
 endfunction
 
-
-
-
-function! s:on_TextChangedP() abort  "{{{2
+function! s:on_TextChangedP() abort
   let complete_info = complete_info(['selected'])
   if complete_info['selected'] == -1
     call feedkeys(s:keys_to_complete(), 'n')
   endif
 endfunction
 
-
-
-
-function! s:quit_session() abort  "{{{2
+function! s:quit_session() abort
   " Assumption: The current buffer is the ku buffer.
-  " We have to check s:session.now_quitting_p to avoid unnecessary
+  " We have to check s:session.is_quitting to avoid unnecessary
   " :close'ing, because s:quit_session() may be called recursively.
-  if s:session.now_quitting_p
+  if s:session.is_quitting
     return s:FALSE
   endif
 
-  let s:session.now_quitting_p = s:TRUE
+  let s:session.is_quitting = s:TRUE
   if has_key(s:session.source, 'on_source_leave')
     call s:session.source.on_source_leave()
   endif
@@ -1045,24 +893,11 @@ function! s:quit_session() abort  "{{{2
   let &equalalways = s:session.original_equalalways
   let &completeopt = s:session.original_completeopt
   execute s:session.original_curwinnr 'wincmd w'
-  let s:session.now_quitting_p = s:FALSE
+  let s:session.is_quitting = s:FALSE
 
   return s:TRUE
 endfunction
 
-
-
-
-function! s:remove_prompt(s) abort  "{{{2
-  return s:contains_the_prompt_p(a:s) ? a:s[len(s:PROMPT):] : a:s
+function! s:remove_prompt(s) abort
+  return s:contains_the_prompt(a:s) ? a:s[len(s:PROMPT):] : a:s
 endfunction
-
-
-
-
-
-
-
-
-" __END__  "{{{1
-" vim: foldmethod=marker
