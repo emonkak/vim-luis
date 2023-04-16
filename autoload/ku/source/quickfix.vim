@@ -4,11 +4,11 @@ function! ku#source#quickfix#new() abort
   return source
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   return s:open('', a:candidate)
 endfunction
 
-function! s:action_open_x(candidate) abort
+function! s:action_open_x(kind, candidate) abort
   return s:open('!', a:candidate)
 endfunction
 

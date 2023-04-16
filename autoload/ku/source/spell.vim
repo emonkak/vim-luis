@@ -2,17 +2,17 @@ function! ku#source#spell#new() abort
   return s:Source
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   execute 'normal!' "i\<C-r>=a:candidate.word\<CR>\<Esc>"
   return 0
 endfunction
 
-function! s:action_put(candidate) abort
+function! s:action_put(kind, candidate) abort
   put =a:candidate.word
   return 0
 endfunction
 
-function! s:action_put_x(candidate) abort
+function! s:action_put_x(kind, candidate) abort
   put! =a:candidate.word
   return 0
 endfunction

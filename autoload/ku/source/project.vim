@@ -6,7 +6,7 @@ function! ku#source#project#new(directory, callback) abort
   return source
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   if has_key(a:candidate.user_data, 'ku_project_path')
     let path = a:candidate.user_data.ku_project_path
     let Callback = a:candidate.user_data.ku_project_callback

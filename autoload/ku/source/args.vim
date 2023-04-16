@@ -4,7 +4,7 @@ function! ku#source#args#new() abort
   return source
 endfunction
 
-function! s:action_argdelete(candidate) abort
+function! s:action_argdelete(kind, candidate) abort
   let v:errmsg = ''
   silent! execute 'argdelete' fnameescape(a:candidate.word)
   return v:errmsg == '' ? 0 : v:errmsg

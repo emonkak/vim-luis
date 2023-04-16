@@ -233,7 +233,7 @@ function! ku#take_action(action_name = 0) abort
 
   let kind = s:kind_from_candidate(candidate)
   let action_name = a:action_name is 0
-  \               ? s:choose_action(candidate, kind)
+  \               ? s:choose_action(kind, candidate)
   \               : a:action_name
 
   if action_name isnot 0
@@ -253,7 +253,7 @@ function! ku#take_action(action_name = 0) abort
     return s:FALSE
   endif
 
-  let error = s:do_action(action_name, candidate, kind)
+  let error = ku#kind#do_action(kind, action_name, candidate)
   if error isnot 0
     echohl ErrorMsg
     echomsg error
@@ -262,11 +262,6 @@ function! ku#take_action(action_name = 0) abort
   endif
 
   return s:TRUE
-endfunction
-
-function! ku#_do_action(action_name, candidate) abort
-  let kind = s:kind_from_candidate(a:candidate)
-  return s:do_action(a:action_name, a:candidate, kind)
 endfunction
 
 function! ku#_omnifunc(findstart, base) abort
@@ -397,7 +392,7 @@ function! s:acc_text(line, sep, candidates) abort
   return ''  " No proper candidate found
 endfunction
 
-function! s:choose_action(candidate, kind) abort
+function! s:choose_action(kind, candidate) abort
   " Prompt      Candidate Source
   "    |          |         |
   "   _^_______  _^______  _^__
@@ -410,7 +405,7 @@ function! s:choose_action(candidate, kind) abort
   "
   " Here "Prompt" is highlighted with kuChoosePrompt,
   " "Candidate" is highlighted with kuChooseCandidate, and so forth.
-  let KEY_TABLE = s:composite_key_table(a:kind)
+  let KEY_TABLE = ku#kind#composite_key_table(a:kind)
   " "Candidate: {candidate} ({source})"
   echohl NONE
   echo ''
@@ -469,21 +464,6 @@ function! s:complete_the_prompt() abort
   return
 endfunction
 
-function! s:composite_key_table(kind) abort
-  let key_table = {}
-  let kind = a:kind
-
-  while 1
-    call extend(key_table, kind.key_table)
-    if !has_key(kind, 'prototype')
-      break
-    endif
-    let kind = kind.prototype
-  endwhile
-
-  return key_table
-endfunction
-
 function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
@@ -502,58 +482,18 @@ function! s:contains_the_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
-function! s:do_action(action_name, candidate, kind) abort
-  let Action = s:find_action(a:kind, a:action_name)
-  if Action is 0
-    return 'There is no such action:' string(a:action_name)
-  endif
-  return Action(a:candidate)
-endfunction
-
-function! s:find_action(kind, action_name) abort
-  let kind = a:kind
-
-  while 1
-    if has_key(kind.action_table, a:action_name)
-      return kind.action_table[a:action_name]
-    endif
-    if !has_key(kind, 'prototype')
-      break
-    endif
-    let kind = kind.prototype
-  endwhile
-
-  return 0
-endfunction
-
-function! s:get_char(...) abort
-  " Rich version of getchar()
-
-  let n = call('getchar', a:000)
-  let _ = {}
-
-  " Normalized result of getchar()
-  let _.s = type(n) is v:t_number ? nr2char(n) : n
-
-  " Characters in s
-  let _.cs = map(range(len(_.s)), '_.s[v:val]')
-
-  " Bytes corresponding to cs
-  let _.bs = map(copy(_.cs), 'char2nr(v:val)')
-
-  return _
-endfunction
-
 function! s:get_key() abort
   " Alternative getchar() to get a logical key such as <F1> and <M-{x}>.
 
-  let k1 = s:get_char()
+  let k1 = getchar()
+  let k1 = type(k1) is v:t_number ? nr2char(k1) : k1
 
-  if k1.s ==# "\<Esc>"
-    let k2 = s:get_char(0)
-    return k1.s . k2.s
+  if k1 ==# "\<Esc>"
+    let k2 = getchar(0)
+    let k2 = type(k2) is v:t_number ? nr2char(k2) : k2
+    return k1 . k2
   else
-    return k1.s
+    return k1
   endif
 endfunction
 

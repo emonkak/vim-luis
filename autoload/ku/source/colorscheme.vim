@@ -4,7 +4,7 @@ function! ku#source#colorscheme#new() abort
   return source
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   let v:errmsg = ''
   execute 'colorscheme' a:candidate.word
   return v:errmsg == '' ? 0 : v:errmsg

@@ -1,22 +1,22 @@
-function! s:action_cd(candidate) abort
+function! s:action_cd(kind, candidate) abort
   let path = s:path_from_candidate(a:candidate)
   let v:errmsg = ''
   silent! cd `=fnamemodify(path, ':p:h')`
   return v:errmsg == '' ? 0 : v:errmsg
 endfunction
 
-function! s:action_lcd(candidate) abort
+function! s:action_lcd(kind, candidate) abort
   let path = s:path_from_candidate(a:candidate)
   let v:errmsg = ''
   silent! lcd `=fnamemodify(patht, ':p:h')`
   return v:errmsg == '' ? 0 : v:errmsg
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   return s:open('', a:candidate)
 endfunction
 
-function! s:action_open_x(candidate) abort
+function! s:action_open_x(kind, candidate) abort
   return s:open('!', a:candidate)
 endfunction
 

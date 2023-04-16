@@ -1,91 +1,91 @@
-function! s:action_Bottom(candidate) abort
-  return s:open_with_split('botright', a:candidate)
+function! s:action_Bottom(kind, candidate) abort
+  return s:open_with_split(a:kind, 'botright', a:candidate)
 endfunction
 
-function! s:action_Left(candidate) abort
-  return s:open_with_split('topleft vertical', a:candidate)
+function! s:action_Left(kind, candidate) abort
+  return s:open_with_split(a:kind, 'topleft vertical', a:candidate)
 endfunction
 
-function! s:action_Right(candidate) abort
-  return s:open_with_split('botright vertical', a:candidate)
+function! s:action_Right(kind, candidate) abort
+  return s:open_with_split(a:kind, 'botright vertical', a:candidate)
 endfunction
 
-function! s:action_Top(candidate) abort
-  return s:open_with_split('topleft', a:candidate)
+function! s:action_Top(kind, candidate) abort
+  return s:open_with_split(a:kind, 'topleft', a:candidate)
 endfunction
 
-function! s:action_Yank(candidate) abort
+function! s:action_Yank(kind, candidate) abort
   call setreg('"', a:candidate.word, 'l')
   return 0
 endfunction
 
-function! s:action_above(candidate) abort
-  return s:open_with_split('leftabove', a:candidate)
+function! s:action_above(kind, candidate) abort
+  return s:open_with_split(a:kind, 'leftabove', a:candidate)
 endfunction
 
-function! s:action_below(candidate) abort
-  return s:open_with_split('belowright', a:candidate)
+function! s:action_below(kind, candidate) abort
+  return s:open_with_split(a:kind, 'belowright', a:candidate)
 endfunction
 
-function! s:action_cancel(candidate) abort
+function! s:action_cancel(kind, candidate) abort
   " Cancel to take actioin - nothing to do.
   return 0
 endfunction
 
-function! s:action_default(candidate) abort
-  return ku#_do_action('open', a:candidate)
+function! s:action_default(kind, candidate) abort
+  return ku#kind#do_action(a:kind, 'open', a:candidate)
 endfunction
 
-function! s:action_ex(candidate) abort
+function! s:action_ex(kind, candidate) abort
   " Resultl is ':| {candidate}', here '|' means the cursor position.
   call feedkeys(printf(": %s\<C-b>", fnameescape(a:candidate.word)), 'n')
   return 0
 endfunction
 
-function! s:action_left(candidate) abort
-  return s:open_with_split('leftabove vertical', a:candidate)
+function! s:action_left(kind, candidate) abort
+  return s:open_with_split(a:kind, 'leftabove vertical', a:candidate)
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   return 'Action "open" is not defined for this candidate: '
   \      . string(a:candidate)
 endfunction
 
-function! s:action_open_x(candidate) abort
-  return ku#_do_action('open', a:candidate)
+function! s:action_open_x(kind, candidate) abort
+  return ku#kind#do_action(a:kind, 'open', a:candidate)
 endfunction
 
-function! s:action_right(candidate) abort
-  return s:open_with_split('belowright vertical', a:candidate)
+function! s:action_right(kind, candidate) abort
+  return s:open_with_split(a:kind, 'belowright vertical', a:candidate)
 endfunction
 
-function! s:action_select(candidate) abort
+function! s:action_select(kind, candidate) abort
   call ku#restart()
   return 0
 endfunction
 
-function! s:action_tab_Left(candidate) abort
-  return s:open_with_split('0 tab', a:candidate)
+function! s:action_tab_Left(kind, candidate) abort
+  return s:open_with_split(a:kind, '0 tab', a:candidate)
 endfunction
 
-function! s:action_tab_Right(candidate) abort
-  return s:open_with_split(tabpagenr('$') . ' tab', a:candidate)
+function! s:action_tab_Right(kind, candidate) abort
+  return s:open_with_split(a:kind, tabpagenr('$') . ' tab', a:candidate)
 endfunction
 
-function! s:action_tab_left(candidate) abort
-  return s:open_with_split((tabpagenr() - 1) . ' tab', a:candidate)
+function! s:action_tab_left(kind, candidate) abort
+  return s:open_with_split(a:kind, (tabpagenr() - 1) . ' tab', a:candidate)
 endfunction
 
-function! s:action_tab_right(candidate) abort
-  return s:open_with_split('tab', a:candidate)
+function! s:action_tab_right(kind, candidate) abort
+  return s:open_with_split(a:kind, 'tab', a:candidate)
 endfunction
 
-function! s:action_yank(candidate) abort
+function! s:action_yank(kind, candidate) abort
   call setreg('"', a:candidate.word, 'c')
   return 0
 endfunction
 
-function! s:open_with_split(direction, candidate) abort
+function! s:open_with_split(kind, direction, candidate) abort
   let original_tabpagenr = tabpagenr()
   let original_curwinnr = winnr()
   let original_winrestcmd = winrestcmd()
@@ -96,7 +96,7 @@ function! s:open_with_split(direction, candidate) abort
     return v:errmsg
   endif
 
-  let _ = ku#_do_action('open', a:candidate)
+  let _ = ku#kind#do_action(a:kind, 'open', a:candidate)
 
   if _ is 0
     return 0

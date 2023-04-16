@@ -4,7 +4,7 @@ function! ku#source#mark#new() abort
   return source
 endfunction
 
-function! s:action_delete(candidate) abort
+function! s:action_delete(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'ku_mark_name')
     return 'No mark found'
   endif
@@ -12,7 +12,7 @@ function! s:action_delete(candidate) abort
   return 0
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'ku_mark_name')
     return 'No mark found'
   endif

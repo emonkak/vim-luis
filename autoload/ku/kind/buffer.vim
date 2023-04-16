@@ -1,32 +1,32 @@
-function! s:action_delete(candidate) abort
+function! s:action_delete(kind, candidate) abort
   return s:do_command('bdelete', a:candidate)
 endfunction
 
-function! s:action_delete_x(candidate) abort
+function! s:action_delete_x(kind, candidate) abort
   return s:do_command('bdelete!', a:candidate)
 endfunction
 
-function! s:action_open(candidate) abort
+function! s:action_open(kind, candidate) abort
   return s:do_command('buffer', a:candidate)
 endfunction
 
-function! s:action_open_x(candidate) abort
+function! s:action_open_x(kind, candidate) abort
   return s:do_command('buffer!', a:candidate)
 endfunction
 
-function! s:action_unload(candidate) abort
+function! s:action_unload(kind, candidate) abort
   return s:do_command('bunload', a:candidate)
 endfunction
 
-function! s:action_unload_x(candidate) abort
+function! s:action_unload_x(kind, candidate) abort
   return s:do_command('bunload!', a:candidate)
 endfunction
 
-function! s:action_wipeout(candidate) abort
+function! s:action_wipeout(kind, candidate) abort
   return s:do_command('bwipeout', a:candidate)
 endfunction
 
-function! s:action_wipeout_x(candidate) abort
+function! s:action_wipeout_x(kind, candidate) abort
   return s:do_command('bwipeout!', a:candidate)
 endfunction
 

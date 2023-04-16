@@ -15,7 +15,7 @@ function! ku#source#register#new() abort
   return source
 endfunction
 
-function! s:action_Put(candidate) abort
+function! s:action_Put(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'ku_register_name')
     return 'No register found'
   endif
@@ -23,7 +23,7 @@ function! s:action_Put(candidate) abort
   return 0
 endfunction
 
-function! s:action_delete(candidate) abort
+function! s:action_delete(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'ku_register_name')
     return 'No register found'
   endif
@@ -31,7 +31,7 @@ function! s:action_delete(candidate) abort
   return 0
 endfunction
 
-function! s:action_put(candidate) abort
+function! s:action_put(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'ku_register_name')
     return 'No register found'
   endif
