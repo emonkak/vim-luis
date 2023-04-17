@@ -25,7 +25,7 @@ function! s:open(bang, candidate) abort
   if path == ''
     return 'No file chosen'
   endif
-  execute 'edit'.a:bang '`=path`'
+  execute ('edit' . a:bang) '`=fnamemodify(path, ":.")`'
   if has_key(a:candidate.user_data, 'ku_file_cursor')
     call cursor(a:candidate.user_data.ku_file_cursor)
   endif

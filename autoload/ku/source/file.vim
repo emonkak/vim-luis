@@ -21,14 +21,14 @@ function! s:Source.gather_candidates(pattern) abort dict
     let prefix = directory == './' ? '' : directory
 
     for filename in readdir(expanded_directory)
-      let path = prefix . filename
+      let relative_path = prefix . filename
       let absolute_path = fnamemodify(expanded_directory . filename, ':p')
       let type = getftype(absolute_path)
       let is_directory = type == 'dir'
       \                  || (type == 'link' && isdirectory(absolute_path))
       call add(candidates, {
-      \   'word': path,
-      \   'abbr': path . (is_directory ? separator : ''),
+      \   'word': relative_path,
+      \   'abbr': relative_path . (is_directory ? separator : ''),
       \   'menu': type,
       \   'user_data': {
       \     'ku_file_path': absolute_path,
