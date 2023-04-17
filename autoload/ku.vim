@@ -174,12 +174,12 @@ function! ku#start(source, options = {}) abort
   2 wincmd _
 
   " Set some options.
-    " Ensure to allow backspacing after ACC, etc.  These features move the
-    " cursor in Insert mode and such operation starts new Insert mode, so that
-    " backspacing may not work after ACC, etc if the value of 'backspace' is
-    " not properly set.
+  " Ensure to allow backspacing after ACC, etc. These features move the cursor
+  " in Insert mode and such operation starts new Insert mode, so that
+  " backspacing may not work after ACC, etc if the value of 'backspace' is
+  " not properly set.
   set backspace=eol,indent,start
-    " Ensure to show ins-completion-menu while automatic completion.
+  " Ensure to show ins-completion-menu while automatic completion.
   set completeopt=menu,menuone
   set noequalalways
 
@@ -187,7 +187,7 @@ function! ku#start(source, options = {}) abort
   " BUGS: To avoid unexpected behavior caused by automatic completion of the
   "       prompt, append the prompt and {initial-pattern} at this timing.
   "       Automatic completion is implemented by feedkeys() and starting
-  "       Insert mode is also implemented by feedkeys().  These feedings must
+  "       Insert mode is also implemented by feedkeys(). These feedings must
   "       be done carefully.
   silent % delete _
   normal! o
@@ -202,7 +202,7 @@ function! ku#start(source, options = {}) abort
   "       Otherwise, :startinsert! behaves as '$i', not 'A',
   "       so it is inconvenient.
   " BUGS: It's not possible to emulate the same input by
-  "       s:consume_typeahead_buffer() and feedkeys().  Because there is no
+  "       s:consume_typeahead_buffer() and feedkeys(). Because there is no
   "       way to get information on the source of an input character, for
   "       example, typed character, mapped character, etc.
   let typeahead_buffer = s:consume_typeahead_buffer()
@@ -227,7 +227,7 @@ function! ku#take_action(action_name = 0) abort
   \             ? s:session.completed_item
   \             : s:guess_candidate()
   if candidate is 0
-    " Ignore.  Assumes that error message is already displayed by caller.
+    " Ignore. Assumes that error message is already displayed by caller.
     return s:FALSE
   endif
 
@@ -266,8 +266,6 @@ endfunction
 
 function! ku#_omnifunc(findstart, base) abort
   if a:findstart
-    " FIXME: For in-line completion.
-
     let s:session.last_candidates = []
 
     " To determine whether the content of the current line is inserted by
@@ -291,7 +289,7 @@ function! s:acc_text(line, sep, candidates) abort
   let line_components = split(user_input_raw, a:sep, s:TRUE)
 
   " Find a candidate which has the same components but the last 2 ones of
-  " line_components.  Because line_components[-1] is always empty and
+  " line_components. Because line_components[-1] is always empty and
   " line_components[-2] is almost imperfect name of a component.
   "
   " Example:
@@ -363,12 +361,12 @@ function! s:acc_text(line, sep, candidates) abort
     "     i == 0
     "     t ==# 'man/man1'
     "            ^
-      " Count of 'prefix' components in line_components.
-      " 'prefix' components are all of line_components but the last two ones.
+    " Count of 'prefix' components in line_components.
+    " 'prefix' components are all of line_components but the last two ones.
     let c = len(line_components) - 2
-      " Pattern for the partially typed component = line_components[-2].
+    " Pattern for the partially typed component = line_components[-2].
     let p = '\c' . s:make_skip_regexp(line_components[-2])
-      " Tail of candidate.word without 'prefix' component in line_components.
+    " Tail of candidate.word without 'prefix' component in line_components.
     let t = join(candidate_components[(c):], a:sep)
 
     let i = matchend(t, p)
@@ -434,7 +432,6 @@ function! s:choose_action(kind, candidate) abort
   if has_key(key_table, k)
     return key_table[k]
   else
-    " FIXME: loop to rechoose?
     echo 'The key' string(k) 'is not associated with any action'
     \    '-- nothing happened.'
     return 0
