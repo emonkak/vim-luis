@@ -1,7 +1,7 @@
 function! ku#kind#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
-    return 'There is no such action:' string(a:action_name)
+    return 'Action' string(a:action_name) 'is not defined'
   endif
   return Action(a:kind, a:candidate)
 endfunction
