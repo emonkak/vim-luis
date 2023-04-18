@@ -1,4 +1,4 @@
-let s:INVALID_CHANNEL = -1
+let s:INVALID_JOB = 0
 let s:INVALID_TIMER = -1
 
 function! ku#source#async#new(name, default_kind, command, options = {}) abort
@@ -10,7 +10,7 @@ function! ku#source#async#new(name, default_kind, command, options = {}) abort
   \                         ? a:options.selector_func
   \                         : { line -> { 'word': line } }
   let source._debounce_time = get(a:options, 100)
-  let source._channel = s:INVALID_CHANNEL
+  let source._job = s:INVALID_JOB
   let source._timer = s:INVALID_TIMER
   let source._sequence = 0
   let source._last_line = 0
@@ -25,7 +25,7 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(pattern) abort dict
-  if self._channel isnot s:INVALID_CHANNEL
+  if self._job isnot s:INVALID_JOB
   \  && (self._last_pattern is 0 || a:pattern !=# self._last_pattern)
     let self._last_pattern = a:pattern
     if self._timer isnot s:INVALID_TIMER
@@ -41,38 +41,41 @@ endfunction
 
 function! s:Source.on_source_enter() abort dict
   if has('nvim')
-    let self._channel = jobstart(self._command, {
-    \   'on_stdout': function('s:on_nvim_job_stdout', [], self),
-    \   'on_exit': function('s:on_nvim_job_exit', [], self),
+    let self._job = jobstart(self._command, {
+    \   'on_stdout': function('s:on_nvim_stdout', [], self),
+    \   'on_exit': function('s:on_nvim_exit', [], self),
     \ })
   else
-    let self._channel = job_start(self._command, {
-    \   'out_cb': function('s:on_vim_job_stdout', [], self),
-    \   'exit_cb': function('s:on_vim_job_exit', [], self),
+    let self._job = job_start(self._command, {
+    \   'out_cb': function('s:on_vim_stdout', [], self),
+    \   'exit_cb': function('s:on_vim_exit', [], self),
     \ })
+    if job_status(self._job) ==# 'fail'
+      let self._job = s:INVALID_JOB
+    endif
   endif
   let self._sequence = 0
   let self._last_line = ''
 endfunction
 
 function! s:Source.on_source_leave() abort dict
-  if self._channel isnot s:INVALID_CHANNEL
+  if self._job isnot s:INVALID_JOB
     if has('nvim')
-      call jobclose(self._channel)
+      call jobclose(self._job)
     else
-      call job_stop(self._channel)
+      call job_stop(self._job)
     endif
-    let self._channel = s:INVALID_CHANNEL
+    let self._job = s:INVALID_JOB
   endif
 endfunction
 
-function! s:on_nvim_job_exit(channel, exit_code, event) abort dict
-  if self._channel == a:channel
-    let self._channel = s:INVALID_CHANNEL
+function! s:on_nvim_exit(job, exit_code, event) abort dict
+  if self._job == a:job
+    let self._job = s:INVALID_JOB
   endif
 endfunction
 
-function! s:on_nvim_job_stdout(channel, data, event) abort dict
+function! s:on_nvim_stdout(job, data, event) abort dict
   let is_eof = 0
 
   let line = self._last_line . a:data[0]
@@ -96,11 +99,11 @@ function! s:on_nvim_job_stdout(channel, data, event) abort dict
 endfunction
 
 function! s:on_timer(timer) abort dict
-  if self._channel isnot s:INVALID_CHANNEL
+  if self._job isnot s:INVALID_JOB
     if has('nvim')
-      call chansend(self._channel, self._last_pattern . "\n")
+      call chansend(self._job, self._last_pattern . "\n")
     else
-      call ch_sendraw(self._channel, self._last_pattern . "\n")
+      call ch_sendraw(self._job, self._last_pattern . "\n")
     endif
     let self._pending_candidates = []
     let self._sequence += 1
@@ -108,13 +111,13 @@ function! s:on_timer(timer) abort dict
   let self._timer = s:INVALID_TIMER
 endfunction
 
-function! s:on_vim_job_exit(channel, status) abort dict
-  if self._channel is a:channel
-    let self._channel = s:INVALID_CHANNEL
+function! s:on_vim_exit(job, status) abort dict
+  if self._job is a:job
+    let self._job = s:INVALID_JOB
   endif
 endfunction
 
-function! s:on_vim_job_stdout(channel, message) abort dict
+function! s:on_vim_stdout(job, message) abort dict
   let is_eof = 0
 
   for line in split(a:message, "\n")
