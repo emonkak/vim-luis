@@ -1,6 +1,7 @@
-function ku#source#file#new(directory = 0)
+function ku#source#file#new(...)
+  let directory = get(a:000, 0, 0)
   let source = copy(s:Source)
-  let source._directory = a:directory
+  let source._directory = directory
   let source._cached_candidates = {}
   return source
 endfunction
@@ -17,11 +18,11 @@ function! s:Source.gather_candidates(pattern) abort dict
 
   if !has_key(self._cached_candidates, directory)
     let candidates = []
-    let expanded_directory = expandcmd(directory)
-    let prefix = directory == './' ? '' : directory
+    let expanded_directory = s:expand_path(directory)
+    let path_prefix = directory == './' ? '' : directory
 
-    for filename in readdir(expanded_directory)
-      let relative_path = prefix . filename
+    for filename in s:readdir(expanded_directory)
+      let relative_path = path_prefix . filename
       let absolute_path = fnamemodify(expanded_directory . filename, ':p')
       let type = getftype(absolute_path)
       let is_directory = type == 'dir'
@@ -60,7 +61,7 @@ endfunction
 function! s:Source.on_action(candidate) abort dict
   if !has_key(a:candidate.user_data, 'ku_file_path')
     let a:candidate.user_data.ku_file_path =
-    \   fnamemodify(expandcmd(a:candidate.word), ':p')
+    \   fnamemodify(s:expand_path(a:candidate.word), ':p')
   endif
   return a:candidate
 endfunction
@@ -78,19 +79,40 @@ function! s:Source.on_source_leave() abort dict
   endif
 endfunction
 
-function! s:parse_pattern(pattern, separator) abort
-  if strridx(a:pattern, a:separator) == 0  " root directory
+function! s:expand_path(path) abort
+  let path = a:path
+  let path = substitute(path, '^\~', '$HOME', '')
+  let path = substitute(path, '\$\h\w*', '\=expand(submatch(0))', '')
+  return path
+endfunction
+
+function! s:parse_pattern(pattern, sep) abort
+  if strridx(a:pattern, a:sep) == 0  " root directory
     return ['/', 0]
   else
-    let components = split(a:pattern, a:separator, 1)
+    let components = split(a:pattern, a:sep, 1)
     if len(components) == 1  " no path separator
       let directory = './'
     else  " more than one path separators
-      let directory = trim(join(components[:-2], a:separator), a:separator, 2)
-      \             . a:separator
+      let directory = join(components[:-2], a:sep)
+      if directory[-1:] !=# a:sep
+        let directory .= a:sep
+      endif
     endif
     let show_hidden = components[-1][:0] ==# '.'
     return [directory, show_hidden]
+  endif
+endfunction
+
+function! s:readdir(directory) abort
+  if exists('*readdir')
+    return readdir(a:directory)
+  else
+    let files = []
+    call extend(files, globpath(a:directory, '.*', 1, 1))
+    call extend(files, globpath(a:directory, '*', 1, 1))
+    call map(files, 'fnamemodify(v:val, ":t")')
+    return files
   endif
 endfunction
 

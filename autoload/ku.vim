@@ -112,11 +112,8 @@ function! ku#define_default_ui_key_mappings() abort
 endfunction
 
 function! ku#notify_update_candidates() abort
-  if s:ku_active_p()
-    let complete_info = complete_info(['mode'])
-    if complete_info.mode != ''
-      call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
-    endif
+  if s:ku_active_p() && mode() =~# 'i'
+    call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif
 endfunction
 
@@ -135,7 +132,7 @@ function! ku#restart() abort
   return ku#start(last_source, options)
 endfunction
 
-function! ku#start(source, options = {}) abort
+function! ku#start(source, ...) abort
   if s:ku_active_p()
     echohl ErrorMsg
     echo 'ku: Already active'
@@ -152,8 +149,10 @@ function! ku#start(source, options = {}) abort
     return s:FALSE
   endif
 
+  let options = get(a:000, 0, {})
+
   " Initialze session.
-  let s:session = s:new_session(a:source, a:options)
+  let s:session = s:new_session(a:source, options)
 
   " Open or create the ku buffer.
   let v:errmsg = ''
@@ -191,7 +190,7 @@ function! ku#start(source, options = {}) abort
   "       be done carefully.
   silent % delete _
   normal! o
-  let initial_pattern = get(a:options, 'initial_pattern', '')
+  let initial_pattern = get(options, 'initial_pattern', '')
   call setline(s:LNUM_STATUS, 'Source: ' . a:source.name)
   call setline(s:LNUM_PATTERN, s:PROMPT . initial_pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
@@ -215,7 +214,7 @@ function! ku#start(source, options = {}) abort
   return s:TRUE
 endfunction
 
-function! ku#take_action(action_name = 0) abort
+function! ku#take_action(...) abort
   if !s:ku_active_p()
     echohl ErrorMsg
     echo 'ku: Not active'
@@ -223,8 +222,8 @@ function! ku#take_action(action_name = 0) abort
     return s:FALSE
   endif
 
-  let candidate = s:session.completed_item isnot 0
-  \             ? s:session.completed_item
+  let candidate = s:is_valid_completed_item(v:completed_item)
+  \             ? v:completed_item
   \             : s:guess_candidate()
   if candidate is 0
     " Ignore. Assumes that error message is already displayed by caller.
@@ -232,9 +231,7 @@ function! ku#take_action(action_name = 0) abort
   endif
 
   let kind = s:kind_from_candidate(candidate)
-  let action_name = a:action_name is 0
-  \               ? s:choose_action(kind, candidate)
-  \               : a:action_name
+  let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
 
   if action_name isnot 0
     if has_key(s:session.source, 'on_action')
@@ -545,7 +542,6 @@ function! s:initialize_ku_buffer() abort
   augroup plugin-ku
     autocmd BufLeave <buffer>  call s:quit_session()
     autocmd BufUnload <buffer>  let s:ku_bufnr = -1
-    autocmd CompleteDonePre <buffer>  call s:on_CompleteDonePre()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     autocmd TextChangedP <buffer>  call s:on_TextChangedP()
@@ -554,7 +550,7 @@ function! s:initialize_ku_buffer() abort
 
   " Key mappings - fundamentals.
   nnoremap <buffer> <silent> <SID>(choose-action)
-  \        :<C-u>call ku#take_action(0)<CR>
+  \        :<C-u>call ku#take_action()<CR>
   nnoremap <buffer> <silent> <SID>(do-default-action)
   \        :<C-u>call ku#take_action('default')<CR>
   nnoremap <buffer> <silent> <SID>(quit-session)
@@ -601,6 +597,11 @@ function! s:initialize_ku_buffer() abort
   endif
 
   return
+endfunction
+
+function! s:is_valid_completed_item(completed_item) abort
+  return has_key(a:completed_item, 'user_data')
+  \      && type(a:completed_item.user_data) is v:t_dict
 endfunction
 
 function! s:keys_to_complete() abort
@@ -771,7 +772,6 @@ endfunction
 function! s:new_session(source, options) abort
   let session = {}
 
-  let session.completed_item = 0
   let session.is_inserted_by_acc = s:FALSE
   let session.is_quitting = s:FALSE
   let session.last_candidates = []
@@ -785,13 +785,6 @@ function! s:new_session(source, options) abort
   let session.source = a:source
 
   return session
-endfunction
-
-function! s:on_CompleteDonePre() abort
-  let complete_info = complete_info(['selected'])
-  let s:session.completed_item = complete_info['selected'] >= 0
-  \                            ? copy(v:completed_item)
-  \                            : 0
 endfunction
 
 function! s:on_CursorMovedI() abort

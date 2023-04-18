@@ -4,7 +4,6 @@ let s:TYPE_STRUCT = 'struct'
 let s:TYPE_UNION = 'union'
 
 let s:PRIMITIVE_TYPE_NAMES = {
-\   v:t_blob: 'blob',
 \   v:t_bool: 'boolean',
 \   v:t_dict: 'dictionary',
 \   v:t_float: 'float',
@@ -79,7 +78,7 @@ function! s:validate(data, schema, path, errors) abort
     endif
     let success = 1
     for [key, Value] in items(a:data)
-      let path = trim(a:path, '.') . '.' . key
+      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . key
       if !s:validate(Value, a:schema.item, path, a:errors)
         let success = 0
       endif
@@ -92,7 +91,7 @@ function! s:validate(data, schema, path, errors) abort
     endif
     let success = 1
     for [key, value] in items(a:schema.properties)
-      let path = trim(a:path, '.', 2) . '.' . key
+      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . key
       let is_optional = get(value, 'optional', 0)
       if has_key(a:data, key)
         if !s:validate(a:data[key], value, path, a:errors)

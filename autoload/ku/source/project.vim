@@ -36,8 +36,8 @@ endfunction
 
 function! s:Source.on_source_enter() abort dict
   let candidates = []
-  for path in globpath(self._directory, '*/', 0, 1)
-    let path = trim(path, '/', 2)
+  for path in globpath(self._directory, '*/', 1, 1)
+    let path = path[-1:] == '/' ? path[:-2] : path
     call add(candidates, {
     \   'word': fnamemodify(path, ':t'),
     \   'user_data': {

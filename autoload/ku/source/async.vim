@@ -1,15 +1,16 @@
 let s:INVALID_JOB = 0
 let s:INVALID_TIMER = -1
 
-function! ku#source#async#new(name, default_kind, command, options = {}) abort
+function! ku#source#async#new(name, default_kind, command, ...) abort
+  let options = get(a:000, 0, {})
   let source = copy(s:Source)
   let source.name = a:name
   let source.default_kind = a:default_kind
   let source._command = a:command
-  let source._selector_func = has_key(a:options, 'selector_func')
-  \                         ? a:options.selector_func
+  let source._selector_func = has_key(options, 'selector_func')
+  \                         ? options.selector_func
   \                         : { line -> { 'word': line } }
-  let source._debounce_time = get(a:options, 100)
+  let source._debounce_time = get(options, 100)
   let source._job = s:INVALID_JOB
   let source._timer = s:INVALID_TIMER
   let source._sequence = 0

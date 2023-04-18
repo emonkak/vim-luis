@@ -11,8 +11,6 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(pattern) abort dict
-  " FIXME: caching - but each scheme may already do caching.
-  " a:pattern is not always prefixed with "{scheme}:".
   let scheme = self._scheme
   let pattern = scheme . ':' . a:pattern
   let candidates = []
@@ -20,7 +18,7 @@ function! s:Source.gather_candidates(pattern) abort dict
   for path in metarw#{scheme}#complete(pattern, pattern, 0)[0]
     let path_without_scheme = matchstr(path, '^' . scheme . ':\zs.*$')
     call add(candidates, {
-    \   'word': trim(path_without_scheme, ':/', 2),
+    \   'word': substitute(path_without_scheme, '[:/]$', '', ''),
     \   'abbr': path_without_scheme,
     \   'user_data': {
     \     'ku_file_path': path,
