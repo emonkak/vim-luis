@@ -419,7 +419,7 @@ function! s:choose_action(kind, candidate) abort
   echon s:session.source.name
   echohl NONE
   echon ')'
-  call s:list_key_bindings_sorted_by_action_name(key_table)
+  call s:list_key_bindings(key_table)
   echohl kuChooseMessage
   echo 'What action? '
   echohl NONE
@@ -698,7 +698,7 @@ function! s:ku_active_p() abort
   return bufexists(s:ku_bufnr) && bufwinnr(s:ku_bufnr) != -1
 endfunction
 
-function! s:list_key_bindings_sorted_by_action_name(key_table) abort
+function! s:list_key_bindings(key_table) abort
   " actions => {
   "   'keys': [[key_value, key_repr], ...],
   "   'label': label
