@@ -96,13 +96,13 @@ function! ku#define_default_ui_key_mappings() abort
   nmap <buffer> <C-c> <Plug>(ku-quit-session)
   nmap <buffer> <C-i> <Plug>(ku-choose-action)
   nmap <buffer> <C-m> <Plug>(ku-do-default-action)
-  nmap <buffer> <Return> <Plug>(ku-do-default-action)
+  nmap <buffer> <CR> <Plug>(ku-do-default-action)
   nmap <buffer> <Tab> <Plug>(ku-choose-action)
 
   imap <buffer> <C-c> <Plug>(ku-quit-session)
   imap <buffer> <C-i> <Plug>(ku-choose-action)
   imap <buffer> <C-m> <Plug>(ku-do-default-action)
-  imap <buffer> <Return> <Plug>(ku-do-default-action)
+  imap <buffer> <CR> <Plug>(ku-do-default-action)
   imap <buffer> <Tab> <Plug>(ku-choose-action)
 
   imap <buffer> <BS>  <Plug>(ku-delete-backward-char)
@@ -554,11 +554,11 @@ function! s:initialize_ku_buffer() abort
 
   " Key mappings - fundamentals.
   nnoremap <buffer> <silent> <SID>(choose-action)
-  \        :<C-u>call ku#take_action()<Return>
+  \        :<C-u>call ku#take_action(0)<CR>
   nnoremap <buffer> <silent> <SID>(do-default-action)
-  \        :<C-u>call ku#take_action('default')<Return>
+  \        :<C-u>call ku#take_action('default')<CR>
   nnoremap <buffer> <silent> <SID>(quit-session)
-  \        :<C-u>call <SID>quit_session()<Return>
+  \        :<C-u>call <SID>quit_session()<CR>
   inoremap <buffer> <expr> <SID>(accept-completion)
   \        pumvisible() ? '<C-y>' : ''
   inoremap <buffer> <expr> <SID>(cancel-completion)
