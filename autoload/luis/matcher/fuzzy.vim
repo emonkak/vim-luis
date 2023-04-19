@@ -13,7 +13,7 @@ function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict
     call map(candidates,
     \        's:normalize(v:val, positions[v:key], scores[v:key])')
   endif
-  call sort(candidates, function('s:compare'))
+  call sort(candidates, 's:compare')
   return candidates
 endfunction
 
@@ -43,11 +43,11 @@ function! s:normalize(candidate, position, score) abort
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}
   endif
-  let a:candidate.luis_match_position = a:position
-  let a:candidate.luis_match_score = a:score
   if !has_key(a:candidate, 'luis_sort_priority')
     let a:candidate.luis_sort_priority = 0
   endif
+  let a:candidate.luis_match_position = a:position
+  let a:candidate.luis_match_score = a:score
   return a:candidate
 endfunction
 

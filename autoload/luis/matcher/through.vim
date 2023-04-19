@@ -2,7 +2,8 @@ let s:Matcher = {}
 
 function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict
   let candidates = a:limit >= 0 ? a:candidates[:a:limit] : a:candidates
-  return map(candidates, 's:normalize(v:val)')
+  call map(candidates, 's:normalize(v:val)')
+  return candidates
 endfunction
 
 function! s:normalize(candidate) abort

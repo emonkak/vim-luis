@@ -6,7 +6,7 @@ function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict
     call filter(candidates, 'stridx(v:val.word, a:pattern) >= 0')
   endif
   call map(candidates, 's:normalize(v:val)')
-  call sort(candidates, function('s:compare'))
+  call sort(candidates, 's:compare')
   if a:limit >= 0
     let candidates = candidates[:a:limit]
   endif
@@ -38,4 +38,4 @@ function! s:normalize(candidate) abort
   return a:candidate
 endfunction
 
-let g:luis#matcher#simple#export = s:Matcher
+let g:luis#matcher#exact#export = s:Matcher
