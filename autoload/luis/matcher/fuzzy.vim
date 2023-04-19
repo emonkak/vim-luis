@@ -22,15 +22,17 @@ function! s:compare(x, y) abort
     return -1
   elseif a:x.luis_sort_priority > a:y.luis_sort_priority
     return 1
-  elseif a:x.luis_match_position != a:y.luis_match_position
+  endif
+  if a:x.luis_match_position != a:y.luis_match_position
     if a:x.luis_match_score > a:y.luis_match_score
       return -1
     elseif a:x.luis_match_score < a:y.luis_match_score
       return 1
     endif
-  elseif a:x.word <# a:y.word
+  endif
+  if a:x.word < a:y.word
     return -1
-  elseif a:x.word ># a:y.word
+  elseif a:x.word > a:y.word
     return 1
   endif
   return 0
