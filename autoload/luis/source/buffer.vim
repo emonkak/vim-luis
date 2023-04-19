@@ -17,34 +17,54 @@ endfunction
 function! s:Source.on_source_enter() abort dict
   let candidates = []
   let max_bufnr = bufnr('$')
-  for i in range(1, max_bufnr)
-    if !bufexists(i) || !buflisted(i)
-      continue
-    endif
-    let bufname = bufname(i)
-    if empty(bufname)
+  for buf in getbufinfo({ 'buflisted': 1 })
+    if empty(buf.name)
       let bufname = '[No Name]'
       let dup = 1
       let sort_priority = 3
     else
+      let bufname = fnamemodify(buf.name, ':~:.')
       let dup = 0
-      if getbufvar(i, '&buftype') != ''
-        let sort_priority = 2
-      elseif bufname ==# fnamemodify(bufname, ':p')
-        let sort_priority = 1
-      else
-        let sort_priority = 0
-      endif
+      let sort_priority = getbufvar(buf.bufnr, '&buftype') != ''
+      \                 ? 2
+      \                 : bufname ==# buf.name
+      \                 ? 1
+      \                 : 0
     endif
     call add(candidates, {
     \   'word': bufname,
-    \   'menu': printf('buffer %*d', len(max_bufnr), i),
+    \   'menu': printf('buffer %*d', len(max_bufnr), buf.bufnr),
+    \   'kind': s:buffer_indicator(buf),
     \   'dup': dup,
     \   'user_data': {
-    \     'buffer_nr': i,
+    \     'buffer_nr': buf.bufnr,
     \   },
     \   'luis_sort_priority': sort_priority,
     \ })
   endfor
   let self._cached_candidates = candidates
+endfunction
+
+function! s:buffer_indicator(buf)
+  let indicators = ''
+  if !a:buf.listed
+    let indicators .= 'u'
+  elseif a:buf.bufnr == bufnr('%')
+    let indicators .= '%'
+  elseif a:buf.bufnr == bufnr('#')
+    let indicators .= '#'
+  endif
+  if a:buf.loaded
+    let indicators .= a:buf.hidden ? 'h' : 'a'
+  endif
+  if !getbufvar(a:buf.bufnr, '&modifiable')
+    let indicators .= '-'
+  endif
+  if getbufvar(a:buf.bufnr, '&readonly')
+    let indicators .= '='
+  endif
+  if getbufvar(a:buf.bufnr, '&modified')
+    let indicators .= '+'
+  endif
+  return indicators
 endfunction
