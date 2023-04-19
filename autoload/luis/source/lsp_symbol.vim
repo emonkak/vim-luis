@@ -1,3 +1,12 @@
+function! s:eps() abort
+  let i = 0
+  while 1.0 + pow(2, -i) != 1.0
+    let i += 1
+  endwhile
+  return pow(2, -i / 2)
+endfunction
+let s:EPS = s:eps()
+
 function! luis#source#lsp_symbol#new() abort
   let source = copy(s:Source)
   let source._cached_candidates = []
@@ -51,7 +60,7 @@ function! s:candidate_from_symbol(server, symbol, depth) abort
   \     'file_path': path,
   \     'file_pos': pos,
   \   },
-  \   'luis_sort_priority': pos[0] * 10000 + pos[1],
+  \   'luis_sort_priority': pos[0] + max([1.0 - s:EPS, pos[1] * s:EPS]),
   \ }
 endfunction
 
