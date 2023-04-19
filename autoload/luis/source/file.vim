@@ -70,13 +70,10 @@ function! s:Source.is_valid_for_acc(candidate, sep) abort dict
 endfunction
 
 function! s:Source.on_action(candidate) abort dict
-  if has_key(a:candidate.user_data, 'file_path')
-    return a:candidate
+  if !has_key(a:candidate.user_data, 'file_path')
+    let a:candidate.user_data.file_path =
+    \   fnamemodify(s:expand_path(a:candidate.word), ':p')
   endif
-  let candidate = copy(a:candidate)
-  let candidate.user_data.file_path =
-  \   fnamemodify(s:expand_path(a:candidate.word), ':p')
-  return candidate
 endfunction
 
 function! s:Source.on_source_enter() abort dict

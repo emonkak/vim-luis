@@ -231,12 +231,16 @@ function! luis#take_action(...) abort
     return s:FALSE
   endif
 
+  if type(candidate.user_data) is v:t_string
+    let candidate.user_data = json_decode(candidate.user_data)
+  endif
+
   let kind = s:kind_from_candidate(candidate)
   let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
 
   if action_name isnot 0
     if has_key(s:session.source, 'on_action')
-      let candidate = s:session.source.on_action(candidate)
+      call s:session.source.on_action(candidate)
     endif
   endif
 
@@ -274,9 +278,14 @@ function! luis#_omnifunc(findstart, base) abort
     let pattern = s:remove_prompt(a:base)
     let candidates = source.gather_candidates(pattern)
     let limit = get(s:session.options, 'limit', -1)
-    let s:session.last_candidates =
+    let candidates = 
     \   source.matcher.match_candidates(candidates, pattern, limit)
-    return s:session.last_candidates
+    let s:session.last_candidates = candidates
+    if s:user_data_can_only_be_string()
+      call map(candidates,
+      \        'extend(v:val, {"user_data": json_encode(v:val.user_data)})')
+    endif
+    return candidates
   endif
 endfunction
 
@@ -388,11 +397,6 @@ function! s:acc_text(line, sep, candidates) abort
   return ''  " No proper candidate found
 endfunction
 
-function! s:available_completed_item(completed_item) abort
-  return has_key(a:completed_item, 'user_data')
-  \      && type(a:completed_item.user_data) is v:t_dict
-endfunction
-
 function! s:choose_action(kind, candidate) abort
   " Prompt      Candidate Source
   "    |          |         |
@@ -498,8 +502,30 @@ function! s:get_key() abort
 endfunction
 
 function! s:guess_candidate() abort
-  if s:available_completed_item(v:completed_item)
-    return v:completed_item
+  if s:is_valid_completed_item(v:completed_item)
+    " v:completed_item is a locked dictionary, so it is copied to make it
+    " mutable.
+    return copy(v:completed_item)
+  endif
+
+  let current_pattern_raw = getline(s:LNUM_PATTERN)
+
+  if current_pattern_raw !=# s:session.last_pattern_raw
+    " current_pattern_raw seems to be inserted by Vim's completion,
+    " so user seemed to select a candidate by Vim's completion.
+    for candidate in s:session.last_candidates
+      if current_pattern_raw ==# candidate.word
+        return candidate
+      endif
+    endfor
+
+    echoerr 'luis: No match found in s:session.last_candidates'
+    echoerr '  current_pattern_raw' string(current_pattern_raw)
+    echoerr '  s:session.last_pattern_raw'
+    \          string(s:session.last_pattern_raw)
+    echoerr '  s:session.last_candidates'
+    \          string(s:session.last_candidates)
+    return 0
   endif
 
   if len(s:session.last_candidates) > 0
@@ -510,8 +536,6 @@ function! s:guess_candidate() abort
 
   " There is no candidate -- user seems to want to take action on
   " current_pattern_raw with fake sources.
-  let current_pattern_raw = getline(s:LNUM_PATTERN)
-
   return {
   \   'word': s:remove_prompt(current_pattern_raw),
   \   'user_data': {},
@@ -535,7 +559,9 @@ function! s:initialize_luis_buffer() abort
     autocmd BufUnload <buffer>  let s:bufnr = -1
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
-    autocmd TextChangedP <buffer>  call s:on_TextChangedP()
+    if has('patch-8.1.1123')  " Support 'equal' field for complete items.
+      autocmd TextChangedP <buffer>  call s:on_TextChangedP()
+    endif
     autocmd WinLeave <buffer>  call s:quit_session()
   augroup END
 
@@ -586,8 +612,11 @@ function! s:initialize_luis_buffer() abort
   if !exists('#FileType#luis') && !exists('b:did_ftplugin')
     call luis#define_default_ui_key_mappings()
   endif
+endfunction
 
-  return
+function! s:is_valid_completed_item(completed_item) abort
+  return has_key(a:completed_item, 'user_data')
+  \      && a:completed_item.user_data isnot ''
 endfunction
 
 function! s:keys_to_complete() abort
@@ -752,21 +781,19 @@ function! s:make_skip_regexp(s) abort
 endfunction
 
 function! s:new_session(source, options) abort
-  let session = {}
-
-  let session.is_inserted_by_acc = s:FALSE
-  let session.is_quitting = s:FALSE
-  let session.last_candidates = []
-  let session.last_column = -1
-  let session.last_pattern_raw = ''
-  let session.options = a:options
-  let session.original_backspace = &backspace
-  let session.original_completeopt = &completeopt
-  let session.original_curwinnr = winnr()
-  let session.original_equalalways = &equalalways
-  let session.source = a:source
-
-  return session
+  return {
+  \   'is_inserted_by_acc': s:FALSE,
+  \   'is_quitting': s:FALSE,
+  \   'last_candidates': [],
+  \   'last_column': -1,
+  \   'last_pattern_raw': '',
+  \   'options': a:options,
+  \   'original_backspace': &backspace,
+  \   'original_completeopt': &completeopt,
+  \   'original_curwinnr': winnr(),
+  \   'original_equalalways': &equalalways,
+  \   'source': a:source,
+  \ }
 endfunction
 
 function! s:on_CursorMovedI() abort
@@ -816,4 +843,9 @@ endfunction
 
 function! s:session_is_active() abort
   return bufexists(s:bufnr) && bufwinnr(s:bufnr) != -1
+endfunction
+
+function! s:user_data_can_only_be_string() abort
+  return has('patch-8.0.1493')
+  \      && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 endfunction
