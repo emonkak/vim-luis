@@ -13,6 +13,7 @@ endfunction
 let s:Source = {
 \   'name': 'colorscheme',
 \   'default_kind': {
+\     'name': 'colorscheme',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \     },

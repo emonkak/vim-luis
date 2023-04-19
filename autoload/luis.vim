@@ -17,6 +17,9 @@ let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 let s:SCHEMA_KIND = {
 \   'type': 'struct',
 \   'properties': {
+\     'name': {
+\       'type': v:t_string,
+\     },
 \     'action_table': {
 \       'type': 'dictionary',
 \       'item': {
@@ -412,8 +415,8 @@ function! s:choose_action(kind, candidate) abort
   echon a:candidate.word
   echohl NONE
   echon ' ('
-  echohl luisChooseSource
-  echon s:session.source.name
+  echohl luisChooseKind
+  echon a:kind.name
   echohl NONE
   echon ')'
   call s:list_key_bindings(key_table)

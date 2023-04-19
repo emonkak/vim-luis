@@ -111,6 +111,7 @@ function! s:open_with_split(kind, direction, candidate) abort
 endfunction
 
 let g:luis#kind#common#export = {
+\   'name': 'common',
 \   'action_table': {
 \     'Bottom': function('s:action_Bottom'),
 \     'Left': function('s:action_Left'),

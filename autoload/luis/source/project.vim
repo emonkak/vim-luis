@@ -21,6 +21,7 @@ endfunction
 let s:Source = {
 \   'name': 'project',
 \   'default_kind': {
+\     'name': 'project',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \     },

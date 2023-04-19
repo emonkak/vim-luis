@@ -23,6 +23,7 @@ endfunction
 let s:Source = {
 \   'name': 'mark',
 \   'default_kind': {
+\     'name': 'mark',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \       'delete': function('s:action_delete'),

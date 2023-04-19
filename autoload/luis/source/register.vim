@@ -42,6 +42,7 @@ endfunction
 let s:Source = {
 \   'name': 'register',
 \   'default_kind': {
+\     'name': 'register',
 \     'action_table': {
 \       'Put': function('s:action_Put'),
 \       'default': function('s:action_put'),

@@ -6,11 +6,7 @@ endfunction
 
 let s:Source = {
 \   'name': 'jumplist',
-\   'default_kind': {
-\     'action_table': {},
-\     'key_table': {},
-\     'prototype': g:luis#kind#buffer#export,
-\   },
+\   'default_kind': g:luis#kind#buffer#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

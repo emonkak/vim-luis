@@ -1,30 +1,13 @@
-function! luis#source#tags#new(tag_files) abort
+function! luis#source#tag#new(tag_files) abort
   let source = copy(s:Source)
   let source._tag_files = a:tag_files
   let source._cached_candidates = []
   return source
 endfunction
 
-function! s:action_open(kind, candidate) abort
-  execute 'tag' a:candidate.word
-  return 0
-endfunction
-
-function! s:action_open_x(kind, candidate) abort
-  execute 'tag!' a:candidate.word
-  return 0
-endfunction
-
 let s:Source = {
-\   'name': 'tags',
-\   'default_kind': {
-\     'action_table': {
-\       'open': function('s:action_open'),
-\       'open_x': function('s:action_open_x'),
-\     },
-\     'key_table': {},
-\     'prototype': g:luis#kind#common#export,
-\   },
+\   'name': 'tag',
+\   'default_kind': g:luis#kind#tag#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

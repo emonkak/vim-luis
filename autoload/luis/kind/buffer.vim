@@ -52,6 +52,7 @@ function! s:do_command(command, candidate) abort
 endfunction
 
 let g:luis#kind#buffer#export = {
+\   'name': 'buffer',
 \   'action_table': {
 \     'delete': function('s:action_delete'),
 \     'delete!': function('s:action_delete_x'),

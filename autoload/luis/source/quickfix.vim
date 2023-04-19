@@ -15,6 +15,7 @@ endfunction
 let s:Source = {
 \   'name': 'quickfix',
 \   'default_kind': {
+\     'name': 'quickfix',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \       'open!': function('s:action_open_x'),

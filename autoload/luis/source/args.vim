@@ -13,6 +13,7 @@ endfunction
 let s:Source = {
 \   'name': 'args',
 \   'default_kind': {
+\     'name': 'args',
 \     'action_table': {
 \       'argdelete': function('s:action_argdelete'),
 \     },

@@ -39,6 +39,7 @@ function! s:path_from_candidate(candidate) abort
 endfunction
 
 let g:luis#kind#file#export = {
+\   'name': 'file',
 \   'action_table': {
 \     'cd': function('s:action_cd'),
 \     'lcd': function('s:action_lcd'),

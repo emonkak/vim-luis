@@ -16,6 +16,7 @@ endfunction
 let s:Source = {
 \   'name': 'fold',
 \   'default_kind': {
+\     'name': 'fold',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \     },

@@ -9,8 +9,8 @@ function! s:action_open(kind, candidate) abort
   if error isnot 0
     return error
   endif
-  if has_key(a:candidate.user_data, 'tag_index')
-    let index = a:candidate.user_data.tag_index
+  if has_key(a:candidate.user_data, 'tagstack_index')
+    let index = a:candidate.user_data.tagstack_index
     call settagstack(winnr(), { 'curidx': index })
   endif
   return 0
@@ -19,11 +19,12 @@ endfunction
 let s:Source = {
 \   'name': 'tagstack',
 \   'default_kind': {
+\     'name': 'tagstack',
 \     'action_table': {
 \       'open': function('s:action_open'),
 \     },
 \     'key_table': {},
-\     'prototype': g:luis#kind#common#export,
+\     'prototype': g:luis#kind#buffer#export,
 \   },
 \   'matcher': g:luis#matcher#default,
 \ }
@@ -44,7 +45,7 @@ function! s:Source.on_source_enter() abort dict
     \   'dup': 1,
     \   'luis_sort_priority': index,
     \   'user_data': {
-    \     'tag_index': index,
+    \     'tagstack_index': index,
     \     'buffer_nr': item.bufnr,
     \     'buffer_pos': item.from,
     \   },
