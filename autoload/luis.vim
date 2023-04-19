@@ -225,9 +225,7 @@ function! luis#take_action(...) abort
     return s:FALSE
   endif
 
-  let candidate = s:is_valid_completed_item(v:completed_item)
-  \             ? v:completed_item
-  \             : s:guess_candidate()
+  let candidate = s:guess_candidate()
   if candidate is 0
     " Ignore. Assumes that error message is already displayed by caller.
     return s:FALSE
@@ -390,6 +388,11 @@ function! s:acc_text(line, sep, candidates) abort
   return ''  " No proper candidate found
 endfunction
 
+function! s:available_completed_item(completed_item) abort
+  return has_key(a:completed_item, 'user_data')
+  \      && type(a:completed_item.user_data) is v:t_dict
+endfunction
+
 function! s:choose_action(kind, candidate) abort
   " Prompt      Candidate Source
   "    |          |         |
@@ -495,28 +498,11 @@ function! s:get_key() abort
 endfunction
 
 function! s:guess_candidate() abort
-  let current_pattern_raw = getline(s:LNUM_PATTERN)
-
-  if current_pattern_raw !=# s:session.last_pattern_raw
-    " current_pattern_raw seems to be inserted by Vim's completion,
-    " so user seemed to select a candidate by Vim's completion.
-    for candidate in s:session.last_candidates
-      if current_pattern_raw ==# candidate.word
-        return candidate
-      endif
-    endfor
-
-    echoerr 'luis: No match found in s:session.last_candidates'
-    echoerr '  current_pattern_raw' string(current_pattern_raw)
-    echoerr '  s:session.last_pattern_raw'
-    \          string(s:session.last_pattern_raw)
-    echoerr '  s:session.last_candidates'
-    \          string(s:session.last_candidates)
-    return 0
+  if s:available_completed_item(v:completed_item)
+    return v:completed_item
   endif
 
-  " current_pattern_raw seems NOT to be inserted by Vim's completion, but ...
-  if 0 < len(s:session.last_candidates)
+  if len(s:session.last_candidates) > 0
     " There are 1 or more candidates -- user seems to want to take action on
     " the first one.
     return s:session.last_candidates[0]
@@ -524,6 +510,8 @@ function! s:guess_candidate() abort
 
   " There is no candidate -- user seems to want to take action on
   " current_pattern_raw with fake sources.
+  let current_pattern_raw = getline(s:LNUM_PATTERN)
+
   return {
   \   'word': s:remove_prompt(current_pattern_raw),
   \   'user_data': {},
@@ -600,11 +588,6 @@ function! s:initialize_luis_buffer() abort
   endif
 
   return
-endfunction
-
-function! s:is_valid_completed_item(completed_item) abort
-  return has_key(a:completed_item, 'user_data')
-  \      && type(a:completed_item.user_data) is v:t_dict
 endfunction
 
 function! s:keys_to_complete() abort
