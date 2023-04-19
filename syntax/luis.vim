@@ -1,0 +1,33 @@
+if exists('b:current_syntax')
+  finish
+endif
+
+syntax case match
+
+syntax match luisStatusLine /\%1l.*/
+\            contains=luisSourcePrompt,luisSourceSeparator,luisSourceName
+syntax match luisSourcePrompt /^Source/ contained nextgroup=luisSourceSeparator
+syntax match luisSourceSeparator /: / contained nextgroup=luisSourceName
+syntax match luisSourceName /[a-z/_-]\+/ contained
+
+syntax match luisInputLine /\%2l.*/ contains=luisInputPrompt
+syntax match luisInputPrompt /^>/ contained nextgroup=luisInputPattern
+syntax match luisInputPattern /.*/ contained
+
+highlight default link luisSourceName  Type
+highlight default link luisSourcePrompt  Statement
+highlight default link luisSourceSeparator  NONE
+
+highlight default link luisInputPattern  NONE
+highlight default link luisInputPrompt  Statement
+
+" The following definitions are for <Plug>(luis-choose-action).
+" See s:choose_action() in autoload/luis.vim for the details.
+highlight default link luisChooseAction  NONE
+highlight default link luisChooseCandidate  NONE
+highlight default link luisChooseKey  SpecialKey
+highlight default link luisChooseMessage  NONE
+highlight default link luisChoosePrompt  luisSourcePrompt
+highlight default link luisChooseSource  luisSourceName
+
+let b:current_syntax = 'luis'
