@@ -78,14 +78,14 @@ function! s:on_notification(server, sequence, data) abort dict
 
   let queue = []
   let depth = 0
-  let changed_p = 0
+  let has_changed = 0
 
   while 1
     for symbol in symbols
       if lsp#utils#is_file_uri(symbol.location.uri)
         let candidate = s:candidate_from_symbol(a:server, symbol, depth)
         call add(self._cached_candidates, candidate)
-        let changed_p = 1
+        let has_changed = 1
       endif
       if has_key(symbol, 'children') && !empty(symbol.children)
         call add(queue, [depth + 1, symbol.children])
@@ -97,7 +97,7 @@ function! s:on_notification(server, sequence, data) abort dict
     let [depth, symbols] = remove(queue, 0)
   endwhile
 
-  if changed_p
+  if has_changed
     call luis#notify_update_candidates()
   endif
 endfunction
