@@ -14,16 +14,16 @@ let s:Source = {
 
 function! s:Source.gather_candidates(pattern) abort dict
   let separator = s:path_separator()
-  let [directory, file, show_hidden] = s:parse_pattern(a:pattern, separator)
+  let [directory_part, filename_part] = s:parse_pattern(a:pattern, separator)
 
-  if !has_key(self._cached_candidates, directory)
+  if !has_key(self._cached_candidates, directory_part)
     let candidates = []
-    let expanded_directory = s:expand_path(directory)
-    let path_prefix = directory == './' ? '' : directory
+    let directory = s:expand_path(directory_part)
+    let prefix = directory_part == './' ? '' : directory_part
 
-    for filename in s:readdir(expanded_directory)
-      let relative_path = path_prefix . filename
-      let absolute_path = fnamemodify(expanded_directory . filename, ':p')
+    for filename in s:readdir(directory)
+      let relative_path = prefix . filename
+      let absolute_path = fnamemodify(directory . filename, ':p')
       let type = getftype(absolute_path)
       let is_directory = type == 'dir'
       \                  || (type == 'link' && isdirectory(absolute_path))
@@ -35,26 +35,26 @@ function! s:Source.gather_candidates(pattern) abort dict
       \     'file_path': absolute_path,
       \   },
       \   '_is_directory': is_directory,
-      \   '_is_hidden': filename[:0] ==# '.',
+      \   '_is_hidden': filename[0] == '.',
       \ })
     endfor
 
-    let self._cached_candidates[directory] = candidates
+    let self._cached_candidates[directory_part] = candidates
   endif
 
-  let candidates = copy(self._cached_candidates[directory])
+  let candidates = copy(self._cached_candidates[directory_part])
 
-  if !empty(file)
+  if !empty(filename_part)
     call add(candidates, {
     \   'word': a:pattern,
     \   'menu': '*new*',
+    \   'luis_sort_priority': 1,
     \   '_is_directory': 0,
     \   '_is_hidden': 0,
-    \   'luis_sort_priority': 1,
     \ })
   endif
 
-  if !show_hidden
+  if filename_part[0] != '.'
     call filter(candidates, '!v:val._is_hidden')
   endif
 
@@ -98,7 +98,7 @@ endfunction
 
 function! s:parse_pattern(pattern, sep) abort
   if strridx(a:pattern, a:sep) == 0  " root directory
-    return ['/', '', 0]
+    return ['/', '']
   else
     let components = split(a:pattern, a:sep, 1)
     if len(components) == 1  " no path separator
@@ -109,9 +109,8 @@ function! s:parse_pattern(pattern, sep) abort
         let directory .= a:sep
       endif
     endif
-    let file = components[-1]
-    let show_hidden = components[-1][:0] ==# '.'
-    return [directory, file, show_hidden]
+    let filename = components[-1]
+    return [directory, filename]
   endif
 endfunction
 
