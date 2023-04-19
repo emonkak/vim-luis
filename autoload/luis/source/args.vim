@@ -4,24 +4,9 @@ function! luis#source#args#new() abort
   return source
 endfunction
 
-function! s:action_argdelete(kind, candidate) abort
-  let v:errmsg = ''
-  silent! execute 'argdelete' fnameescape(a:candidate.word)
-  return v:errmsg == '' ? 0 : v:errmsg
-endfunction
-
 let s:Source = {
 \   'name': 'args',
-\   'default_kind': {
-\     'name': 'args',
-\     'action_table': {
-\       'argdelete': function('s:action_argdelete'),
-\     },
-\     'key_table': {
-\       'D': 'argdelete',
-\     },
-\     'prototype': g:luis#kind#buffer#export,
-\   },
+\   'default_kind': g:luis#kind#args#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

@@ -4,22 +4,9 @@ function! luis#source#colorscheme#new() abort
   return source
 endfunction
 
-function! s:action_open(kind, candidate) abort
-  let v:errmsg = ''
-  execute 'colorscheme' a:candidate.word
-  return v:errmsg == '' ? 0 : v:errmsg
-endfunction
-
 let s:Source = {
 \   'name': 'colorscheme',
-\   'default_kind': {
-\     'name': 'colorscheme',
-\     'action_table': {
-\       'open': function('s:action_open'),
-\     },
-\     'key_table': {},
-\     'prototype': luis#kind#common#export,
-\   },
+\   'default_kind': g:luis#kind#colorscheme#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

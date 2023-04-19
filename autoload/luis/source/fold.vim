@@ -4,25 +4,9 @@ function! luis#source#fold#new() abort
   return source
 endfunction
 
-function! s:action_open(kind, candidate) abort
-  if !has_key(a:candidate.user_data, 'fold_lnum')
-    return 'No such fold'
-  endif
-  call cursor(a:candidate.user_data.fold_lnum, 1)
-  normal! zvzt
-  return 0
-endfunction
-
 let s:Source = {
 \   'name': 'fold',
-\   'default_kind': {
-\     'name': 'fold',
-\     'action_table': {
-\       'open': function('s:action_open'),
-\     },
-\     'key_table': {},
-\     'prototype': g:luis#kind#common#export,
-\   },
+\   'default_kind': g:luis#kind#fold#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

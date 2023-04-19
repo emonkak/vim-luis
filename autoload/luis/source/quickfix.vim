@@ -4,25 +4,9 @@ function! luis#source#quickfix#new() abort
   return source
 endfunction
 
-function! s:action_open(kind, candidate) abort
-  return s:open('', a:candidate)
-endfunction
-
-function! s:action_open_x(kind, candidate) abort
-  return s:open('!', a:candidate)
-endfunction
-
 let s:Source = {
 \   'name': 'quickfix',
-\   'default_kind': {
-\     'name': 'quickfix',
-\     'action_table': {
-\       'open': function('s:action_open'),
-\       'open!': function('s:action_open_x'),
-\     },
-\     'key_table': {},
-\     'prototype': g:luis#kind#buffer#export,
-\   },
+\   'default_kind': g:luis#kind#quickfix#export,
 \   'matcher': g:luis#matcher#default,
 \ }
 

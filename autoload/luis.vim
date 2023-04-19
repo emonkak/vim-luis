@@ -251,7 +251,7 @@ function! luis#take_action(...) abort
     return s:FALSE
   endif
 
-  let error = luis#kind#do_action(kind, action_name, candidate)
+  let error = luis#kind#call_action(kind, action_name, candidate)
   if error isnot 0
     echohl ErrorMsg
     echomsg error

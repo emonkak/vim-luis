@@ -1,4 +1,4 @@
-function! luis#kind#do_action(kind, action_name, candidate) abort
+function! luis#kind#call_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
     return 'Action' string(a:action_name) 'is not defined'

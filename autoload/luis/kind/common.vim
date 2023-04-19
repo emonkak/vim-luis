@@ -33,7 +33,7 @@ function! s:action_cancel(kind, candidate) abort
 endfunction
 
 function! s:action_default(kind, candidate) abort
-  return luis#kind#do_action(a:kind, 'open', a:candidate)
+  return luis#kind#call_action(a:kind, 'open', a:candidate)
 endfunction
 
 function! s:action_ex(kind, candidate) abort
@@ -52,7 +52,7 @@ function! s:action_open(kind, candidate) abort
 endfunction
 
 function! s:action_open_x(kind, candidate) abort
-  return luis#kind#do_action(a:kind, 'open', a:candidate)
+  return luis#kind#call_action(a:kind, 'open', a:candidate)
 endfunction
 
 function! s:action_right(kind, candidate) abort
@@ -96,9 +96,9 @@ function! s:open_with_split(kind, direction, candidate) abort
     return v:errmsg
   endif
 
-  let _ = luis#kind#do_action(a:kind, 'open', a:candidate)
+  let error = luis#kind#call_action(a:kind, 'open', a:candidate)
 
-  if _ is 0
+  if error is 0
     return 0
   else
     " Undo the last :split.
@@ -106,7 +106,7 @@ function! s:open_with_split(kind, direction, candidate) abort
     execute 'tabnext' original_tabpagenr
     execute original_curwinnr 'wincmd w'
     execute original_winrestcmd
-    return _
+    return error
   endif
 endfunction
 
