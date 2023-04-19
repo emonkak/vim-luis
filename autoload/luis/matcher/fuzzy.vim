@@ -22,10 +22,10 @@ function! s:compare(x, y) abort
     return -1
   elseif a:x.luis_sort_priority > a:y.luis_sort_priority
     return 1
-  elseif a:x.luis__match_position != a:y.luis__match_position
-    if a:x.luis__match_score > a:y.luis__match_score
+  elseif a:x.luis_match_position != a:y.luis_match_position
+    if a:x.luis_match_score > a:y.luis_match_score
       return -1
-    elseif a:x.luis__match_score < a:y.luis__match_score
+    elseif a:x.luis_match_score < a:y.luis_match_score
       return 1
     endif
   elseif a:x.word <# a:y.word
@@ -41,8 +41,8 @@ function! s:normalize(candidate, position, score) abort
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}
   endif
-  let a:candidate.luis__match_position = a:position
-  let a:candidate.luis__match_score = a:score
+  let a:candidate.luis_match_position = a:position
+  let a:candidate.luis_match_score = a:score
   if !has_key(a:candidate, 'luis_sort_priority')
     let a:candidate.luis_sort_priority = 0
   endif

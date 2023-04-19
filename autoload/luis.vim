@@ -12,7 +12,7 @@ endif
 
 let s:PROMPT = '>'
 
-let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>\<C-p>"
+let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
 let s:SCHEMA_KIND = {
 \   'type': 'struct',
@@ -179,7 +179,7 @@ function! luis#start(source, ...) abort
   " not properly set.
   set backspace=eol,indent,start
   " Ensure to show ins-completion-menu while automatic completion.
-  set completeopt=menu,menuone
+  set completeopt=menu,menuone,noselect
   set noequalalways
 
   " Reset the content of the luis buffer.
