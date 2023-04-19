@@ -1,12 +1,14 @@
 let s:Matcher = {}
 
-function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict 
+function! s:Matcher.match_candidates(candidates, pattern, options) abort dict 
   if a:pattern == ''
-    let candidates = a:limit >= 0 ? a:candidates[:a:limit] : a:candidates
+    let candidates = has_key(a:options, 'limit')
+    \              ? a:candidates[:a:options.limit]
+    \              : a:candidates
     call map(candidates, 's:normalize(v:val, 0, 0)')
   else
-    let options = a:limit >= 0
-    \           ? {'key': 'word', 'limit': a:limit }
+    let options = has_key(a:options, 'limit')
+    \           ? {'key': 'word', 'limit': options.a:limit }
     \           : {'key': 'word'}
     let [candidates, positions, scores] =
     \   matchfuzzypos(a:candidates, a:pattern, options)

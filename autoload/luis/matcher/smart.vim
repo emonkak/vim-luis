@@ -1,12 +1,12 @@
 let s:Matcher = {}
 
-function! s:Matcher.match_candidates(candidates, pattern, limit)
+function! s:Matcher.match_candidates(candidates, pattern, options)
   let candidates = a:candidates
   call map(candidates, 's:normalize(v:val, a:pattern)')
   call filter(candidates, 'v:val.luis_match_score > 0')
   call sort(candidates, 's:compare')
-  if a:limit >= 0
-    let candidates = candidates[:a:limit]
+  if has_key(a:options, 'limit')
+    let candidates = candidates[:a:options.limit]
   endif
   return candidates
 endfunction

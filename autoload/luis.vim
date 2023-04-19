@@ -277,9 +277,11 @@ function! luis#_omnifunc(findstart, base) abort
     let source = s:session.source
     let pattern = s:remove_prompt(a:base)
     let candidates = source.gather_candidates(pattern)
-    let limit = get(s:session.options, 'limit', -1)
-    let candidates = 
-    \   source.matcher.match_candidates(candidates, pattern, limit)
+    let candidates = source.matcher.match_candidates(
+    \   candidates,
+    \   pattern,
+    \   s:pick_keys(s:session.options, ['limit']),
+    \ )
     let s:session.last_candidates = candidates
     if s:user_data_can_only_be_string()
       call map(candidates,
@@ -812,6 +814,16 @@ function! s:on_TextChangedP() abort
   if complete_info['selected'] == -1
     call feedkeys(s:keys_to_complete(), 'n')
   endif
+endfunction
+
+function! s:pick_keys(dict, keys) abort
+  let output = {}
+  for key in a:keys
+    if has_key(a:dict, key)
+      let output[key] = a:dict[key]
+    endif
+  endfor
+  return output
 endfunction
 
 function! s:quit_session() abort

@@ -1,14 +1,14 @@
 let s:Matcher = {}
 
-function! s:Matcher.match_candidates(candidates, pattern, limit) abort dict 
+function! s:Matcher.match_candidates(candidates, pattern, options) abort dict 
   let candidates = copy(a:candidates)
   if a:pattern != ''
     call filter(candidates, 'stridx(v:val.word, a:pattern) >= 0')
   endif
   call map(candidates, 's:normalize(v:val)')
   call sort(candidates, 's:compare')
-  if a:limit >= 0
-    let candidates = candidates[:a:limit]
+  if has_key(a:options, 'limit')
+    let candidates = candidates[:a:options.limit]
   endif
   return candidates
 endfunction
