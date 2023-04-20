@@ -138,7 +138,7 @@ function! luis#start(source, ...) abort
 
   let errors = luis#schema#validate(a:source, s:SCHEMA_SOURCE)
   if !empty(errors)
-    echoerr 'luis: Invalid format for source'
+    echoerr 'luis: Invalid source'
     for error in errors
       echoerr error
     endfor
