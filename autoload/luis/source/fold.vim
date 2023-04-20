@@ -21,15 +21,16 @@ function! s:Source.on_source_enter() abort dict
 
   set lazyredraw
   noautocmd wincmd p  " Prevent close *luis* window
-
   split
+
   setlocal foldtext&
   normal! zM
 
   let candidates = []
-
   let lnum = 1
-  while lnum < line('$')
+  let max_lnum = line('$')
+
+  while lnum < max_lnum
     if foldclosed(lnum) > 0
       let foldtext = foldtextresult(lnum)
       let matches = matchlist(foldtext, '^+-\+\s*\(\d\+\)\slines:\s\zs\(.\{-}\)\ze\s*$')
