@@ -9,14 +9,12 @@ fi
 
 limit=$1
 command_output="$("${@:2}")"
-sequence=1
 
-while read -r pattern
+while read -r sequence pattern
 do
   while read -r line
   do
     echo "${sequence}" "${line}"
   done < <(fzf -f "${pattern}" <<< "${command_output}" | head -n ${limit})
   echo ${sequence}
-  sequence=$(( ${sequence} + 1 ))
 done

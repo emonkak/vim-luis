@@ -33,9 +33,7 @@ function! s:Source.gather_candidates(pattern) abort dict
       call timer_stop(self._timer)
     endif
     let self._timer = timer_start(self._debounce_time,
-    \                             function('s:on_timer',
-    \                             [],
-    \                             self))
+    \                             function('s:on_timer', [], self))
   endif
   return self._current_candidates
 endfunction
@@ -101,13 +99,14 @@ endfunction
 
 function! s:on_timer(timer) abort dict
   if self._job isnot s:INVALID_JOB
-    if has('nvim')
-      call chansend(self._job, self._last_pattern . "\n")
-    else
-      call ch_sendraw(self._job, self._last_pattern . "\n")
-    endif
     let self._pending_candidates = []
     let self._sequence += 1
+    let payload = self._sequence . ' ' . self._last_pattern . "\n"
+    if has('nvim')
+      call chansend(self._job, payload)
+    else
+      call ch_sendraw(self._job, payload)
+    endif
   endif
   let self._timer = s:INVALID_TIMER
 endfunction
