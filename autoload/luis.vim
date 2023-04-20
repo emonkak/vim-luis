@@ -1,6 +1,3 @@
-let s:FALSE = 0
-let s:TRUE = !s:FALSE
-
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
@@ -125,7 +122,7 @@ function! luis#restart() abort
     echohl ErrorMsg
     echo 'luis: Not started yet'
     echohl NONE
-    return s:FALSE
+    return v:false
   endif
   let last_source = s:session.source
   let last_pattern = s:remove_prompt(s:session.last_pattern_raw)
@@ -140,7 +137,7 @@ function! luis#start(source, ...) abort
     echohl ErrorMsg
     echo 'luis: Already active'
     echohl NONE
-    return s:FALSE
+    return v:false
   endif
 
   let errors = luis#schema#validate(a:source, s:SCHEMA_SOURCE)
@@ -149,7 +146,7 @@ function! luis#start(source, ...) abort
     for error in errors
       echoerr error
     endfor
-    return s:FALSE
+    return v:false
   endif
 
   let options = get(a:000, 0, {})
@@ -162,13 +159,13 @@ function! luis#start(source, ...) abort
   if bufexists(s:bufnr)
     topleft split
     if v:errmsg != ''
-      return s:FALSE
+      return v:false
     endif
     silent execute s:bufnr 'buffer'
   else
     topleft new
     if v:errmsg != ''
-      return s:FALSE
+      return v:false
     endif
     let s:bufnr = bufnr('')
     call s:initialize_luis_buffer()
@@ -214,7 +211,7 @@ function! luis#start(source, ...) abort
     call a:source.on_source_enter()
   endif
 
-  return s:TRUE
+  return v:true
 endfunction
 
 function! luis#take_action(...) abort
@@ -222,13 +219,13 @@ function! luis#take_action(...) abort
     echohl ErrorMsg
     echo 'luis: Not active'
     echohl NONE
-    return s:FALSE
+    return v:false
   endif
 
   let candidate = s:guess_candidate()
   if candidate is 0
     " Ignore. Assumes that error message is already displayed by caller.
-    return s:FALSE
+    return v:false
   endif
 
   if type(candidate.user_data) is v:t_string
@@ -252,7 +249,7 @@ function! luis#take_action(...) abort
 
   if action_name is 0
     " In these cases, error messages are already noticed by other functions.
-    return s:FALSE
+    return v:false
   endif
 
   let error = luis#kind#call_action(kind, action_name, candidate)
@@ -260,10 +257,10 @@ function! luis#take_action(...) abort
     echohl ErrorMsg
     echomsg error
     echohl NONE
-    return s:FALSE
+    return v:false
   endif
 
-  return s:TRUE
+  return v:true
 endfunction
 
 function! luis#_omnifunc(findstart, base) abort
@@ -295,7 +292,7 @@ function! s:acc_text(line, sep, candidates) abort
   " ACC = Automatic Component Completion
 
   let user_input_raw = s:remove_prompt(a:line)
-  let line_components = split(user_input_raw, a:sep, s:TRUE)
+  let line_components = split(user_input_raw, a:sep, 1)
 
   " Find a candidate which has the same components but the last 2 ones of
   " line_components. Because line_components[-1] is always empty and
@@ -326,7 +323,7 @@ function! s:acc_text(line, sep, candidates) abort
   "     Because user seems to want to complete till the component which
   "     matches to 'm'.
   for candidate in a:candidates
-    let candidate_components = split(candidate.word, '\V' . a:sep, s:TRUE)
+    let candidate_components = split(candidate.word, '\V' . a:sep, 1)
 
     if len(line_components) < 2
       echoerr 'luis: Assumption on ACC is failed: ' . string(line_components)
@@ -473,7 +470,7 @@ endfunction
 function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
-  while s:TRUE
+  while v:true
     let c = getchar(0)
     if c is 0
       break
@@ -649,20 +646,20 @@ function! s:keys_to_complete() abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let acc_text = s:acc_text(line, sep, s:session.last_candidates)
-      let s:session.is_inserted_by_acc = s:TRUE
+      let s:session.is_inserted_by_acc = v:true
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
         call setline('.', acc_text)
         let keys = "\<End>" . sep
-        let s:session.is_inserted_by_acc = s:TRUE
+        let s:session.is_inserted_by_acc = v:true
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let s:session.is_inserted_by_acc = s:FALSE
+        let s:session.is_inserted_by_acc = v:false
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let s:session.is_inserted_by_acc = s:FALSE
+      let s:session.is_inserted_by_acc = v:false
     endif
   else
     let keys = ''
@@ -784,8 +781,8 @@ endfunction
 
 function! s:new_session(source, options) abort
   return {
-  \   'is_inserted_by_acc': s:FALSE,
-  \   'is_quitting': s:FALSE,
+  \   'is_inserted_by_acc': v:false,
+  \   'is_quitting': v:false,
   \   'last_candidates': [],
   \   'last_column': -1,
   \   'last_pattern_raw': '',
@@ -803,7 +800,7 @@ function! s:on_CursorMovedI() abort
 endfunction
 
 function! s:on_InsertEnter() abort
-  let s:session.is_inserted_by_acc = s:FALSE
+  let s:session.is_inserted_by_acc = v:false
   let s:session.last_column = -1
   let s:session.last_pattern_raw = ''
   call feedkeys(s:keys_to_complete(), 'n')
@@ -831,10 +828,10 @@ function! s:quit_session() abort
   " We have to check s:session.is_quitting to avoid unnecessary
   " :close'ing, because s:quit_session() may be called recursively.
   if s:session.is_quitting
-    return s:FALSE
+    return v:false
   endif
 
-  let s:session.is_quitting = s:TRUE
+  let s:session.is_quitting = v:true
   if has_key(s:session.source, 'on_source_leave')
     call s:session.source.on_source_leave()
   endif
@@ -844,9 +841,9 @@ function! s:quit_session() abort
   let &equalalways = s:session.original_equalalways
   let &completeopt = s:session.original_completeopt
   execute s:session.original_curwinnr 'wincmd w'
-  let s:session.is_quitting = s:FALSE
+  let s:session.is_quitting = v:false
 
-  return s:TRUE
+  return v:true
 endfunction
 
 function! s:remove_prompt(s) abort

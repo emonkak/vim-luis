@@ -10,7 +10,7 @@ function! luis#kind#composite_key_table(kind) abort
   let key_table = {}
   let kind = a:kind
 
-  while 1
+  while v:true
     call extend(key_table, kind.key_table)
     if !has_key(kind, 'prototype')
       break
@@ -24,7 +24,7 @@ endfunction
 function! s:find_action(kind, action_name) abort
   let kind = a:kind
 
-  while 1
+  while v:true
     if has_key(kind.action_table, a:action_name)
       return kind.action_table[a:action_name]
     endif
