@@ -1,11 +1,7 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
-if has('win32') || has('win64')  " on Microsoft Windows
-  let s:BUFFER_NAME = '[luis]'
-else
-  let s:BUFFER_NAME = '*luis*'
-endif
+let s:BUFFER_NAME = has('win32') || has('win64') ? '[luis]' : '*luis*'
 
 let s:PROMPT = '>'
 
