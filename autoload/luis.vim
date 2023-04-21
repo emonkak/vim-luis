@@ -107,7 +107,7 @@ function! luis#define_default_ui_key_mappings() abort
   imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
 endfunction
 
-function! luis#notify_update_candidates() abort
+function! luis#update_candidates() abort
   if s:session_is_active() && mode() =~# 'i'
     call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif

@@ -98,6 +98,6 @@ function! s:on_notification(server, sequence, data) abort dict
   endwhile
 
   if has_changed
-    call luis#notify_update_candidates()
+    call luis#update_candidates()
   endif
 endfunction

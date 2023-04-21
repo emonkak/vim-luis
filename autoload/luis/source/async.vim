@@ -93,7 +93,7 @@ function! s:on_nvim_stdout(job, data, event) abort dict
   let self._last_line = a:data[-1]
 
   if is_eof
-    call luis#notify_update_candidates()
+    call luis#update_candidates()
   endif
 endfunction
 
@@ -127,7 +127,7 @@ function! s:on_vim_stdout(job, message) abort dict
   endfor
 
   if is_eof
-    call luis#notify_update_candidates()
+    call luis#update_candidates()
   endif
 endfunction
 
