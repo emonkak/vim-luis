@@ -49,7 +49,8 @@ function! s:buffer_indicator(buf)
   let indicators = ''
   if !a:buf.listed
     let indicators .= 'u'
-  elseif a:buf.bufnr == bufnr('%')
+  endif
+  if a:buf.bufnr == bufnr('%')
     let indicators .= '%'
   elseif a:buf.bufnr == bufnr('#')
     let indicators .= '#'
