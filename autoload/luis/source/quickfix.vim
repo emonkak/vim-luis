@@ -28,11 +28,11 @@ function! s:Source.on_source_enter() abort dict
   let self._cached_candidates =
   \   map(items(first_errors_for_buffer), '{
   \     "word": bufname(v:val[0] + 0),
-  \      "user_data": {
-  \        "buffer_nr": v:val[0] + 0,
-  \        "quickfix_nr": v:val[1],
-  \      },
-  \      "luis_sort_priority": v:val[1],
+  \     "user_data": {
+  \       "buffer_nr": v:val[0] + 0,
+  \       "quickfix_nr": v:val[1],
+  \     },
+  \     "luis_sort_priority": v:val[1],
   \   }')
 endfunction
 
