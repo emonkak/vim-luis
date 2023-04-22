@@ -88,6 +88,39 @@ if !exists('s:bufnr')
   let s:bufnr = -1
 endif
 
+function! luis#_omnifunc(findstart, base) abort
+  if a:findstart
+    let s:session.last_candidates = []
+
+    " To determine whether the content of the current line is inserted by
+    " Vim's completion or not, return 0 to remove the prompt by completion.
+    return 0
+  else
+    let source = s:session.source
+    let pattern = s:remove_prompt(a:base)
+    let candidates = source.gather_candidates(pattern)
+    let candidates = source.matcher.match_candidates(
+    \   candidates,
+    \   pattern,
+    \   s:pick_keys(s:session.options, ['limit']),
+    \ )
+    let s:session.last_candidates = candidates
+    if s:user_data_can_only_be_string()
+      call map(candidates,
+      \        'extend(v:val, {"user_data": json_encode(v:val.user_data)})')
+    endif
+    return candidates
+  endif
+endfunction
+
+function! luis#do_action(kind, action_name, candidate) abort
+  let Action = s:find_action(a:kind, a:action_name)
+  if Action is 0
+    return 'Action' string(a:action_name) 'is not defined'
+  endif
+  return Action(a:kind, a:candidate)
+endfunction
+
 function! luis#define_default_ui_key_mappings() abort
   nmap <buffer> <C-c> <Plug>(luis-quit-session)
   nmap <buffer> <C-i> <Plug>(luis-choose-action)
@@ -105,12 +138,6 @@ function! luis#define_default_ui_key_mappings() abort
   imap <buffer> <C-h>  <Plug>(luis-delete-backward-char)
   imap <buffer> <C-u>  <Plug>(luis-delete-backward-line)
   imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
-endfunction
-
-function! luis#update_candidates() abort
-  if s:session_is_active() && mode() =~# 'i'
-    call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
-  endif
 endfunction
 
 function! luis#restart() abort
@@ -248,7 +275,7 @@ function! luis#take_action(...) abort
     return v:false
   endif
 
-  let error = luis#kind#call_action(kind, action_name, candidate)
+  let error = luis#do_action(kind, action_name, candidate)
   if error isnot 0
     echohl ErrorMsg
     echomsg error
@@ -259,28 +286,9 @@ function! luis#take_action(...) abort
   return v:true
 endfunction
 
-function! luis#_omnifunc(findstart, base) abort
-  if a:findstart
-    let s:session.last_candidates = []
-
-    " To determine whether the content of the current line is inserted by
-    " Vim's completion or not, return 0 to remove the prompt by completion.
-    return 0
-  else
-    let source = s:session.source
-    let pattern = s:remove_prompt(a:base)
-    let candidates = source.gather_candidates(pattern)
-    let candidates = source.matcher.match_candidates(
-    \   candidates,
-    \   pattern,
-    \   s:pick_keys(s:session.options, ['limit']),
-    \ )
-    let s:session.last_candidates = candidates
-    if s:user_data_can_only_be_string()
-      call map(candidates,
-      \        'extend(v:val, {"user_data": json_encode(v:val.user_data)})')
-    endif
-    return candidates
+function! luis#update_candidates() abort
+  if s:session_is_active() && mode() =~# 'i'
+    call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif
 endfunction
 
@@ -405,7 +413,7 @@ function! s:choose_action(kind, candidate) abort
   "
   " Here "Prompt" is highlighted with luisChoosePrompt,
   " "Candidate" is highlighted with luisChooseCandidate, and so forth.
-  let key_table = luis#kind#composite_key_table(a:kind)
+  let key_table = s:composite_key_table(a:kind)
   " "Candidate: {candidate} ({source})"
   echohl NONE
   echo ''
@@ -463,6 +471,21 @@ function! s:complete_the_prompt() abort
   return
 endfunction
 
+function! s:composite_key_table(kind) abort
+  let key_table = {}
+  let kind = a:kind
+
+  while v:true
+    call extend(key_table, kind.key_table)
+    if !has_key(kind, 'prototype')
+      break
+    endif
+    let kind = kind.prototype
+  endwhile
+
+  return key_table
+endfunction
+
 function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
@@ -479,6 +502,22 @@ endfunction
 
 function! s:contains_the_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
+endfunction
+
+function! s:find_action(kind, action_name) abort
+  let kind = a:kind
+
+  while v:true
+    if has_key(kind.action_table, a:action_name)
+      return kind.action_table[a:action_name]
+    endif
+    if !has_key(kind, 'prototype')
+      break
+    endif
+    let kind = kind.prototype
+  endwhile
+
+  return 0
 endfunction
 
 function! s:get_key() abort

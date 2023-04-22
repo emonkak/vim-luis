@@ -33,7 +33,7 @@ function! s:action_cancel(kind, candidate) abort
 endfunction
 
 function! s:action_default(kind, candidate) abort
-  return luis#kind#call_action(a:kind, 'open', a:candidate)
+  return luis#do_action(a:kind, 'open', a:candidate)
 endfunction
 
 function! s:action_ex(kind, candidate) abort
@@ -52,7 +52,7 @@ function! s:action_open(kind, candidate) abort
 endfunction
 
 function! s:action_open_x(kind, candidate) abort
-  return luis#kind#call_action(a:kind, 'open', a:candidate)
+  return luis#do_action(a:kind, 'open', a:candidate)
 endfunction
 
 function! s:action_right(kind, candidate) abort
@@ -96,7 +96,7 @@ function! s:open_with_split(kind, direction, candidate) abort
     return v:errmsg
   endif
 
-  let error = luis#kind#call_action(a:kind, 'open', a:candidate)
+  let error = luis#do_action(a:kind, 'open', a:candidate)
 
   if error is 0
     return 0

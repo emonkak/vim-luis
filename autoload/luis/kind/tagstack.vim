@@ -1,5 +1,5 @@
 function! s:action_open(kind, candidate) abort
-  let error = luis#kind#call_action(kind.prototype, 'open', a:candidate)
+  let error = luis#do_action(kind.prototype, 'open', a:candidate)
   if error isnot 0
     return error
   endif
