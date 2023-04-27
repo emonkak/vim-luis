@@ -1,6 +1,9 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
+let s:USER_DATA_CAN_ONLY_BE_STRING =
+\ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
+
 let s:BUFFER_NAME = has('win32') || has('win64') ? '[luis]' : '*luis*'
 
 let s:PROMPT = '>'
@@ -37,7 +40,13 @@ let s:SCHEMA_KIND.properties.prototype = {
 let s:SCHEMA_MATCHER = {
 \   'type': 'struct',
 \   'properties': {
-\      'match_candidates': {
+\      'filter_candidates': {
+\        'type': v:t_func,
+\      },
+\      'normalize_candidate': {
+\        'type': v:t_func,
+\      },
+\      'sort_candidates': {
 \        'type': v:t_func,
 \      },
 \    },
@@ -87,31 +96,6 @@ endif
 if !exists('s:bufnr')
   let s:bufnr = -1
 endif
-
-function! luis#_omnifunc(findstart, base) abort
-  if a:findstart
-    let s:session.last_candidates = []
-
-    " To determine whether the content of the current line is inserted by
-    " Vim's completion or not, return 0 to remove the prompt by completion.
-    return 0
-  else
-    let source = s:session.source
-    let pattern = s:remove_prompt(a:base)
-    let candidates = source.gather_candidates(pattern)
-    let candidates = source.matcher.match_candidates(
-    \   candidates,
-    \   pattern,
-    \   s:pick_keys(s:session.options, ['limit']),
-    \ )
-    let s:session.last_candidates = candidates
-    if s:user_data_can_only_be_string()
-      call map(candidates,
-      \        'extend(v:val, {"user_data": json_encode(v:val.user_data)})')
-    endif
-    return candidates
-  endif
-endfunction
 
 function! luis#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
@@ -251,7 +235,7 @@ function! luis#take_action(...) abort
     return v:false
   endif
 
-  if type(candidate.user_data) is v:t_string
+  if s:USER_DATA_CAN_ONLY_BE_STRING
     let candidate.user_data = json_decode(candidate.user_data)
   endif
 
@@ -289,6 +273,33 @@ endfunction
 function! luis#update_candidates() abort
   if s:session_is_active() && mode() =~# 'i'
     call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
+  endif
+endfunction
+
+function! luis#_omnifunc(findstart, base) abort
+  if a:findstart
+    let s:session.last_candidates = []
+
+    " To determine whether the content of the current line is inserted by
+    " Vim's completion or not, return 0 to remove the prompt by completion.
+    return 0
+  else
+    let source = s:session.source
+    let matcher = source.matcher
+    let args = { 'pattern': s:remove_prompt(a:base), 'source': source }
+    let candidates = source.gather_candidates(args)
+    let candidates = matcher.filter_candidates(candidates, args)
+    call map(
+    \   candidates,
+    \   'matcher.normalize_candidate(
+    \     s:normalize_candidate(v:val, v:key, args),
+    \     v:key,
+    \     args
+    \   )'
+    \ )
+    let candidates = matcher.sort_candidates(candidates, args)
+    let s:session.last_candidates = candidates
+    return candidates
   endif
 endfunction
 
@@ -830,6 +841,20 @@ function! s:new_session(source, options) abort
   \ }
 endfunction
 
+function! s:normalize_candidate(candidate, index, args) abort
+  let a:candidate.equal = 1
+  if !has_key(a:candidate, 'user_data')
+    let a:candidate.user_data = {}
+  endif
+  if s:USER_DATA_CAN_ONLY_BE_STRING
+    let a:candidate.user_data = json_encode(a:candidate.user_data)
+  endif
+  if !has_key(a:candidate, 'luis_sort_priority')
+    let a:candidate.luis_sort_priority = 0
+  endif
+  return a:candidate
+endfunction
+
 function! s:on_CursorMovedI() abort
   call feedkeys(s:keys_to_complete(), 'n')
 endfunction
@@ -846,16 +871,6 @@ function! s:on_TextChangedP() abort
   if complete_info['selected'] == -1
     call feedkeys(s:keys_to_complete(), 'n')
   endif
-endfunction
-
-function! s:pick_keys(dict, keys) abort
-  let output = {}
-  for key in a:keys
-    if has_key(a:dict, key)
-      let output[key] = a:dict[key]
-    endif
-  endfor
-  return output
 endfunction
 
 function! s:quit_session() abort
@@ -887,9 +902,4 @@ endfunction
 
 function! s:session_is_active() abort
   return bufexists(s:bufnr) && bufwinnr(s:bufnr) != -1
-endfunction
-
-function! s:user_data_can_only_be_string() abort
-  return has('patch-8.0.1493')
-  \      && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 endfunction

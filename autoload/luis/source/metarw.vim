@@ -10,9 +10,9 @@ let s:Source = {
 \   'matcher': g:luis#matcher#default,
 \ }
 
-function! s:Source.gather_candidates(pattern) abort dict
+function! s:Source.gather_candidates(args) abort dict
   let scheme = self._scheme
-  let pattern = scheme . ':' . a:pattern
+  let pattern = scheme . ':' . a:args.pattern
   let candidates = []
 
   for path in metarw#{scheme}#complete(pattern, pattern, 0)[0]

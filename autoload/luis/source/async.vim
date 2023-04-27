@@ -25,10 +25,10 @@ let s:Source = {
 \   'matcher': g:luis#matcher#through#export,
 \ }
 
-function! s:Source.gather_candidates(pattern) abort dict
+function! s:Source.gather_candidates(args) abort dict
   if self._job isnot s:INVALID_JOB
-  \  && (self._last_pattern is 0 || a:pattern !=# self._last_pattern)
-    let self._last_pattern = a:pattern
+  \  && (self._last_pattern is 0 || a:args.pattern !=# self._last_pattern)
+    let self._last_pattern = a:args.pattern
     if self._timer isnot s:INVALID_TIMER
       call timer_stop(self._timer)
     endif

@@ -12,9 +12,9 @@ let s:Source = {
 \   'matcher': g:luis#matcher#default,
 \ }
 
-function! s:Source.gather_candidates(pattern) abort dict
+function! s:Source.gather_candidates(args) abort dict
   let separator = s:path_separator()
-  let [directory_part, filename_part] = s:parse_pattern(a:pattern, separator)
+  let [directory_part, filename_part] = s:parse_pattern(a:args.pattern, separator)
 
   if !has_key(self._cached_candidates, directory_part)
     let candidates = []
@@ -46,7 +46,7 @@ function! s:Source.gather_candidates(pattern) abort dict
 
   if !empty(filename_part)
     call add(candidates, {
-    \   'word': a:pattern,
+    \   'word': a:args.pattern,
     \   'menu': '*new*',
     \   'luis_sort_priority': 1,
     \   '_is_directory': 0,

@@ -8,6 +8,6 @@ let s:Source = {
 \   'matcher': g:luis#matcher#through#export,
 \ }
 
-function! s:Source.gather_candidates(pattern) abort dict
-  return map(spellsuggest(a:pattern), '{ "word": v:val }')
+function! s:Source.gather_candidates(args) abort dict
+  return map(spellsuggest(a:args.pattern), '{ "word": v:val }')
 endfunction

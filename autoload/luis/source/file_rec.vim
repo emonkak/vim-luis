@@ -12,13 +12,13 @@ let s:Source = {
 \   'matcher': g:luis#matcher#default,
 \ }
 
-function! s:Source.gather_candidates(pattern) dict abort
+function! s:Source.gather_candidates(args) dict abort
   let file_candidates = []
   let directory_candidates = []
-  let pattern = a:pattern
+  let args = a:args
 
   while 1
-    for candidate in self._file.gather_candidates(pattern)
+    for candidate in self._file.gather_candidates(args)
       let candidates = candidate._is_directory
       \              ? directory_candidates
       \              : file_candidates
@@ -28,7 +28,9 @@ function! s:Source.gather_candidates(pattern) dict abort
     \  || len(file_candidates) + len(directory_candidates) >= self._limit
       break
     endif
-    let pattern = remove(directory_candidates, 0).abbr
+    let args = extend(copy(args), {
+    \   'pattern': remove(directory_candidates, 0).abbr,
+    \ })
   endwhile
 
   return extend(file_candidates, directory_candidates)

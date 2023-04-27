@@ -1,22 +1,27 @@
 let s:Matcher = {}
 
-function! s:Matcher.match_candidates(candidates, pattern, options) abort dict 
-  if a:pattern == ''
-    let candidates = has_key(a:options, 'limit')
-    \              ? a:candidates[:a:options.limit]
-    \              : a:candidates
-    call map(candidates, 's:normalize(v:val, 0, 0)')
-  else
-    let options = has_key(a:options, 'limit')
-    \           ? {'key': 'word', 'limit': options.a:limit }
-    \           : {'key': 'word'}
+function! s:Matcher.filter_candidates(candidates, args) abort dict 
+  if a:args.pattern != ''
     let [candidates, positions, scores] =
-    \   matchfuzzypos(a:candidates, a:pattern, options)
-    call map(candidates,
-    \        's:normalize(v:val, positions[v:key], scores[v:key])')
+    \ matchfuzzypos(a:candidates, a:args.pattern, { 'key': 'word' })
+    let a:args._positions = positions
+    let a:args._scores = scores
+  else
+    let candidates = a:candidates
+    let a:args._positions = []
+    let a:args._scores = []
   endif
-  call sort(candidates, 's:compare')
   return candidates
+endfunction
+
+function! s:Matcher.normalize_candidate(candidate, index, args) abort dict 
+  let a:candidate.luis_fuzzy_pos = get(a:args._positions, a:index, 0)
+  let a:candidate.luis_fuzzy_score = get(a:args._scores, a:index, 0)
+  return a:candidate
+endfunction
+
+function! s:Matcher.sort_candidates(candidates, args) abort dict 
+  return sort(a:candidates, 's:compare')
 endfunction
 
 function! s:compare(x, y) abort
@@ -25,10 +30,10 @@ function! s:compare(x, y) abort
   elseif a:x.luis_sort_priority > a:y.luis_sort_priority
     return 1
   endif
-  if a:x.luis_match_position != a:y.luis_match_position
-    if a:x.luis_match_score > a:y.luis_match_score
+  if a:x.luis_fuzzy_pos != a:y.luis_fuzzy_pos
+    if a:x.luis_fuzzy_score > a:y.luis_fuzzy_score
       return -1
-    elseif a:x.luis_match_score < a:y.luis_match_score
+    elseif a:x.luis_fuzzy_score < a:y.luis_fuzzy_score
       return 1
     endif
   endif
@@ -38,19 +43,6 @@ function! s:compare(x, y) abort
     return 1
   endif
   return 0
-endfunction
-
-function! s:normalize(candidate, position, score) abort
-  let a:candidate.equal = 1
-  if !has_key(a:candidate, 'user_data')
-    let a:candidate.user_data = {}
-  endif
-  if !has_key(a:candidate, 'luis_sort_priority')
-    let a:candidate.luis_sort_priority = 0
-  endif
-  let a:candidate.luis_match_position = a:position
-  let a:candidate.luis_match_score = a:score
-  return a:candidate
 endfunction
 
 let g:luis#matcher#fuzzy#export = s:Matcher

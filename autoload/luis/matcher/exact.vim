@@ -1,16 +1,22 @@
 let s:Matcher = {}
 
-function! s:Matcher.match_candidates(candidates, pattern, options) abort dict 
-  let candidates = copy(a:candidates)
-  if a:pattern != ''
-    call filter(candidates, 'stridx(v:val.word, a:pattern) >= 0')
-  endif
-  call map(candidates, 's:normalize(v:val)')
-  call sort(candidates, 's:compare')
-  if has_key(a:options, 'limit')
-    let candidates = candidates[:a:options.limit]
+function! s:Matcher.filter_candidates(candidates, args) abort dict 
+  let candidates = a:candidates
+  if a:args.pattern != ''
+    let candidates = filter(
+    \   copy(candidates),
+    \   'stridx(v:val.word, a:args.pattern) >= 0'
+    \ )
   endif
   return candidates
+endfunction
+
+function! s:Matcher.normalize_candidate(candidate, index, args) abort dict 
+  return a:candidate
+endfunction
+
+function! s:Matcher.sort_candidates(candidates, args) abort dict
+  return sort(a:candidates, 's:compare')
 endfunction
 
 function! s:compare(x, y) abort
@@ -25,17 +31,6 @@ function! s:compare(x, y) abort
     return -1
   endif
   return 0
-endfunction
-
-function! s:normalize(candidate) abort
-  let a:candidate.equal = 1
-  if !has_key(a:candidate, 'user_data')
-    let a:candidate.user_data = {}
-  endif
-  if !has_key(a:candidate, 'luis_sort_priority')
-    let a:candidate.luis_sort_priority = 0
-  endif
-  return a:candidate
 endfunction
 
 let g:luis#matcher#exact#export = s:Matcher
