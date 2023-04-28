@@ -63,15 +63,19 @@ let s:SCHEMA_SOURCE = {
 \     'gather_candidates': {
 \       'type': v:t_func,
 \     },
+\     'on_action': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_preview': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
 \     'on_source_enter': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
 \     'on_source_leave': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_action': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
@@ -870,6 +874,10 @@ function! s:on_TextChangedP() abort
   let complete_info = complete_info(['selected'])
   if complete_info['selected'] == -1
     call feedkeys(s:keys_to_complete(), 'n')
+  endif
+  if has_key(s:session.source, 'on_preview')
+    let candidate = s:guess_candidate()
+    call s:session.source.on_preview(candidate)
   endif
 endfunction
 

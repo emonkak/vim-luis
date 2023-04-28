@@ -14,6 +14,13 @@ function! s:Source.gather_candidates(args) abort dict
   return self._cached_candidates
 endfunction
 
+function! s:Source.on_preview(candidate) abort dict
+  let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
+  \         ? a:candidate.user_data.buffer_nr
+  \         : self._alternate_bufnr
+  call s:switch_last_window(bufnr)
+endfunction
+
 function! s:Source.on_source_enter() abort dict
   let candidates = []
   let max_bufnr = bufnr('$')
@@ -43,9 +50,15 @@ function! s:Source.on_source_enter() abort dict
     \ })
   endfor
   let self._cached_candidates = candidates
+  let self._alternate_bufnr = bufnr('#')
 endfunction
 
-function! s:buffer_indicator(buf)
+function! s:Source.on_source_leave() abort dict
+  let bufnr = self._alternate_bufnr
+  call s:switch_last_window(bufnr)
+endfunction
+
+function! s:buffer_indicator(buf) abort
   let indicators = ''
   if !a:buf.listed
     let indicators .= 'u'
@@ -68,4 +81,11 @@ function! s:buffer_indicator(buf)
     let indicators .= '+'
   endif
   return indicators
+endfunction
+
+function! s:switch_last_window(bufnr) abort
+  let original_winnr = winnr()
+  noautocmd wincmd p  " Prevent close luis window
+  noautocmd execute 'buffer' a:bufnr
+  noautocmd execute original_winnr 'wincmd w'
 endfunction
