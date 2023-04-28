@@ -1,7 +1,5 @@
-function luis#source#file#new(...)
-  let directory = get(a:000, 0, 0)
+function luis#source#file#new()
   let source = copy(s:Source)
-  let source._directory = directory
   let source._cached_candidates = {}
   return source
 endfunction
@@ -78,15 +76,9 @@ endfunction
 
 function! s:Source.on_source_enter() abort dict
   let self._cached_candidates = {}
-  if self._directory isnot 0
-    lcd `=self._directory`
-  endif
 endfunction
 
 function! s:Source.on_source_leave() abort dict
-  if self._directory isnot 0
-    lcd -
-  endif
 endfunction
 
 function! s:expand_path(path) abort

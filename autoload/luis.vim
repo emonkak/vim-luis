@@ -90,15 +90,15 @@ let s:SCHEMA_SOURCE = {
 \   },
 \ }
 
+" buffer number of the luis buffer
+if !exists('s:bufnr')
+  let s:bufnr = -1
+endif
+
 " Contains the information of a luis session.
 " See s:new_session() for the details of content.
 if !exists('s:session')
   let s:session = {}
-endif
-
-" buffer number of the luis buffer
-if !exists('s:bufnr')
-  let s:bufnr = -1
 endif
 
 function! luis#do_action(kind, action_name, candidate) abort
@@ -137,10 +137,10 @@ function! luis#restart() abort
   endif
   let last_source = s:session.source
   let last_pattern = s:remove_prompt(s:session.last_pattern_raw)
-  let options = extend({ 'initial_pattern': last_pattern },
-  \                    s:session.options,
-  \                    'keep')
-  return luis#start(last_source, options)
+  return luis#start(last_source, {
+  \   'initial_pattern': last_pattern,
+  \   'hook': s:session.hook,
+  \ })
 endfunction
 
 function! luis#start(source, ...) abort
@@ -160,10 +160,8 @@ function! luis#start(source, ...) abort
     return v:false
   endif
 
-  let options = get(a:000, 0, {})
-
   " Initialze session.
-  let s:session = s:new_session(a:source, options)
+  let s:session = s:new_session(a:source, get(a:000, 0, {}))
 
   " Open or create the luis buffer.
   let v:errmsg = ''
@@ -200,10 +198,8 @@ function! luis#start(source, ...) abort
   "       Insert mode is also implemented by feedkeys(). These feedings must
   "       be done carefully.
   silent % delete _
-  normal! o
-  let initial_pattern = get(options, 'initial_pattern', '')
   call setline(s:LNUM_STATUS, 'Source: ' . a:source.name)
-  call setline(s:LNUM_PATTERN, s:PROMPT . initial_pattern)
+  call setline(s:LNUM_PATTERN, s:PROMPT . s:session.initial_pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
 
   " Start Insert mode.
@@ -218,6 +214,9 @@ function! luis#start(source, ...) abort
   let typeahead_buffer = s:consume_typeahead_buffer()
   call feedkeys('A' . typeahead_buffer, 'n')
 
+  if has_key(s:session.hook, 'on_source_enter')
+    call s:session.hook.on_source_enter(a:source)
+  endif
   if has_key(a:source, 'on_source_enter')
     call a:source.on_source_enter()
   endif
@@ -831,12 +830,13 @@ endfunction
 
 function! s:new_session(source, options) abort
   return {
+  \   'hook': get(a:options, 'hook', {}),
+  \   'initial_pattern': get(a:options, 'initial_pattern', ''),
   \   'is_inserted_by_acc': v:false,
   \   'is_quitting': v:false,
   \   'last_candidates': [],
   \   'last_column': -1,
   \   'last_pattern_raw': '',
-  \   'options': a:options,
   \   'original_backspace': &backspace,
   \   'original_completeopt': &completeopt,
   \   'original_curwinnr': winnr(),
@@ -890,9 +890,14 @@ function! s:quit_session() abort
   endif
 
   let s:session.is_quitting = v:true
+
   if has_key(s:session.source, 'on_source_leave')
     call s:session.source.on_source_leave()
   endif
+  if has_key(s:session.hook, 'on_source_leave')
+    call s:session.hook.on_source_leave(s:session.source)
+  endif
+
   close
 
   let &backspace = s:session.original_backspace
