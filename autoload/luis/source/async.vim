@@ -10,7 +10,7 @@ function! luis#source#async#new(name, default_kind, command, ...) abort
   let source._selector_func = has_key(options, 'selector_func')
   \                         ? options.selector_func
   \                         : { line -> { 'word': line } }
-  let source._debounce_time = get(options, 100)
+  let source._debounce_time = get(options, 'debounce_time', 0)
   let source._job = s:INVALID_JOB
   let source._timer = s:INVALID_TIMER
   let source._sequence = 0
@@ -32,8 +32,12 @@ function! s:Source.gather_candidates(args) abort dict
     if self._timer isnot s:INVALID_TIMER
       call timer_stop(self._timer)
     endif
-    let self._timer = timer_start(self._debounce_time,
-    \                             function('s:on_timer', [], self))
+    if self._debounce_time > 0
+      let Callback = function('s:on_timer', [], self)
+      let self._timer = timer_start(self._debounce_time, Callback)
+    else
+      call self._send_pattern()
+    endif
   endif
   return self._current_candidates
 endfunction
@@ -68,6 +72,35 @@ function! s:Source.on_source_leave() abort dict
   endif
 endfunction
 
+function! s:Source._send_pattern() abort dict
+  let self._pending_candidates = []
+  let self._sequence += 1
+  let payload = self._sequence . ' ' . self._last_pattern . "\n"
+  if has('nvim')
+    call chansend(self._job, payload)
+  else
+    call ch_sendraw(self._job, payload)
+  endif
+endfunction
+
+function! s:Source._process_line(line) abort dict
+  let components = split(a:line, '^\d\+\zs\s', 1)
+  if components[0] != self._sequence
+    return 0
+  endif
+
+  if len(components) == 1  " EOF
+    let self._current_candidates = self._pending_candidates
+    return 1
+  else
+    let candidate = self._selector_func(components[1])
+    if candidate isnot 0
+      call add(self._pending_candidates, candidate)
+    endif
+    return 0
+  endif
+endfunction
+
 function! s:on_nvim_exit(job, exit_code, event) abort dict
   if self._job == a:job
     let self._job = s:INVALID_JOB
@@ -79,13 +112,13 @@ function! s:on_nvim_stdout(job, data, event) abort dict
 
   let line = self._last_line . a:data[0]
   if line != ''
-    if s:process_line(self, line)
+    if self._process_line(line)
       let is_eof = 1
     endif
   endif
 
   for line in a:data[1:-2]
-    if s:process_line(self, line)
+    if self._process_line(line)
       let is_eof = 1
     endif
   endfor
@@ -99,14 +132,7 @@ endfunction
 
 function! s:on_timer(timer) abort dict
   if self._job isnot s:INVALID_JOB
-    let self._pending_candidates = []
-    let self._sequence += 1
-    let payload = self._sequence . ' ' . self._last_pattern . "\n"
-    if has('nvim')
-      call chansend(self._job, payload)
-    else
-      call ch_sendraw(self._job, payload)
-    endif
+    call self._send_pattern()
   endif
   let self._timer = s:INVALID_TIMER
 endfunction
@@ -121,30 +147,12 @@ function! s:on_vim_stdout(job, message) abort dict
   let is_eof = 0
 
   for line in split(a:message, "\n")
-    if s:process_line(self, line)
+    if self._process_line(line)
       let is_eof = 1
     endif
   endfor
 
   if is_eof
     call luis#update_candidates()
-  endif
-endfunction
-
-function! s:process_line(source, line) abort
-  let components = split(a:line, '^\d\+\zs\s', 1)
-  if components[0] != a:source._sequence
-    return 0
-  endif
-
-  if len(components) == 1  " EOF
-    let a:source._current_candidates = a:source._pending_candidates
-    return 1
-  else
-    let candidate = a:source._selector_func(components[1])
-    if candidate isnot 0
-      call add(a:source._pending_candidates, candidate)
-    endif
-    return 0
   endif
 endfunction
