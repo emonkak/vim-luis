@@ -31,23 +31,21 @@ function! s:action_wipeout_x(kind, candidate) abort
 endfunction
 
 function! s:do_command(command, candidate) abort
-  if has_key(a:candidate.user_data, 'buffer_nr')
-    let bufnr = a:candidate.user_data.buffer_nr
-  else
-    let bufnr = bufnr(fnameescape(a:candidate.word))
-    if bufnr < 1 
-      return 'There is no corresponding buffer to candidate: '
-      \      . string(a:candidate.word)
+  let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
+  \         ? a:candidate.user_data.buffer_nr
+  \         : bufnr(fnameescape(a:candidate.word))
+  if bufnr < 1 
+    return 'There is no corresponding buffer to candidate: '
+    \      . string(a:candidate.word)
+  endif
+  try
+    execute bufnr a:command
+    if has_key(a:candidate.user_data, 'buffer_pos')
+      call cursor(a:candidate.user_data.buffer_pos)
     endif
-  endif
-  let v:errmsg = ''
-  execute bufnr a:command
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  if has_key(a:candidate.user_data, 'buffer_pos')
-    call cursor(a:candidate.user_data.buffer_pos)
-  endif
+  catch
+    return v:exception
+  endtry
   return 0
 endfunction
 

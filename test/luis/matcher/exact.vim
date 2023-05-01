@@ -1,6 +1,6 @@
 function s:test_filter_candidates() abort
   let matcher = g:luis#matcher#exact#export
-  let Test = { candidates, pattern, expected ->
+  let Test = { expected, candidates, pattern ->
   \   assert_equal(
   \     expected,
   \     matcher.filter_candidates(copy(candidates), { 'pattern': pattern })
@@ -12,52 +12,55 @@ function s:test_filter_candidates() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-  call Test(candidates, '', [
+  call Test([
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'foo', [
+  \ ], candidates, '')
+  call Test([
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'bar', [
+  \ ], candidates, 'foo')
+  call Test([
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'baz', [
+  \ ], candidates, 'bar')
+  call Test([
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'qux', [])
-  call Test(candidates, 'foobar', [
+  \ ], candidates, 'baz')
+  call Test([], candidates, 'qux')
+  call Test([
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'foobaz', [])
-  call Test(candidates, 'foobarbaz', [
+  \ ], candidates, 'foobar')
+  call Test([], candidates, 'foobaz')
+  call Test([
   \   { 'word': 'foobarbaz' },
-  \ ])
-  call Test(candidates, 'foobarqux', [])
-  call Test(candidates, 'fb', [])
-  call Test(candidates, 'fbb', [])
+  \ ], candidates, 'foobarbaz')
+  call Test([], candidates, 'foobarqux')
+  call Test([], candidates, 'fb')
+  call Test([], candidates, 'fbb')
 endfunction
 
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#exact#export
-  let Test = { candidate, index, args, expected ->
+  let Test = { expected, candidate, index, args ->
+  \   assert_equal(
+  \     expected,
   \     matcher.normalize_candidate(copy(candidate), index, args)
+  \   )
   \ }
 
   let candidate = { 'word': 'foo' }
   let index = 0
   let args = {}
-  call Test(candidate, index, args, candidate)
+  call Test(candidate, candidate, index, args)
 endfunction
 
 function s:test_sort_candidates() abort
   let matcher = g:luis#matcher#exact#export
-  let Test = { candidates, args, expected ->
+  let Test = { expected, candidates, args ->
   \   assert_equal(
   \     expected,
   \     matcher.sort_candidates(copy(candidates), args)
@@ -71,12 +74,12 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \ ]
   let args = {}
-  call Test(candidates, args, [
+  call Test([
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 0 },
-  \ ])
+  \ ], candidates, args)
 
   let candidates = [
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 1 },
@@ -85,10 +88,10 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foo', 'luis_sort_priority': 1 },
   \ ]
   let args = {}
-  call Test(candidates, args, [
+  call Test([
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 1 },
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 1 },
-  \ ])
+  \ ], candidates, args)
 endfunction

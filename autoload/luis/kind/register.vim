@@ -1,6 +1,6 @@
 function! s:action_Put(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'register_name')
-    return 'No register found'
+    return 'No register chosen'
   endif
   execute 'normal! "' . a:candidate.user_data.register_name . 'P'
   return 0
@@ -8,15 +8,15 @@ endfunction
 
 function! s:action_delete(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'register_name')
-    return 'No register found'
+    return 'No register chosen'
   endif
-  call setreg(a:candidate.user_data.register_name, '')
+  call setreg(a:candidate.user_data.register_name, [])
   return 0
 endfunction
 
 function! s:action_put(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'register_name')
-    return 'No register found'
+    return 'No register chosen'
   endif
   execute 'normal! "' . a:candidate.user_data.register_name . 'p'
   return 0

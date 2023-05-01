@@ -1,7 +1,10 @@
 function! s:action_argdelete(kind, candidate) abort
-  let v:errmsg = ''
-  silent! execute 'argdelete' fnameescape(a:candidate.word)
-  return v:errmsg == '' ? 0 : v:errmsg
+  try
+    execute 'argdelete' fnameescape(a:candidate.word)
+  catch
+    return v:exception
+  endtry
+  return 0
 endfunction
 
 let g:luis#kind#args#export = {
@@ -10,7 +13,7 @@ let g:luis#kind#args#export = {
 \     'argdelete': function('s:action_argdelete'),
 \   },
 \   'key_table': {
-\     'D': 'argdelete',
+\     'R': 'argdelete',
 \   },
 \   'prototype': g:luis#kind#buffer#export,
 \ }

@@ -1,6 +1,6 @@
 function s:test_filter_candidates() abort
   if !exists('*matchfuzzypos')
-    return 'matchfuzzypos() is not supported.'
+    return 'matchfuzzypos() function is required.'
   endif
 
   let matcher = g:luis#matcher#fuzzy#export

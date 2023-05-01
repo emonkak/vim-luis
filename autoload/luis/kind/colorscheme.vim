@@ -1,7 +1,10 @@
 function! s:action_open(kind, candidate) abort
-  let v:errmsg = ''
-  execute 'colorscheme' a:candidate.word
-  return v:errmsg == '' ? 0 : v:errmsg
+  try
+    execute 'colorscheme' a:candidate.word
+  catch
+    return v:exception
+  endtry
+  return 0
 endfunction
 
 let g:luis#kind#colorscheme#export = {

@@ -104,7 +104,7 @@ endif
 function! luis#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
-    return 'Action' string(a:action_name) 'is not defined'
+    return 'Action ' .  string(a:action_name) . ' is not defined'
   endif
   return Action(a:kind, a:candidate)
 endfunction
@@ -164,18 +164,11 @@ function! luis#start(source, ...) abort
   let s:session = s:new_session(a:source, get(a:000, 0, {}))
 
   " Open or create the luis buffer.
-  let v:errmsg = ''
   if bufexists(s:bufnr)
     topleft split
-    if v:errmsg != ''
-      return v:false
-    endif
     silent execute s:bufnr 'buffer'
   else
     topleft new
-    if v:errmsg != ''
-      return v:false
-    endif
     let s:bufnr = bufnr('')
     call s:initialize_luis_buffer()
   endif

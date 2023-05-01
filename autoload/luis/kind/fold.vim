@@ -1,6 +1,6 @@
 function! s:action_open(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'fold_lnum')
-    return 'No such fold'
+    return 'No fold chosen'
   endif
   call cursor(a:candidate.user_data.fold_lnum, 1)
   normal! zvzt

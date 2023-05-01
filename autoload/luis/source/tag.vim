@@ -25,7 +25,7 @@ function! s:Source.on_source_enter() abort dict
       if len(components) < 2
         continue
       endif
-      let [name, file; _rest] = components
+      let [name, file; _] = components
       call add(candidates, {
       \   'word': name,
       \   'menu': file,

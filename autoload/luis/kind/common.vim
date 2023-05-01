@@ -37,7 +37,7 @@ function! s:action_default(kind, candidate) abort
 endfunction
 
 function! s:action_ex(kind, candidate) abort
-  " Resultl is ':| {candidate}', here '|' means the cursor position.
+  " Result is ':| {candidate}', here '|' means the cursor position.
   call feedkeys(printf(": %s\<C-b>", fnameescape(a:candidate.word)), 'n')
   return 0
 endfunction
@@ -55,13 +55,23 @@ function! s:action_open_x(kind, candidate) abort
   return luis#do_action(a:kind, 'open', a:candidate)
 endfunction
 
-function! s:action_right(kind, candidate) abort
-  return s:open_with_split(a:kind, 'belowright vertical', a:candidate)
+function! s:action_put(kind, candidate) abort
+  put =a:candidate.word
+  return 0
 endfunction
 
-function! s:action_select(kind, candidate) abort
+function! s:action_put_x(kind, candidate) abort
+  put! =a:candidate.word
+  return 0
+endfunction
+
+function! s:action_reselect(kind, candidate) abort
   call luis#restart()
   return 0
+endfunction
+
+function! s:action_right(kind, candidate) abort
+  return s:open_with_split(a:kind, 'belowright vertical', a:candidate)
 endfunction
 
 function! s:action_tab_Left(kind, candidate) abort
@@ -90,17 +100,14 @@ function! s:open_with_split(kind, direction, candidate) abort
   let original_curwinnr = winnr()
   let original_winrestcmd = winrestcmd()
 
-  let v:errmsg = ''
-  silent! execute a:direction 'split'
-  if v:errmsg != ''
-    return v:errmsg
-  endif
+  try
+    execute a:direction 'split'
+  catch
+    return v:exception
+  endtry
 
   let error = luis#do_action(a:kind, 'open', a:candidate)
-
-  if error is 0
-    return 0
-  else
+  if error isnot 0
     " Undo the last :split.
     close
     execute 'tabnext' original_tabpagenr
@@ -108,6 +115,8 @@ function! s:open_with_split(kind, direction, candidate) abort
     execute original_winrestcmd
     return error
   endif
+
+  return 0
 endfunction
 
 let g:luis#kind#common#export = {
@@ -126,8 +135,10 @@ let g:luis#kind#common#export = {
 \     'left': function('s:action_left'),
 \     'open!': function('s:action_open_x'),
 \     'open': function('s:action_open'),
+\     'put!': function('s:action_put_x'),
+\     'put': function('s:action_put'),
+\     'reselect': function('s:action_reselect'),
 \     'right': function('s:action_right'),
-\     'select': function('s:action_select'),
 \     'tab-Left': function('s:action_tab_Left'),
 \     'tab-Right': function('s:action_tab_Right'),
 \     'tab-left': function('s:action_tab_left'),
@@ -141,7 +152,7 @@ let g:luis#kind#common#export = {
 \     "\<C-k>": 'above',
 \     "\<C-l>": 'right',
 \     "\<C-o>": 'open',
-\     "\<C-r>": 'select',
+\     "\<C-r>": 'reselect',
 \     "\<C-t>": 'tab-Right',
 \     "\<CR>": 'default',
 \     "\<Esc>": 'cancel',
@@ -152,12 +163,14 @@ let g:luis#kind#common#export = {
 \     'K': 'Top',
 \     'L': 'Right',
 \     'O': 'open!',
+\     'P': 'put!',
 \     'Y': 'Yank',
 \     'h': 'left',
 \     'j': 'below',
 \     'k': 'above',
 \     'l': 'right',
 \     'o': 'open',
+\     'p': 'put',
 \     't': 'tab-Right',
 \     'y': 'yank',
 \   },

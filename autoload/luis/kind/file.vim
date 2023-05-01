@@ -1,34 +1,54 @@
 function! s:action_cd(kind, candidate) abort
   let path = s:path_from_candidate(a:candidate)
-  let v:errmsg = ''
-  silent! cd `=fnamemodify(path, ':p:h')`
-  return v:errmsg == '' ? 0 : v:errmsg
+  try
+    cd `=fnamemodify(path, ':p:h')`
+  catch
+    return v:exception
+  endtry
+  return 0
 endfunction
 
 function! s:action_lcd(kind, candidate) abort
   let path = s:path_from_candidate(a:candidate)
-  let v:errmsg = ''
-  silent! lcd `=fnamemodify(patht, ':p:h')`
-  return v:errmsg == '' ? 0 : v:errmsg
+  try
+    lcd `=fnamemodify(path, ':p:h')`
+  catch
+    return v:exception
+  endtry
+  return 0
+endfunction
+
+function! s:action_tcd(kind, candidate) abort
+  let path = s:path_from_candidate(a:candidate)
+  try
+    tcd `=fnamemodify(path, ':p:h')`
+  catch
+    return v:exception
+  endtry
+  return 0
 endfunction
 
 function! s:action_open(kind, candidate) abort
-  return s:open('', a:candidate)
+  return s:open('edit', a:candidate)
 endfunction
 
 function! s:action_open_x(kind, candidate) abort
-  return s:open('!', a:candidate)
+  return s:open('edit!', a:candidate)
 endfunction
 
-function! s:open(bang, candidate) abort
+function! s:open(command, candidate) abort
   let path = s:path_from_candidate(a:candidate)
   if path == ''
     return 'No file chosen'
   endif
-  execute ('edit' . a:bang) '`=fnamemodify(path, ":.")`'
-  if has_key(a:candidate.user_data, 'file_pos')
-    call cursor(a:candidate.user_data.file_pos)
-  endif
+  try
+    execute a:command '`=fnamemodify(path, ":.")`'
+    if has_key(a:candidate.user_data, 'file_pos')
+      call cursor(a:candidate.user_data.file_pos)
+    endif
+  catch
+    return v:exception
+  endtry
   return 0
 endfunction
 
@@ -52,3 +72,8 @@ let g:luis#kind#file#export = {
 \   },
 \   'prototype': g:luis#kind#common#export,
 \ }
+
+if exists(':tcd')
+  let g:luis#kind#file#export.action_table.tcd = function('s:action_tcd')
+  let g:luis#kind#file#export.key_table["\<C-_>"] = 'tcd'
+endif

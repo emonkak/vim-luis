@@ -41,15 +41,16 @@ function! s:open(bang, candidate) abort
     return 'No error found'
   endif
 
-  let v:errmsg = ''
-
   let original_switchbuf = &switchbuf
   let &switchbuf = ''
+
   try
     execute ('cc' . a:bang) a:candidate.user_data.quickfix_nr
+  catch
+    return v:exception
   finally
     let &switchbuf = original_switchbuf
   endtry
 
-  return v:errmsg == '' ? 0 : v:errmsg
+  return 0
 endfunction

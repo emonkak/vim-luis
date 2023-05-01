@@ -1,6 +1,6 @@
 function! s:action_delete(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'mark_name')
-    return 'No mark found'
+    return 'No mark chosen'
   endif
   execute 'delmarks' a:candidate.user_data.mark_name
   return 0
@@ -8,9 +8,9 @@ endfunction
 
 function! s:action_open(kind, candidate) abort
   if !has_key(a:candidate.user_data, 'mark_name')
-    return 'No mark found'
+    return 'No mark chosen'
   endif
-  execute 'normal!' '`' . a:candidate.mark_name
+  execute 'normal!' '`' . a:candidate.user_data.mark_name
   return 0
 endfunction
 
