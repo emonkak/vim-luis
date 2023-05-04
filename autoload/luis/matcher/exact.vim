@@ -1,21 +1,21 @@
 let s:Matcher = {}
 
-function! s:Matcher.filter_candidates(candidates, args) abort dict 
+function! s:Matcher.filter_candidates(candidates, context) abort dict 
   let candidates = a:candidates
-  if a:args.pattern != ''
+  if a:context.pattern != ''
     let candidates = filter(
     \   copy(candidates),
-    \   'stridx(v:val.word, a:args.pattern) >= 0'
+    \   'stridx(v:val.word, a:context.pattern) >= 0'
     \ )
   endif
   return candidates
 endfunction
 
-function! s:Matcher.normalize_candidate(candidate, index, args) abort dict 
+function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
   return a:candidate
 endfunction
 
-function! s:Matcher.sort_candidates(candidates, args) abort dict
+function! s:Matcher.sort_candidates(candidates, context) abort dict
   return sort(a:candidates, 's:compare')
 endfunction
 

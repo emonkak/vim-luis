@@ -45,25 +45,25 @@ endfunction
 
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#exact#export
-  let Test = { expected, candidate, index, args ->
+  let Test = { expected, candidate, index, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.normalize_candidate(copy(candidate), index, args)
+  \     matcher.normalize_candidate(copy(candidate), index, context)
   \   )
   \ }
 
   let candidate = { 'word': 'foo' }
   let index = 0
-  let args = {}
-  call Test(candidate, candidate, index, args)
+  let context = {}
+  call Test(candidate, candidate, index, context)
 endfunction
 
 function s:test_sort_candidates() abort
   let matcher = g:luis#matcher#exact#export
-  let Test = { expected, candidates, args ->
+  let Test = { expected, candidates, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.sort_candidates(copy(candidates), args)
+  \     matcher.sort_candidates(copy(candidates), context)
   \   )
   \ }
 
@@ -73,13 +73,13 @@ function s:test_sort_candidates() abort
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \ ]
-  let args = {}
+  let context = {}
   call Test([
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 0 },
-  \ ], candidates, args)
+  \ ], candidates, context)
 
   let candidates = [
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 1 },
@@ -87,11 +87,11 @@ function s:test_sort_candidates() abort
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 1 },
   \ ]
-  let args = {}
+  let context = {}
   call Test([
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 1 },
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 1 },
-  \ ], candidates, args)
+  \ ], candidates, context)
 endfunction

@@ -11,7 +11,7 @@ let s:Source = {
 \   'matcher': g:luis#matcher#default,
 \ }
 
-function! s:Source.gather_candidates(args) abort dict
+function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 

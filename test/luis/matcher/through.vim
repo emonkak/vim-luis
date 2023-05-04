@@ -21,25 +21,25 @@ endfunction
 
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#through#export
-  let Test = { expected, candidate, index, args ->
+  let Test = { expected, candidate, index, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.normalize_candidate(copy(candidate), index, args)
+  \     matcher.normalize_candidate(copy(candidate), index, context)
   \   )
   \ }
 
   let candidate = { 'word': 'foo' }
   let index = 0
-  let args = {}
-  call Test(candidate, candidate, index, args)
+  let context = {}
+  call Test(candidate, candidate, index, context)
 endfunction
 
 function s:test_sort_candidates() abort
   let matcher = g:luis#matcher#through#export
-  let Test = { expected, candidate, args ->
+  let Test = { expected, candidate, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.sort_candidates(copy(candidate), args)
+  \     matcher.sort_candidates(copy(candidate), context)
   \   )
   \ }
 
@@ -48,6 +48,6 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-  let args = {}
-  call Test(candidates, candidates, args)
+  let context = {}
+  call Test(candidates, candidates, context)
 endfunction

@@ -1,9 +1,9 @@
 let s:Matcher = {}
 
-function! s:Matcher.filter_candidates(candidates, args) abort dict
+function! s:Matcher.filter_candidates(candidates, context) abort dict
   let candidates = []
   for candidate in a:candidates
-    let score = s:score(candidate.word, a:args.pattern)
+    let score = s:score(candidate.word, a:context.pattern)
     if score > 0.0
       let candidate.luis_smart_score = score
       call add(candidates, candidate)
@@ -12,11 +12,11 @@ function! s:Matcher.filter_candidates(candidates, args) abort dict
   return candidates
 endfunction
 
-function! s:Matcher.normalize_candidate(candidate, index, args) abort dict 
+function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
   return a:candidate
 endfunction
 
-function! s:Matcher.sort_candidates(candidates, args) abort dict
+function! s:Matcher.sort_candidates(candidates, context) abort dict
   return sort(a:candidates, 's:compare')
 endfunction
 

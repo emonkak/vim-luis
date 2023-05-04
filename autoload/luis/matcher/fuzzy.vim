@@ -1,26 +1,26 @@
 let s:Matcher = {}
 
-function! s:Matcher.filter_candidates(candidates, args) abort dict 
-  if a:args.pattern != ''
+function! s:Matcher.filter_candidates(candidates, context) abort dict 
+  if a:context.pattern != ''
     let [candidates, positions, scores] =
-    \ matchfuzzypos(a:candidates, a:args.pattern, { 'key': 'word' })
-    let a:args._positions = positions
-    let a:args._scores = scores
+    \ matchfuzzypos(a:candidates, a:context.pattern, { 'key': 'word' })
+    let a:context._positions = positions
+    let a:context._scores = scores
   else
     let candidates = a:candidates
-    let a:args._positions = []
-    let a:args._scores = []
+    let a:context._positions = []
+    let a:context._scores = []
   endif
   return candidates
 endfunction
 
-function! s:Matcher.normalize_candidate(candidate, index, args) abort dict 
-  let a:candidate.luis_fuzzy_pos = get(a:args._positions, a:index, 0)
-  let a:candidate.luis_fuzzy_score = get(a:args._scores, a:index, 0)
+function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
+  let a:candidate.luis_fuzzy_pos = get(a:context._positions, a:index, 0)
+  let a:candidate.luis_fuzzy_score = get(a:context._scores, a:index, 0)
   return a:candidate
 endfunction
 
-function! s:Matcher.sort_candidates(candidates, args) abort dict 
+function! s:Matcher.sort_candidates(candidates, context) abort dict 
   return sort(a:candidates, 's:compare')
 endfunction
 

@@ -56,29 +56,29 @@ endfunction
 
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#fuzzy#export
-  let Test = { expected, candidate, index, args ->
+  let Test = { expected, candidate, index, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.normalize_candidate(copy(candidate), index, args)
+  \     matcher.normalize_candidate(copy(candidate), index, context)
   \   )
   \ }
 
   let candidate = { 'word': 'foo' }
   let index = 0
-  let args = { '_positions': [[0]], '_scores': [100] }
+  let context = { '_positions': [[0]], '_scores': [100] }
   call Test({
   \   'word': 'foo',
   \   'luis_fuzzy_pos': [0],
   \   'luis_fuzzy_score': 100,
-  \ }, candidate, index, args)
+  \ }, candidate, index, context)
 endfunction
 
 function s:test_sort_candidates() abort
   let matcher = g:luis#matcher#smart#export
-  let Test = { expected, candidates, args ->
+  let Test = { expected, candidates, context ->
   \   assert_equal(
   \     expected,
-  \     matcher.sort_candidates(copy(candidates), args)
+  \     matcher.sort_candidates(copy(candidates), context)
   \   )
   \ }
 
@@ -88,13 +88,13 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 0 },
   \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \ ]
-  let args = {}
+  let context = {}
   call Test([
   \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 0 },
   \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 0 },
-  \ ], candidates, args)
+  \ ], candidates, context)
 
   let candidates = [
   \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 1 },
@@ -102,11 +102,11 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 1 },
   \ ]
-  let args = {}
+  let context = {}
   call Test([
   \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 1 },
   \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 1 },
-  \ ], candidates, args)
+  \ ], candidates, context)
 endfunction

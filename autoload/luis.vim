@@ -282,18 +282,18 @@ function! luis#_omnifunc(findstart, base) abort
   else
     let source = s:session.source
     let matcher = source.matcher
-    let args = { 'pattern': s:remove_prompt(a:base), 'source': source }
-    let candidates = source.gather_candidates(args)
-    let candidates = matcher.filter_candidates(candidates, args)
+    let context = { 'pattern': s:remove_prompt(a:base), 'source': source }
+    let candidates = source.gather_candidates(context)
+    let candidates = matcher.filter_candidates(candidates, context)
     call map(
     \   candidates,
     \   'matcher.normalize_candidate(
-    \     s:normalize_candidate(v:val, v:key, args),
+    \     s:normalize_candidate(v:val, v:key, context),
     \     v:key,
-    \     args
+    \     context
     \   )'
     \ )
-    let candidates = matcher.sort_candidates(candidates, args)
+    let candidates = matcher.sort_candidates(candidates, context)
     let s:session.last_candidates = candidates
     return candidates
   endif
@@ -838,7 +838,7 @@ function! s:new_session(source, options) abort
   \ }
 endfunction
 
-function! s:normalize_candidate(candidate, index, args) abort
+function! s:normalize_candidate(candidate, index, context) abort
   let a:candidate.equal = 1
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}

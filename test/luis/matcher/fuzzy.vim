@@ -53,17 +53,17 @@ endfunction
 
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#fuzzy#export
-  let Test = { candidate, index, args, expected ->
+  let Test = { candidate, index, context, expected ->
   \   assert_equal(
   \     expected, 
-  \     matcher.normalize_candidate(copy(candidate), index, args)
+  \     matcher.normalize_candidate(copy(candidate), index, context)
   \   )
   \ }
 
   let candidate = { 'word': 'foo' }
   let index = 0
-  let args = { '_positions': [[0]], '_scores': [100] }
-  call Test(candidate, index, args, {
+  let context = { '_positions': [[0]], '_scores': [100] }
+  call Test(candidate, index, context, {
   \   'word': 'foo',
   \   'luis_fuzzy_pos': [0],
   \   'luis_fuzzy_score': 100
@@ -72,10 +72,10 @@ endfunction
 
 function s:test_sort_candidates() abort
   let matcher = g:luis#matcher#fuzzy#export
-  let Test = { candidates, args, expected ->
+  let Test = { candidates, context, expected ->
   \   assert_equal(
   \     expected,
-  \     matcher.sort_candidates(copy(candidates), args)
+  \     matcher.sort_candidates(copy(candidates), context)
   \   )
   \ }
 
@@ -85,8 +85,8 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \ ]
-  let args = {}
-  call Test(candidates, args, [
+  let context = {}
+  call Test(candidates, context, [
   \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
@@ -99,8 +99,8 @@ function s:test_sort_candidates() abort
   \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
   \ ]
-  let args = {}
-  call Test(candidates, args, [
+  let context = {}
+  call Test(candidates, context, [
   \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
