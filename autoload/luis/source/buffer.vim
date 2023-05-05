@@ -23,7 +23,6 @@ endfunction
 
 function! s:Source.on_source_enter() abort dict
   let candidates = []
-  let max_bufnr = bufnr('$')
   for buf in getbufinfo({ 'buflisted': 1 })
     if empty(buf.name)
       let bufname = '[No Name]'
@@ -40,7 +39,7 @@ function! s:Source.on_source_enter() abort dict
     endif
     call add(candidates, {
     \   'word': bufname,
-    \   'menu': printf('buffer %*d', len(max_bufnr), buf.bufnr),
+    \   'menu': 'buffer ' . buf.bufnr,
     \   'kind': s:buffer_indicator(buf),
     \   'dup': dup,
     \   'user_data': {
@@ -54,8 +53,7 @@ function! s:Source.on_source_enter() abort dict
 endfunction
 
 function! s:Source.on_source_leave() abort dict
-  let bufnr = self._alternate_bufnr
-  call s:switch_last_window(bufnr)
+  call s:switch_last_window(self._alternate_bufnr)
 endfunction
 
 function! s:buffer_indicator(buf) abort

@@ -25,32 +25,12 @@ function! s:Source.on_source_enter() abort dict
     endif
   endfor
 
-  let self._cached_candidates =
-  \   map(items(first_errors_for_buffer), '{
-  \     "word": bufname(v:val[0] + 0),
-  \     "user_data": {
-  \       "buffer_nr": v:val[0] + 0,
-  \       "quickfix_nr": v:val[1],
-  \     },
-  \     "luis_sort_priority": v:val[1],
-  \   }')
-endfunction
-
-function! s:open(bang, candidate) abort
-  if !has_key(a:candidate.user_data, 'quickfix_nr')
-    return 'No error found'
-  endif
-
-  let original_switchbuf = &switchbuf
-  let &switchbuf = ''
-
-  try
-    execute ('cc' . a:bang) a:candidate.user_data.quickfix_nr
-  catch
-    return v:exception
-  finally
-    let &switchbuf = original_switchbuf
-  endtry
-
-  return 0
+  let self._cached_candidates = map(items(first_errors_for_buffer), '{
+  \   "word": bufname(v:val[0] + 0),
+  \   "user_data": {
+  \     "buffer_nr": v:val[0] + 0,
+  \     "quickfix_nr": v:val[1],
+  \   },
+  \   "luis_sort_priority": v:val[1],
+  \ }')
 endfunction

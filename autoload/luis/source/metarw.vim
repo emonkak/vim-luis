@@ -36,12 +36,11 @@ endfunction
 function! s:Source.on_action(candidate) abort dict
   if !has_key(a:candidate.user_data, 'file_path')
     let a:candidate.user_data.file_path = self._scheme
-    \                                        . ':'
-    \                                        . a:candidate.word
+    \                                   . ':'
+    \                                   . a:candidate.word
   endif
-  return a:candidate
 endfunction
 
 function! s:path_separator() abort
-  return (exists('+shellslash') && !&shellslash) ? '\' : '/'
+  return exists('+shellslash') && !&shellslash ? '\' : '/'
 endfunction

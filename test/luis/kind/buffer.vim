@@ -23,7 +23,7 @@ function! s:test_action_open() abort
   \ })
 endfunction
 
-function! s:test_action_open_no_corresponding_buffer() abort
+function! s:test_action_open_no__corresponding_buffer() abort
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': tempname(),
   \   'user_data': {},
@@ -39,7 +39,7 @@ function! s:test_action_open_x() abort
   \ })
 endfunction
 
-function! s:test_action_open_x_no_corresponding_buffer() abort
+function! s:test_action_open_x__no_corresponding_buffer() abort
   let _ = luis#do_action(s:kind, 'open!', {
   \   'word': tempname(),
   \   'user_data': {},
@@ -92,53 +92,53 @@ function! s:assert_buffer(expected_bufexists, expected_buflisted, expected_buflo
   \ ], [bufexists(a:bufnr), buflisted(a:bufnr), bufloaded(a:bufnr)])
 endfunction
 
-function! s:do_test_delete(expected_result, expected_bufexists, expected_buflisted, expected_bufloaded, action_name, buf_options)
+function! s:do_test_delete(expected_result, expected_bufexists, expected_buflisted, expected_bufloaded, action_name, buf_options) abort
   for MakeCandidate in [
   \   { bufnr -> { 'word': bufname(bufnr), 'user_data': {} } },
   \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr } } }
   \ ]
-    let bufnr1 = s:new_buffer({ '&bufhidden': 'hide' })
-    let bufnr2 = s:new_buffer(a:buf_options)
+    let bufnr_1 = s:new_buffer({ '&bufhidden': 'hide' })
+    let bufnr_2 = s:new_buffer(a:buf_options)
     try
-      let candidate = MakeCandidate(bufnr2)
+      let candidate = MakeCandidate(bufnr_2)
       let _ = luis#do_action(s:kind, a:action_name, candidate)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
-        call assert_equal(bufnr2, bufnr('%'))
+        call assert_equal(bufnr_2, bufnr('%'))
       else
         call assert_equal(0, _)
-        call assert_equal(bufnr1, bufnr('%'))
+        call assert_equal(bufnr_1, bufnr('%'))
       endif
-      call s:assert_buffer(a:expected_bufexists, a:expected_buflisted, a:expected_bufloaded, bufnr2)
+      call s:assert_buffer(a:expected_bufexists, a:expected_buflisted, a:expected_bufloaded, bufnr_2)
     finally
-      silent! execute bufnr2 'bwipeout!'
-      silent! execute bufnr1 'bwipeout!'
+      silent! execute bufnr_2 'bwipeout!'
+      silent! execute bufnr_1 'bwipeout!'
     endtry
   endfor
 endfunction
 
-function! s:do_test_open(expected_result, action_name, buf_options)
+function! s:do_test_open(expected_result, action_name, buf_options) abort
   for MakeCandidate in [
   \   { bufnr -> { 'word': bufname(bufnr), 'user_data': { 'buffer_pos': [4, 1] } } },
   \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [4, 1] } } }
   \ ]
-    let bufnr1 = s:new_buffer({ '&bufhidden': 'hide' })
+    let bufnr_1 = s:new_buffer({ '&bufhidden': 'hide' })
     call setline(1, range(1, 10))
-    let bufnr2 = s:new_buffer(a:buf_options)
+    let bufnr_2 = s:new_buffer(a:buf_options)
     try
-      let candidate = MakeCandidate(bufnr1)
+      let candidate = MakeCandidate(bufnr_1)
       let _ = luis#do_action(s:kind, a:action_name, candidate)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
-        call assert_equal(bufnr2, bufnr('%'))
+        call assert_equal(bufnr_2, bufnr('%'))
       else
         call assert_equal(0, _)
-        call assert_equal(bufnr1, bufnr('%'))
+        call assert_equal(bufnr_1, bufnr('%'))
         call assert_equal([4, 1], getpos('.')[1:2])
       endif
     finally
-      silent execute bufnr2 'bwipeout!'
-      silent execute bufnr1 'bwipeout!'
+      silent execute bufnr_2 'bwipeout!'
+      silent execute bufnr_1 'bwipeout!'
     endtry
   endfor
 endfunction

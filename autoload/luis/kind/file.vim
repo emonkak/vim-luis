@@ -45,6 +45,7 @@ function! s:open(command, candidate) abort
     execute a:command '`=fnamemodify(path, ":.")`'
     if has_key(a:candidate.user_data, 'file_pos')
       call cursor(a:candidate.user_data.file_pos)
+      normal! zvzt
     endif
   catch
     return v:exception

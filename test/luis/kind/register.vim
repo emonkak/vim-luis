@@ -12,7 +12,7 @@ function! s:test_action_put() abort
   call s:do_test_put(['', 'foo'], 'default', 'a', 'foo', 'l')
 endfunction
 
-function! s:test_action_put_no_register() abort
+function! s:test_action_put__no_register() abort
   for action_name in ['put', 'default']
     let _ = luis#do_action(s:kind, action_name, {
     \   'word': '',
@@ -33,7 +33,7 @@ function! s:test_action_delete() abort
     \     'register_name': 'a',
     \   },
     \ })
-    call assert_equal('', getreg('a'))
+    call assert_equal('', getreg('a', 1))
     call assert_equal('', getregtype('a'))
   finally
     execute bufnr 'bwipeout!'
@@ -41,10 +41,10 @@ function! s:test_action_delete() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('register', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction
 
 function! s:do_test_put(expected_content, action_name, reg_key, reg_value, reg_type) abort

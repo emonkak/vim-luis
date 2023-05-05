@@ -1,7 +1,7 @@
 let s:kind = g:luis#kind#quickfix#export
 
 function s:test_action_open() abort
-  cgetexpr ['A:2:foo', 'B:4:bar', 'C:baz']
+  cgetexpr ['A:12:foo', 'B:24:bar', 'C:baz']
   call assert_equal([1, 1, 0], map(getqflist(), 'v:val.valid'))
   call assert_equal([bufnr('A'), bufnr('B'), 0], map(getqflist(), 'v:val.bufnr'))
 
@@ -84,8 +84,8 @@ function s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('quickfix', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#buffer#export)
 endfunction

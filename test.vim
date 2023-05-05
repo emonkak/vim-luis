@@ -1,9 +1,10 @@
 #!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -E -s --cmd "source $0" <(IFS=$\'\n\'; echo "$*")'
 
-function s:run(package_dir, args)
+function s:run(package_dir) abort
   set nohidden noswapfile
 
-  bwipeout! *
+  let args = filter(getline(0, line('$')), 'v:val != ""')
+  %bwipeout!
   argdelete *
 
   let &runtimepath .= ',' . a:package_dir
@@ -26,7 +27,7 @@ function s:run(package_dir, args)
     endif
   endfor
 
-  let test_functions = sort(filter(
+  let test_functions = s:shuffle(filter(
   \  map(
   \    split(execute('0verbose function'), '\n'),
   \    { i, value ->
@@ -49,14 +50,11 @@ function s:run(package_dir, args)
 
   for test_function in test_functions
     let script_num = matchstr(test_function, '^<SNR>\zs\d\+')
-    let script_name = fnamemodify(
-    \   script_paths[script_num],
-    \   ':.:s?^[^/]*/??:gs?/?::?:r'
-    \ )
+    let script_name = fnamemodify(script_paths[script_num], ':.')
     let test_name = substitute(test_function, '^<SNR>\d\+_', '', 'I')
     let full_name = script_name . '::' . test_name
 
-    if max(map(copy(a:args), 'stridx(full_name, v:val)')) == -1
+    if max(map(copy(args), 'stridx(full_name, v:val)')) == -1
       let filtered_out += 1
       continue
     endif
@@ -68,6 +66,8 @@ function s:run(package_dir, args)
       let return_value = call(test_function, [])
 
       if len(getbufinfo({ 'buflisted': 1 })) > 1
+      \  || line('$') > 1
+      \  || col('$') > 1
       \  || winnr('$') > 1
       \  || tabpagenr('$') > 1
         call add(errors, {
@@ -84,7 +84,7 @@ function s:run(package_dir, args)
         let messages = map(
         \   copy(v:errors),
         \   { i, message -> substitute(
-        \       join(split(message, '\.\.')[1:], "\n"),
+        \       join(split(message, '\.\.'), "\n"),
         \       '^\S\+\zs\s\zeline\s\d\+:',
         \       "\n",
         \       ''
@@ -149,8 +149,19 @@ function s:run(package_dir, args)
   endif
 endfunction
 
+function! s:shuffle(elements) abort
+  let Rand = exists('*rand') ? function('rand') : { -> reltime()[1] }
+  let l = len(a:elements)
+  while l > 0
+    let i = Rand() % l
+    let l -= 1
+    let tmp = a:elements[i]
+    let a:elements[i] = a:elements[l]
+    let a:elements[l] = tmp
+  endwhile
+  return a:elements
+endfunction
+
 verbose echo matchstr(execute('version'), '^\n*\zs[^\n]\+') "\n"
 
-autocmd VimEnter *
-\ verbose call s:run(expand('<sfile>:p:h'),
-\                    filter(getline(0, line('$')), 'v:val != ""'))
+autocmd VimEnter * verbose call s:run(expand('<sfile>:p:h'))

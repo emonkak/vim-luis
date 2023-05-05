@@ -1,103 +1,102 @@
+let s:TYPE_DICT = 'dict'
 let s:TYPE_LIST = 'list'
-let s:TYPE_DICTIONARY = 'dictionary'
 let s:TYPE_STRUCT = 'struct'
 let s:TYPE_UNION = 'union'
+let s:TYPE_VALUE = 'value'
 
 let s:PRIMITIVE_TYPE_NAMES = {
-\   v:t_bool: 'boolean',
-\   v:t_dict: 'dictionary',
-\   v:t_float: 'float',
-\   v:t_func: 'function',
-\   v:t_list: 'list',
-\   v:t_number: 'number',
-\   v:t_string: 'string',
+\   v:t_bool: 'Boolean',
+\   v:t_dict: 'Dictionary',
+\   v:t_float: 'Float',
+\   v:t_func: 'Funcref',
+\   v:t_list: 'List',
+\   v:t_number: 'Number',
+\   v:t_string: 'String',
 \ }
 
-function! luis#schema#validate(data, schema) abort
+function! luis#schema#validate(schema, value) abort
   let errors = []
-  call s:validate(a:data, a:schema, '.', errors)
+  call s:validate(a:schema, a:value, '.', errors)
   return errors
 endfunction
 
-function! luis#schema#to_string(schema)  abort
-  let optional_marker = get(a:schema, 'optional', 0) ? '?' : ''
+function! luis#schema#to_string(schema) abort
   if type(a:schema.type) is v:t_number
-    return get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown')
-    \      . optional_marker
+    let s = get(s:PRIMITIVE_TYPE_NAMES, a:schema.type, 'unknown')
+  elseif a:schema.type ==# s:TYPE_DICT
+    let s = 'Dictionary<' . luis#schema#to_string(a:schema.item) . '>'
   elseif a:schema.type ==# s:TYPE_LIST
-    return 'list<' . luis#schema#to_string(a:schema.item) . '>'
-    \      . optional_marker
-  elseif a:schema.type ==# s:TYPE_DICTIONARY
-    return 'dictionary<' . luis#schema#to_string(a:schema.item) . '>'
-    \      . optional_marker
+    let s = 'List<' . luis#schema#to_string(a:schema.item) . '>'
   elseif a:schema.type ==# s:TYPE_STRUCT
     let props = []
-    for [key, value] in items(a:schema.properties)
-      call add(props, string(key) . ': ' . luis#schema#to_string(value))
+    for [key, schema] in items(a:schema.properties)
+      call add(props, string(key) . ': ' . luis#schema#to_string(schema))
     endfor
-    return '{' . join(props, ', ') . '}' . optional_marker
+    let s = '{' . join(props, ', ') . '}'
   elseif a:schema.type ==# s:TYPE_UNION
-    return 'union<'
-    \      . join(map(a:schema.variants, 'luis#schema#to_string(v:val)'),
-    \             ', ')
+    let s = 'Union<'
+    \      . join(map(copy(a:schema.variants),
+    \                 'luis#schema#to_string(v:val)'), ', ')
     \      . '>'
-    \      . optional_marker
+  elseif a:schema.type ==# s:TYPE_VALUE
+    let s = string(a:schema.value)
   else
-    return 'unknown'
+    let s = 'Unknown'
   endif
+  if get(a:schema, 'optional', 0)
+    let s .= '?'
+  endif
+  return s
 endfunction
 
-function! s:validate(data, schema, path, errors) abort
+function! s:validate(schema, value, path, errors) abort
   if type(a:schema.type) is v:t_number
-    if type(a:data) isnot a:schema.type
-      let error = printf('Key %s must be %s but given data is %s',
-      \           string(a:path),
-      \           string(luis#schema#to_string(a:schema)),
-      \           string(a:data))
+    if type(a:value) isnot a:schema.type
+      let error = printf('Key %s must be type %s but given value is %s',
+      \   string(a:path),
+      \   string(luis#schema#to_string(a:schema)),
+      \   string(a:value)
+      \ )
       call add(a:errors, error)
       return 0
     endif
     return 1
-  elseif a:schema.type ==# s:TYPE_LIST
-    let list_schema = {'type': v:t_list}
-    if !s:validate(a:data, list_schema, a:path, a:errors)
+  elseif a:schema.type ==# s:TYPE_DICT
+    if !s:validate({ 'type': v:t_dict }, a:value, a:path, a:errors)
       return 0
     endif
     let success = 1
-    for i in range(len(a:data))
-      let path = a:path . '[' . i . ']'
-      if !s:validate(a:data[i], a:schema.item, path, a:errors)
+    for [K, V] in items(a:value)
+      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . K
+      if !s:validate(a:schema.item, V, path, a:errors)
         let success = 0
       endif
     endfor
     return success
-  elseif a:schema.type ==# s:TYPE_DICTIONARY
-    let dict_schema = {'type': v:t_dict}
-    if !s:validate(a:data, dict_schema, a:path, a:errors)
+  elseif a:schema.type ==# s:TYPE_LIST
+    if !s:validate({ 'type': v:t_list }, a:value, a:path, a:errors)
       return 0
     endif
     let success = 1
-    for [key, Value] in items(a:data)
-      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . key
-      if !s:validate(Value, a:schema.item, path, a:errors)
+    for i in range(len(a:value))
+      let path = a:path . '[' . i . ']'
+      if !s:validate(a:schema.item, a:value[i], path, a:errors)
         let success = 0
       endif
     endfor
     return success
   elseif a:schema.type ==# s:TYPE_STRUCT
-    let dict_schema = {'type': v:t_dict}
-    if !s:validate(a:data, dict_schema, a:path, a:errors)
+    if !s:validate({ 'type': v:t_dict }, a:value, a:path, a:errors)
       return 0
     endif
     let success = 1
-    for [key, value] in items(a:schema.properties)
-      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . key
-      let is_optional = get(value, 'optional', 0)
-      if has_key(a:data, key)
-        if !s:validate(a:data[key], value, path, a:errors)
+    for [K, V] in items(a:schema.properties)
+      let path = a:path . (a:path[-1:] != '.' ? '.' : '') . K
+      if has_key(a:value, K)
+        if !s:validate(V, a:value[K], path, a:errors)
           let success = 0
         endif
-      elseif !is_optional
+      elseif !get(V, 'optional', 0)
         let error = 'Key ' . string(path) . ' must be defined'
         call add(a:errors, error)
         let success = 0
@@ -106,23 +105,46 @@ function! s:validate(data, schema, path, errors) abort
     return success
   elseif a:schema.type ==# s:TYPE_UNION
     for variant in a:schema.variants
-      if s:validate(a:data, variant, a:path, [])
+      if s:validate(variant, a:value, a:path, [])
         return 1
       endif
     endfor
     let error = printf('Key %s must be either %s but given value is %s',
-    \           string(a:path),
-    \           join(map(a:schema.variants,
-    \                    'string(luis#schema#to_string(v:val))'), ', '),
-    \           string(a:data))
+    \   string(a:path),
+    \   join(map(
+    \     copy(a:schema.variants),
+    \     'string(luis#schema#to_string(v:val))'
+    \   ), ', '),
+    \   string(a:value)
+    \ )
+    call add(a:errors, error)
+    return 0
+  elseif a:schema.type ==# s:TYPE_VALUE
+    if a:value is a:schema.value
+      return 1
+    endif
+    let error = printf('Key %s must be value %s but given value is %s',
+    \   string(a:path),
+    \   string(a:schema.value),
+    \   string(a:value)
+    \ )
     call add(a:errors, error)
     return 0
   else
-    throw printf('Unexpected type "%s". Allowed values are "%s", "%s", "%s", "%s" or v:t_ variables',
-    \            a:schema.type,
-    \            s:TYPE_LIST,
-    \            s:TYPE_DICTIONARY,
-    \            s:TYPE_STRUCT,
-    \            s:TYPE_UNION)
+    let types = map(
+    \   [
+    \     s:TYPE_DICT,
+    \     s:TYPE_LIST,
+    \     s:TYPE_STRUCT,
+    \     s:TYPE_UNION,
+    \     s:TYPE_VALUE,
+    \   ],
+    \   'string(v:val)'
+    \ )
+    throw printf(
+    \   'Unexpected type "%s". Allowed values are %s or v:t_ variables',
+    \   a:schema.type,
+    \   join(types, ',')
+    \ )
   endif
 endfunction

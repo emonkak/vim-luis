@@ -1,19 +1,36 @@
 let s:kind = g:luis#kind#text#export
 
-function! s:test_action_default() abort
-  let reg_value = getreg('"')
-  let reg_type = getregtype('"')
-  let _ = luis#do_action(s:kind, 'default', {
-  \   'word': 'foo',
-  \ })
-  call assert_equal('foo', getreg('"'))
-  call assert_equal('v', getregtype('"'))
-  call setreg('"', reg_value, reg_type)
+function! s:test_action_open() abort
+  enew
+  call setline(1, 'hello!')
+  normal! $
+  try
+    silent let _ = luis#do_action(s:kind, 'open', {
+    \   'word': ' vim',
+    \ })
+    call assert_equal(['hello vim!'], getline(1, line('$')))
+  finally
+    silent bwipeout!
+  endtry
+endfunction
+
+function! s:test_action_open_x() abort
+  enew
+  call setline(1, 'hello!')
+  normal! $
+  try
+    silent let _ = luis#do_action(s:kind, 'open!', {
+    \   'word': ' vim',
+    \ })
+    call assert_equal(['hello! vim'], getline(1, line('$')))
+  finally
+    silent bwipeout!
+  endtry
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('text', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction

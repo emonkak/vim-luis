@@ -10,7 +10,7 @@ function! s:test_action_open() abort
   highlight clear
 endfunction
 
-function! s:test_action_open_invalid_colorscheme() abort
+function! s:test_action_open__invalid_colorscheme() abort
   silent let _ = luis#do_action(s:kind, 'open', {
   \   'word': '_',
   \ })
@@ -18,8 +18,8 @@ function! s:test_action_open_invalid_colorscheme() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('colorscheme', s:kind.name)
-  call assert_true(type(s:kind.action_table), v:t_dict)
-  call assert_true(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction

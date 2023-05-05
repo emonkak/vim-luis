@@ -1,8 +1,8 @@
-function! Spy(func_name)
+function! Spy(func_ref) abort
   let spy = copy(s:Spy)
-  let spy._func_name = a:func_name
-  let spy._func_def = s:get_func_def(a:func_name)
-  let spy._func_ref = funcref(a:func_name)
+  let spy._func_ref = a:func_ref
+  let spy._func_name = get(a:func_ref, 'name')
+  let spy._func_def = s:get_func_def(spy._func_name)
   let spy._calls = []
   return spy
 endfunction
@@ -33,6 +33,10 @@ endfunction
 
 function! s:Spy.calls() abort dict
   return self._calls
+endfunction
+
+function! s:Spy.called() abort dict
+  return len(self._calls) > 0
 endfunction
 
 function! s:Spy.function() abort dict
@@ -87,11 +91,18 @@ function! s:Spy.override(callback) abort dict
 endfunction
 
 function! s:Spy.restore() abort dict
-  execute s:normalize_func_def(self._func_def)
+  if self._func_def != ''
+    execute s:normalize_func_def(self._func_def)
+  endif
 endfunction
 
 function! s:get_func_def(func_name) abort
-  return execute('0verbose function ' . a:func_name)
+  if a:func_name =~ '^\%([sg]:\|\%(<SNR>\|' . "\<SNR>" . '\)\d\+_\)\?\h\w*\%(#\h\w*\)*$'
+    return execute('0verbose function ' . a:func_name)
+  else
+    " Unable to get function definition for a lambda or a local dict function.
+    return ''
+  endif
 endfunction
 
 function! s:get_func_options(func_def) abort
@@ -125,7 +136,7 @@ function! s:normalize_func_def(func_def) abort
 endfunction
 
 function! s:test_call() abort
-  let spy = Spy('s:_greet')
+  let spy = Spy(funcref('s:_greet'))
   call assert_equal('Hello Vim!', spy.call(['Vim']))
   call assert_equal(1, spy.call_count())
   call assert_equal([{ 'args': ['Vim'], 'return_value': 'Hello Vim!' }], spy.calls())
@@ -140,7 +151,7 @@ function! s:test_call() abort
 endfunction
 
 function! s:test_call_with_dict() abort
-  let spy = Spy('s:_greet_with_dict')
+  let spy = Spy(funcref('s:_greet_with_dict'))
   call assert_equal('Hello Vim!', spy.call([], { 'name': 'Vim' }))
   call assert_equal(1, spy.call_count())
   call assert_equal([
@@ -157,7 +168,7 @@ function! s:test_call_with_dict() abort
 endfunction
 
 function! s:test_hijack() abort
-  let spy = Spy('s:_greet')
+  let spy = Spy(funcref('s:_greet'))
   call spy.override({ _ -> 'Hi ' . _.args[0] . '!' })
   call spy.hijack()
 
@@ -166,6 +177,7 @@ function! s:test_hijack() abort
   call assert_equal([{ 'args': ['Vim'], 'return_value': 'Hi Vim!' }], spy.calls())
 
   call spy.restore()
+  call assert_notequal('', spy._func_def)
   call assert_equal(spy._func_def, s:get_func_def('s:_greet'))
 
   call assert_equal('Hello Vim!', s:_greet('Vim'))
@@ -174,7 +186,7 @@ function! s:test_hijack() abort
 endfunction
 
 function! s:test_hijack_with_dict() abort
-  let spy = Spy('s:_greet_with_dict')
+  let spy = Spy(funcref('s:_greet_with_dict'))
   call spy.override({ _ -> 'Hi ' . _.self.name . '!' })
   call spy.hijack()
 
@@ -185,6 +197,7 @@ function! s:test_hijack_with_dict() abort
   \ ], spy.calls())
 
   call spy.restore()
+  call assert_notequal('', spy._func_def)
   call assert_equal(spy._func_def, s:get_func_def('s:_greet_with_dict'))
 
   call assert_equal('Hello Vim!', call('s:_greet_with_dict', [], { 'name': 'Vim' }))

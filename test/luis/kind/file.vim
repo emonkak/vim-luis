@@ -27,7 +27,7 @@ function! s:test_action_open() abort
   \ })
 endfunction
 
-function! s:test_action_open_no_file() abort
+function! s:test_action_open__no_file() abort
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
@@ -43,7 +43,7 @@ function! s:test_action_open_x() abort
   \ })
 endfunction
 
-function! s:test_action_open_x_no_file() abort
+function! s:test_action_open_x__no_file() abort
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
@@ -52,10 +52,10 @@ function! s:test_action_open_x_no_file() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('file', s:kind.name)
-  call assert_true(type(s:kind.action_table), v:t_dict)
-  call assert_true(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction
 
 function! s:do_test_cd(expected_result, action_name, path, getcwd_args) abort

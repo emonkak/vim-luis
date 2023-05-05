@@ -14,11 +14,13 @@ function! s:test_action_argdelete() abort
     call assert_equal(['foo', 'baz'], argv())
   finally
     argdelete *
-    silent bwipeout foo bar baz
+    silent %bwipeout
+    call assert_equal(0, argc())
+    call assert_equal([], argv())
   endtry
 endfunction
 
-function! s:test_action_argdelete_invalid_arg() abort
+function! s:test_action_argdelete__invalid_arg() abort
   try
     let _ = luis#do_action(s:kind, 'argdelete', {
     \  'word': '_',
@@ -28,8 +30,8 @@ function! s:test_action_argdelete_invalid_arg() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('args', s:kind.name)
-  call assert_true(type(s:kind.action_table), v:t_dict)
-  call assert_true(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#buffer#export)
 endfunction

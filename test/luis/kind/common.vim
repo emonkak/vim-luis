@@ -155,13 +155,13 @@ function! s:test_action_Top() abort
 endfunction
 
 function! s:test_action_Yank() abort
-  let reg_value = getreg('"')
+  let reg_value = getreg('"', 1)
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
     let _ = luis#do_action(s:kind, 'Yank', { 'word': 'bar' })
     call assert_equal(0, _)
-    call assert_equal("bar\n", getreg('"'))
+    call assert_equal("bar\n", getreg('"', 1))
     call assert_equal('V', getregtype('"'))
   finally
     call setreg('"', reg_value, reg_type)
@@ -244,12 +244,12 @@ function! s:test_action_cancel() abort
 endfunction
 
 function! s:test_action_ex() abort
-  " It should succeed with fnameescape(x) ==# x
-  call assert_equal(0, luis#do_action(s:kind, 'ex', { 'word': 'vim' }))
+  let _ = luis#do_action(s:kind, 'ex', { 'word': 'vim' })
+  call assert_equal(0, _)
   call assert_equal(": vim\<C-b>", s:consume_keys())
 
-  " It should succeed with fnameescape(x) !=# x
-  call assert_equal(0, luis#do_action(s:kind, 'ex', { 'word': 'v i' }))
+  let _ = luis#do_action(s:kind, 'ex', { 'word': 'v i' })
+  call assert_equal(0, _)
   call assert_equal(": v\\ i\<C-b>", s:consume_keys())
 endfunction
 
@@ -300,7 +300,7 @@ function! s:test_action_open() abort
   endfor
 endfunction
 
-function! s:test_action_open_is_not_defined() abort
+function! s:test_action_open__not_defined() abort
   let _ = luis#do_action(s:kind.prototype, 'open', {})
   call assert_notequal(0, _)
 endfunction
@@ -330,7 +330,7 @@ function! s:test_action_put_x() abort
 endfunction
 
 function! s:test_action_reselect() abort
-  let spy = Spy('luis#restart')
+  let spy = Spy(funcref('luis#restart'))
   call spy.override({ _ -> 0 })
 
   function! luis#restart() abort closure
@@ -340,7 +340,7 @@ function! s:test_action_reselect() abort
   try
     let _ = luis#do_action(s:kind, 'reselect', {})
     call assert_equal(0, _)
-    call assert_equal(1, spy.call_count())
+    call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
   finally
     call spy.restore()
   endtry
@@ -430,13 +430,13 @@ function! s:test_action_tab_right() abort
 endfunction
 
 function! s:test_action_yank() abort
-  let reg_value = getreg('"')
+  let reg_value = getreg('"', 1)
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
     let _ = luis#do_action(s:kind, 'yank', { 'word': 'bar' })
     call assert_equal(0, _)
-    call assert_equal('bar', getreg('"'))
+    call assert_equal('bar', getreg('"', 1))
     call assert_equal('v', getregtype('"'))
   finally
     call setreg('"', reg_value, reg_type)

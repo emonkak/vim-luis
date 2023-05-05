@@ -23,16 +23,23 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('tagstack', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#buffer#export)
 endfunction
 
 function! s:do_test_open(expected_result, action_name, buf_options) abort
+  let original_cwd = getcwd()
   cd $VIMRUNTIME/doc
 
+  let winnr = winnr()
   let tag_bufnrs = []
+
+  call assert_equal(
+  \   { 'curidx': 1, 'items': [], 'length': 0 },
+  \   gettagstack(winnr)
+  \ )
 
   silent tag! usr_01.txt
   call add(tag_bufnrs, bufnr('%'))
@@ -43,7 +50,11 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   silent tag! usr_03.txt
   call add(tag_bufnrs, bufnr('%'))
 
-  enew!
+  let tagstack = gettagstack(winnr)
+  call assert_equal(4, tagstack.curidx)
+  call assert_equal(3, tagstack.length)
+
+  new
   let bufnr = bufnr('%')
   for [key, value] in items(a:buf_options)
     call setbufvar(bufnr, key, value)
@@ -69,11 +80,14 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
       endif
       silent execute bufnr 'buffer'
     endfor
+
+    call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
+    call assert_equal(
+    \   { 'curidx': 1, 'items': [], 'length': 0 },
+    \   gettagstack(winnr)
+    \ )
   finally
-    silent execute bufnr 'bwipeout!'
-    for tag_bufnr in tag_bufnrs
-      silent execute tag_bufnr 'bwipeout!'
-    endfor
-    cd -
+    silent %bwipeout!
+    cd `=original_cwd`
   endtry
 endfunction

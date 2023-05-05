@@ -8,11 +8,21 @@ function! s:test_action_open() abort
   \ })
 endfunction
 
-function! s:test_action_open_invalid_tag() abort
+function! s:test_action_open__invalid_tag() abort
+  let winnr = winnr()
+
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': 'XXX',
   \ })
   call assert_match('Vim(tag):E\%(426\|433\):', _)
+
+  if exists('*settagstack')
+    call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
+    call assert_equal(
+    \   { 'curidx': 1, 'items': [], 'length': 0 },
+    \   gettagstack(winnr)
+    \ )
+  endif
 endfunction
 
 function! s:test_action_open_x() abort
@@ -23,21 +33,32 @@ function! s:test_action_open_x() abort
   \ })
 endfunction
 
-function! s:test_action_open_x_invalid_tag() abort
+function! s:test_action_open_x__invalid_tag() abort
+  let winnr = winnr()
+
   let _ = luis#do_action(s:kind, 'open!', {
   \   'word': 'XXX',
   \ })
   call assert_match('Vim(tag):E\%(426\|433\):', _)
+
+  if exists('*settagstack')
+    call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
+    call assert_equal(
+    \   { 'curidx': 1, 'items': [], 'length': 0 },
+    \   gettagstack(winnr)
+    \ )
+  endif
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('tag', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction
 
 function! s:do_test_open(expected_result, action_name, buf_options) abort
+  let original_cwd = getcwd()
   cd $VIMRUNTIME/doc
 
   silent edit `=tempname()`
@@ -45,6 +66,8 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   for [key, value] in items(a:buf_options)
     call setbufvar(bufnr, key, value)
   endfor
+
+  let winnr = winnr()
 
   try
     silent let _ = luis#do_action(s:kind, a:action_name, {
@@ -59,8 +82,16 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
       call assert_match('\*vimtutor\*', getline('.'))
       silent bwipeout
     endif
+
+    if exists('*settagstack')
+      call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
+      call assert_equal(
+      \   { 'curidx': 1, 'items': [], 'length': 0 },
+      \   gettagstack(winnr)
+      \ )
+    endif
   finally
     silent execute bufnr 'bwipeout!'
-    cd -
+    cd `=original_cwd`
   endtry
 endfunction

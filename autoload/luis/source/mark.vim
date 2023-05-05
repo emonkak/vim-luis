@@ -16,7 +16,7 @@ endfunction
 
 function! s:Source.on_source_enter() abort dict
   let candidates = []
-  let bufnr = bufnr('#')
+  let bufnr = winbufnr(winnr('#'))
   let bufname = bufname(bufnr)
   for mark in getmarklist(bufnr)  " buffer local marks
     let mark_name = mark.mark[1:]

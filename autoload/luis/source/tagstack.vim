@@ -22,7 +22,7 @@ function! s:Source.on_source_enter() abort dict
     let bufname = bufname(item.bufnr)
     call add(candidates, {
     \   'word': item.tagname,
-    \   'menu': bufname . ':' . item.from[0] . ':' . item.from[1],
+    \   'menu': bufname . ':' . item.from[1] . ':' . item.from[2],
     \   'dup': 1,
     \   'user_data': {
     \     'tagstack_index': index,

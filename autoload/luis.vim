@@ -17,13 +17,13 @@ let s:SCHEMA_KIND = {
 \       'type': v:t_string,
 \     },
 \     'action_table': {
-\       'type': 'dictionary',
+\       'type': 'dict',
 \       'item': {
 \         'type': v:t_func,
 \       },
 \     },
 \     'key_table': {
-\       'type': 'dictionary',
+\       'type': 'dict',
 \       'item': {
 \         'type': v:t_string,
 \       },
@@ -151,7 +151,7 @@ function! luis#start(source, ...) abort
     return 0
   endif
 
-  let errors = luis#schema#validate(a:source, s:SCHEMA_SOURCE)
+  let errors = luis#schema#validate(s:SCHEMA_SOURCE, a:source)
   if !empty(errors)
     echoerr 'luis: Invalid source'
     for error in errors
@@ -197,7 +197,7 @@ function! luis#start(source, ...) abort
 
   " Start Insert mode.
   " BUGS: :startinsert! may not work with append()/setline()/:put.
-  "       If the typeahead buffer is empty, ther is no problem.
+  "       If the typeahead buffer is empty, there is no problem.
   "       Otherwise, :startinsert! behaves as '$i', not 'A',
   "       so it is inconvenient.
   " BUGS: It's not possible to emulate the same input by
@@ -299,6 +299,14 @@ function! luis#_omnifunc(findstart, base) abort
   endif
 endfunction
 
+function! luis#_scope() abort
+  return s:
+endfunction
+
+function! luis#_sid_prefix() abort
+  return '<SNR>' . s:sid() . '_'
+endfunction
+
 function! s:acc_text(line, sep, candidates) abort
   " ACC = Automatic Component Completion
 
@@ -362,7 +370,7 @@ function! s:acc_text(line, sep, candidates) abort
     endif
 
     if has_key(s:session.source, 'is_valid_for_acc')
-    \  && !s:session.source.is_valid_for_acc(candidate, a:sep)
+    \  && !s:session.source.is_valid_for_acc(candidate)
       continue
     endif
 
@@ -919,4 +927,8 @@ endfunction
 
 function! s:session_is_active() abort
   return bufexists(s:bufnr) && bufwinnr(s:bufnr) != -1
+endfunction
+
+function! s:sid() abort
+  return matchstr(get(function('s:sid'), 'name'), '^<SNR>\zs\d\+')
 endfunction

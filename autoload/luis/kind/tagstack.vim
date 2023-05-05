@@ -6,7 +6,7 @@ function! s:action_open_x(kind, candidate) abort
   return s:do_open(a:kind, 'open!', a:candidate)
 endfunction
 
-function! s:do_open(kind, action_name, candidate)
+function! s:do_open(kind, action_name, candidate) abort
   let error = luis#do_action(a:kind.prototype, a:action_name, a:candidate)
   if error isnot 0
     return error

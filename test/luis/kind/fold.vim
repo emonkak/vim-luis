@@ -45,7 +45,7 @@ function! s:test_action_open() abort
   endtry
 endfunction
 
-function! s:test_action_open_no_fold() abort
+function! s:test_action_open__no_fold() abort
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
@@ -54,8 +54,8 @@ function! s:test_action_open_no_fold() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('fold', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction

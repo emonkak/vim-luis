@@ -12,48 +12,52 @@ let s:Source = {
 
 function! s:Source.gather_candidates(context) abort dict
   let separator = s:path_separator()
-  let [directory_part, filename_part] = s:parse_pattern(a:context.pattern, separator)
+  let [dir, rest_pattern] = s:parse_pattern(a:context.pattern, separator)
 
-  if !has_key(self._cached_candidates, directory_part)
-    let candidates = []
-    let directory = s:expand_path(directory_part)
-    let prefix = directory_part == './' ? '' : directory_part
+  if !has_key(self._cached_candidates, dir)
+    let normal_candidates = []
+    let hidden_candidates = []
+    let logical_dir = dir == './' ? '' : dir
+    let physical_dir = s:expand_path(dir)
 
-    for filename in s:readdir(directory)
-      let relative_path = prefix . filename
-      let absolute_path = fnamemodify(directory . filename, ':p')
-      let type = getftype(absolute_path)
-      let is_directory = type == 'dir'
-      \                  || (type == 'link' && isdirectory(absolute_path))
+    for filename in s:readdir(physical_dir)
+      let logical_path = logical_dir . filename
+      let physical_path = fnamemodify(physical_dir . filename, ':p')
+      let type = getftype(physical_path)
+      let is_hidden = filename[0] == '.'
+      let candidates = is_hidden ? hidden_candidates : normal_candidates
       call add(candidates, {
-      \   'word': relative_path,
-      \   'abbr': relative_path . (is_directory ? separator : ''),
-      \   'menu': type,
+      \   'word': logical_path,
+      \   'abbr': logical_path . (type ==# 'dir' ? separator : ''),
+      \   'kind': type,
       \   'user_data': {
-      \     'file_path': absolute_path,
+      \     'file_path': physical_path,
       \   },
-      \   '_is_directory': is_directory,
-      \   '_is_hidden': filename[0] == '.',
       \ })
     endfor
 
-    let self._cached_candidates[directory_part] = candidates
+    let self._cached_candidates[dir] = [
+    \    normal_candidates,
+    \    hidden_candidates
+    \ ]
   endif
 
-  let candidates = copy(self._cached_candidates[directory_part])
+  let [normal_candidates, hidden_candidates] = self._cached_candidates[dir]
+  let candidates = []
 
-  if !empty(filename_part)
+  if rest_pattern[0] == '.'
+    call extend(candidates, hidden_candidates)
+  endif
+
+  call extend(candidates, normal_candidates)
+
+  if rest_pattern != '' && rest_pattern != '.'
     call add(candidates, {
     \   'word': a:context.pattern,
-    \   'menu': '*new*',
+    \   'kind': '*new*',
+    \   'user_data': {},
     \   'luis_sort_priority': 1,
-    \   '_is_directory': 0,
-    \   '_is_hidden': 0,
     \ })
-  endif
-
-  if filename_part[0] != '.'
-    call filter(candidates, '!v:val._is_hidden')
   endif
 
   return candidates
@@ -63,8 +67,8 @@ function! s:Source.is_special_char(char) abort dict
   return a:char == s:path_separator()
 endfunction
 
-function! s:Source.is_valid_for_acc(candidate, sep) abort dict
-  return a:candidate._is_directory && a:sep == s:path_separator()
+function! s:Source.is_valid_for_acc(candidate) abort dict
+  return a:candidate.kind ==# 'dir'
 endfunction
 
 function! s:Source.on_action(candidate) abort dict
@@ -83,8 +87,8 @@ endfunction
 
 function! s:expand_path(path) abort
   let path = a:path
-  let path = substitute(path, '^\~', '$HOME', '')
-  let path = substitute(path, '\$\h\w*', '\=expand(submatch(0))', '')
+  let path = substitute(path, '\~/', '$HOME/', 'g')
+  let path = substitute(path, '\$\h\w*', '\=expand(submatch(0))', 'g')
   return path
 endfunction
 
@@ -94,27 +98,28 @@ function! s:parse_pattern(pattern, sep) abort
   else
     let components = split(a:pattern, a:sep, 1)
     if len(components) == 1  " no path separator
-      let directory = './'
+      let dir = './'
     else  " more than one path separators
-      let directory = join(components[:-2], a:sep)
-      if directory[-1:] !=# a:sep
-        let directory .= a:sep
+      let dir = join(components[:-2], a:sep)
+      if dir[-1:] !=# a:sep
+        let dir .= a:sep
       endif
     endif
     let filename = components[-1]
-    return [directory, filename]
+    return [dir, filename]
   endif
 endfunction
 
-function! s:readdir(directory) abort
+function! s:readdir(dir) abort
   if exists('*readdir')
-    return readdir(a:directory)
+    return readdir(a:dir)
   else
-    let files = []
-    call extend(files, globpath(a:directory, '.*', 1, 1))
-    call extend(files, globpath(a:directory, '*', 1, 1))
-    call map(files, 'fnamemodify(v:val, ":t")')
-    return files
+    let paths = []
+    call extend(paths, globpath(a:dir, '.*', 1, 1))
+    call extend(paths, globpath(a:dir, '*', 1, 1))
+    call map(paths, 'fnamemodify(v:val, ":t")')
+    call filter(paths, { _, val -> val !~# '^\.\{1,2}$' })
+    return paths
   endif
 endfunction
 

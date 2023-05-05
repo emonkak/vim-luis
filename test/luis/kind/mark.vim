@@ -21,7 +21,7 @@ function! s:test_action_delete() abort
   endtry
 endfunction
 
-function! s:test_action_delete_no_mark() abort
+function! s:test_action_delete__no_mark() abort
   let _ = luis#do_action(s:kind, 'delete', {
   \   'word': '',
   \   'user_data': {},
@@ -51,7 +51,7 @@ function! s:test_action_open() abort
   endtry
 endfunction
 
-function! s:test_action_open_no_mark() abort
+function! s:test_action_open__no_mark() abort
   let _ = luis#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
@@ -60,8 +60,8 @@ function! s:test_action_open_no_mark() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  let schema = luis#_scope().SCHEMA_KIND
+  let errors = luis#schema#validate(schema, s:kind)
+  call assert_equal([], errors)
   call assert_equal('mark', s:kind.name)
-  call assert_equal(type(s:kind.action_table), v:t_dict)
-  call assert_equal(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction
