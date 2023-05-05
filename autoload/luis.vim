@@ -133,7 +133,7 @@ function! luis#restart() abort
     echohl ErrorMsg
     echo 'luis: Not started yet'
     echohl NONE
-    return v:false
+    return 0
   endif
   let last_source = s:session.source
   let last_pattern = s:remove_prompt(s:session.last_pattern_raw)
@@ -148,7 +148,7 @@ function! luis#start(source, ...) abort
     echohl ErrorMsg
     echo 'luis: Already active'
     echohl NONE
-    return v:false
+    return 0
   endif
 
   let errors = luis#schema#validate(a:source, s:SCHEMA_SOURCE)
@@ -157,7 +157,7 @@ function! luis#start(source, ...) abort
     for error in errors
       echoerr error
     endfor
-    return v:false
+    return 0
   endif
 
   " Initialze session.
@@ -214,7 +214,7 @@ function! luis#start(source, ...) abort
     call a:source.on_source_enter()
   endif
 
-  return v:true
+  return 1
 endfunction
 
 function! luis#take_action(...) abort
@@ -222,13 +222,13 @@ function! luis#take_action(...) abort
     echohl ErrorMsg
     echo 'luis: Not active'
     echohl NONE
-    return v:false
+    return 0
   endif
 
   let candidate = s:guess_candidate()
   if candidate is 0
     " Ignore. Assumes that error message is already displayed by caller.
-    return v:false
+    return 0
   endif
 
   if s:USER_DATA_CAN_ONLY_BE_STRING
@@ -252,7 +252,7 @@ function! luis#take_action(...) abort
 
   if action_name is 0
     " In these cases, error messages are already noticed by other functions.
-    return v:false
+    return 0
   endif
 
   let error = luis#do_action(kind, action_name, candidate)
@@ -260,10 +260,10 @@ function! luis#take_action(...) abort
     echohl ErrorMsg
     echomsg error
     echohl NONE
-    return v:false
+    return 0
   endif
 
-  return v:true
+  return 1
 endfunction
 
 function! luis#update_candidates() abort
@@ -482,7 +482,7 @@ function! s:composite_key_table(kind) abort
   let key_table = {}
   let kind = a:kind
 
-  while v:true
+  while 1
     call extend(key_table, kind.key_table)
     if !has_key(kind, 'prototype')
       break
@@ -496,7 +496,7 @@ endfunction
 function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
-  while v:true
+  while 1
     let c = getchar(0)
     if c is 0
       break
@@ -514,7 +514,7 @@ endfunction
 function! s:find_action(kind, action_name) abort
   let kind = a:kind
 
-  while v:true
+  while 1
     if has_key(kind.action_table, a:action_name)
       return kind.action_table[a:action_name]
     endif
@@ -688,20 +688,20 @@ function! s:keys_to_complete() abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let acc_text = s:acc_text(line, sep, s:session.last_candidates)
-      let s:session.is_inserted_by_acc = v:true
+      let s:session.is_inserted_by_acc = 1
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
         call setline('.', acc_text)
         let keys = "\<End>" . sep
-        let s:session.is_inserted_by_acc = v:true
+        let s:session.is_inserted_by_acc = 1
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let s:session.is_inserted_by_acc = v:false
+        let s:session.is_inserted_by_acc = 0
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let s:session.is_inserted_by_acc = v:false
+      let s:session.is_inserted_by_acc = 0
     endif
   else
     let keys = ''
@@ -825,8 +825,8 @@ function! s:new_session(source, options) abort
   return {
   \   'hook': get(a:options, 'hook', {}),
   \   'initial_pattern': get(a:options, 'initial_pattern', ''),
-  \   'is_inserted_by_acc': v:false,
-  \   'is_quitting': v:false,
+  \   'is_inserted_by_acc': 0,
+  \   'is_quitting': 0,
   \   'last_candidates': [],
   \   'last_column': -1,
   \   'last_pattern_raw': '',
@@ -857,7 +857,7 @@ function! s:on_CursorMovedI() abort
 endfunction
 
 function! s:on_InsertEnter() abort
-  let s:session.is_inserted_by_acc = v:false
+  let s:session.is_inserted_by_acc = 0
   let s:session.last_column = -1
   let s:session.last_pattern_raw = ''
   call feedkeys(s:keys_to_complete(), 'n')
@@ -879,10 +879,10 @@ function! s:quit_session() abort
   " We have to check s:session.is_quitting to avoid unnecessary
   " :close'ing, because s:quit_session() may be called recursively.
   if s:session.is_quitting
-    return v:false
+    return 0
   endif
 
-  let s:session.is_quitting = v:true
+  let s:session.is_quitting = 1
 
   if has_key(s:session.source, 'on_source_leave')
     call s:session.source.on_source_leave()
@@ -897,9 +897,9 @@ function! s:quit_session() abort
   let &equalalways = s:session.original_equalalways
   let &completeopt = s:session.original_completeopt
   execute s:session.original_curwinnr 'wincmd w'
-  let s:session.is_quitting = v:false
+  let s:session.is_quitting = 0
 
-  return v:true
+  return 1
 endfunction
 
 function! s:remove_prompt(s) abort
