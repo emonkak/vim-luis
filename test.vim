@@ -67,6 +67,19 @@ function s:run(package_dir, args)
     try
       let return_value = call(test_function, [])
 
+      if len(getbufinfo({ 'buflisted': 1 })) > 1
+      \  || winnr('$') > 1
+      \  || tabpagenr('$') > 1
+        call add(errors, {
+        \   'script_name': script_name,
+        \   'test_name': test_name,
+        \   'messages': [
+        \     'CAUTION: Unclean buffers, windows, or tabs were found, therefore the execution of remaining tests has been aborted.'
+        \   ],
+        \ })
+        break
+      endif
+
       if len(v:errors) > 0
         let messages = map(
         \   copy(v:errors),
