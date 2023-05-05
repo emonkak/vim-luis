@@ -288,7 +288,7 @@ function! luis#_omnifunc(findstart, base) abort
     call map(
     \   candidates,
     \   'matcher.normalize_candidate(
-    \     s:normalize_candidate(v:val, v:key, context),
+    \     s:normalize_candidate(v:val),
     \     v:key,
     \     context
     \   )'
@@ -838,7 +838,7 @@ function! s:new_session(source, options) abort
   \ }
 endfunction
 
-function! s:normalize_candidate(candidate, index, context) abort
+function! s:normalize_candidate(candidate) abort
   let a:candidate.equal = 1
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}

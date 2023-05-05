@@ -1,3 +1,5 @@
+runtime! test/spy.vim
+
 function! s:action_open(kind, candidate) abort
   edit `=a:candidate.word`
   return 0
@@ -328,20 +330,19 @@ function! s:test_action_put_x() abort
 endfunction
 
 function! s:test_action_reselect() abort
-  let original_func = s:inspect_function('luis#restart')
-  let is_restarted = 0
+  let spy = Spy('luis#restart')
+  call spy.override({ _ -> 0 })
 
   function! luis#restart() abort closure
-    let is_restarted = 1
+    return spy.call([])
   endfunction
 
   try
     let _ = luis#do_action(s:kind, 'reselect', {})
     call assert_equal(0, _)
-    call assert_true(is_restarted)
+    call assert_equal(1, spy.call_count())
   finally
-    call s:define_function(original_func)
-    call assert_equal(original_func, s:inspect_function('luis#restart'))
+    call spy.restore()
   endtry
 endfunction
 
@@ -454,22 +455,6 @@ function! s:consume_keys() abort
   return keys
 endfunction
 
-function! s:define_function(body)
-  let body = a:body
-  " Remove beginning spaces
-  let body = substitute(body, '^[ \n]\+', '', '')
-  " Add bang
-  let body = substitute(body, '^function\s', 'function! ', '')
-  " Remove line numbers
-  let body = substitute(body, '\%(^\|\n\)\zs[0-9 ]\{1,3}', '', 'g')
-  " Remove indent guides
-  let body = substitute(body,
-  \                     '\n\zs\%(│\s\+\)\+',
-  \                     '\=repeat(" ", strchars(submatch(0)))',
-  \                     'g')
-  execute body
-endfunction
-
 function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_tabpagenr, action_name, hsplit_modifier, vsplit_modifier) abort
   let original_bufnr = bufnr('%')
 
@@ -561,10 +546,6 @@ function! s:do_test_tab(expected_tabpagenr, action_name) abort
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, tabpagenr('$'))
   endtry
-endfunction
-
-function! s:inspect_function(name)
-  return execute('0verbose function ' . a:name)
 endfunction
 
 function! s:neighbor_windows() abort
