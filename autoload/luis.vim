@@ -305,6 +305,15 @@ function! s:acc_text(line, sep, candidates) abort
   let user_input_raw = s:remove_prompt(a:line)
   let line_components = split(user_input_raw, a:sep, 1)
 
+  if len(line_components) < 2
+    echoerr 'luis: Assumption on ACC is failed: ' . string(line_components)
+    return ''
+  endif
+
+  let result = ''
+  let last_start_pos = -1
+  let last_end_pos = -1
+
   " Find a candidate which has the same components but the last 2 ones of
   " line_components. Because line_components[-1] is always empty and
   " line_components[-2] is almost imperfect name of a component.
@@ -336,10 +345,7 @@ function! s:acc_text(line, sep, candidates) abort
   for candidate in a:candidates
     let candidate_components = split(candidate.word, '\V' . a:sep, 1)
 
-    if len(line_components) < 2
-      echoerr 'luis: Assumption on ACC is failed: ' . string(line_components)
-      continue
-    elseif len(line_components) == 2
+    if len(line_components) == 2
       " OK - the case (b) or (c)
     elseif len(line_components) - 2 <= len(candidate_components)
       for i in range(len(line_components) - 2)
@@ -378,33 +384,38 @@ function! s:acc_text(line, sep, candidates) abort
     "     i == 0
     "     t ==# 'man/man1'
     "            ^
-    " Count of 'prefix' components in line_components.
-    " 'prefix' components are all of line_components but the last two ones.
-    let c = len(line_components) - 2
+    " Prefix components are all of line_components but the last two ones.
+    let count_of_prefix = len(line_components) - 2
     " Pattern for the partially typed component = line_components[-2].
-    let p = '\c' . s:make_skip_regexp(line_components[-2])
+    let pattern = '\c' . s:make_skip_regexp(line_components[-2])
     " Tail of candidate.word without 'prefix' component in line_components.
-    let t = join(candidate_components[(c):], a:sep)
+    let tail = join(candidate_components[count_of_prefix:], a:sep)
 
-    let i = matchend(t, p)
-    if i < 0  " Partially typed component doesn't match for this candidate.
+    " Find the shortest match at the most forward position.
+    let start_pos = match(tail, pattern)
+    let end_pos = matchend(tail, pattern)
+    if start_pos < 0
+    \  || end_pos < 0
+    \  || (last_start_pos >= 0 && last_start_pos <= start_pos)
+    \  || (last_end_pos >= 0 && last_end_pos <= end_pos)
       continue  " Try next one.
     endif
-    let j = stridx(t, a:sep, i)
-    if 0 <= j
+
+    let i = stridx(tail, a:sep, end_pos)
+    if i >= 0
       " Several candidate_components are matched for ACC.
-      let index_to_preceding_char_to_SEP = -(len(t) - j + 1)
-      let index_to_the_tail_of_completed_text = index_to_preceding_char_to_SEP
+      let index_to_the_tail_of_completed_text = -(len(tail) - i + 1)
       let result = candidate.word[:index_to_the_tail_of_completed_text]
     else
       " All of candidate_components are matched for ACC.
-      let result = join(candidate_components, a:sep)
+      let result = candidate.word
     endif
 
-    return result
+    let last_start_pos = start_pos
+    let last_end_pos = end_pos
   endfor
 
-  return ''  " No proper candidate found
+  return result
 endfunction
 
 function! s:choose_action(kind, candidate) abort
