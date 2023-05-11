@@ -43,6 +43,11 @@ function s:test_filter_candidates() abort
   call Test([], candidates, 'fbb')
 endfunction
 
+function s:test_matcher_definition() abort
+  let matcher = g:luis#matcher#exact#export
+  call assert_equal([], luis#internal#validate_matcher(matcher))
+endfunction
+
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#exact#export
   let Test = { expected, candidate, index, context ->

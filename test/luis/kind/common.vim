@@ -1,5 +1,3 @@
-runtime! test/spy.vim
-
 function! s:action_open(kind, candidate) abort
   edit `=a:candidate.word`
   return 0
@@ -159,7 +157,7 @@ function! s:test_action_Yank() abort
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
-    let _ = luis#do_action(s:kind, 'Yank', { 'word': 'bar' })
+    let _ = luis#internal#do_action(s:kind, 'Yank', { 'word': 'bar' })
     call assert_equal(0, _)
     call assert_equal("bar\n", getreg('"', 1))
     call assert_equal('V', getregtype('"'))
@@ -239,16 +237,16 @@ function! s:test_action_below() abort
 endfunction
 
 function! s:test_action_cancel() abort
-  let _ = luis#do_action(s:kind, 'cancel', {})
+  let _ = luis#internal#do_action(s:kind, 'cancel', {})
   call assert_equal(0, _)
 endfunction
 
 function! s:test_action_ex() abort
-  let _ = luis#do_action(s:kind, 'ex', { 'word': 'vim' })
+  let _ = luis#internal#do_action(s:kind, 'ex', { 'word': 'vim' })
   call assert_equal(0, _)
   call assert_equal(": vim\<C-b>", s:consume_keys())
 
-  let _ = luis#do_action(s:kind, 'ex', { 'word': 'v i' })
+  let _ = luis#internal#do_action(s:kind, 'ex', { 'word': 'v i' })
   call assert_equal(0, _)
   call assert_equal(": v\\ i\<C-b>", s:consume_keys())
 endfunction
@@ -293,7 +291,7 @@ function! s:test_action_open() abort
     let candidate = {
     \   'word': tempname(),
     \ }
-    silent let _ = luis#do_action(s:kind, action_name, candidate)
+    silent let _ = luis#internal#do_action(s:kind, action_name, candidate)
     call assert_equal(0, _)
     call assert_equal(candidate.word, bufname('%'))
     silent execute 'bwipeout' candidate.word
@@ -301,7 +299,7 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__not_defined() abort
-  let _ = luis#do_action(s:kind.prototype, 'open', {})
+  let _ = luis#internal#do_action(s:kind.prototype, 'open', {})
   call assert_notequal(0, _)
 endfunction
 
@@ -309,9 +307,9 @@ function! s:test_action_put() abort
   enew!
   call assert_equal([''], getline(1, line('$')))
   try
-    let _ = luis#do_action(s:kind, 'put', { 'word': 'XXX' })
+    let _ = luis#internal#do_action(s:kind, 'put', { 'word': 'VIM' })
     call assert_equal(0, _)
-    call assert_equal(['', 'XXX'], getline(1, line('$')))
+    call assert_equal(['', 'VIM'], getline(1, line('$')))
   finally
     silent bwipeout!
   endtry
@@ -321,28 +319,27 @@ function! s:test_action_put_x() abort
   enew!
   call assert_equal([''], getline(1, line('$')))
   try
-    let _ = luis#do_action(s:kind, 'put!', { 'word': 'XXX' })
+    let _ = luis#internal#do_action(s:kind, 'put!', { 'word': 'VIM' })
     call assert_equal(0, _)
-    call assert_equal(['XXX', ''], getline(1, line('$')))
+    call assert_equal(['VIM', ''], getline(1, line('$')))
   finally
     silent bwipeout!
   endtry
 endfunction
 
 function! s:test_action_reselect() abort
-  let spy = Spy(funcref('luis#restart'))
-  call spy.override({ _ -> 0 })
+  let spy = Spy({ -> 0 })
 
   function! luis#restart() abort closure
     return spy.call([])
   endfunction
 
   try
-    let _ = luis#do_action(s:kind, 'reselect', {})
+    let _ = luis#internal#do_action(s:kind, 'reselect', {})
     call assert_equal(0, _)
     call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
   finally
-    call spy.restore()
+    silent runtime! autoload/luis.vim
   endtry
 endfunction
 
@@ -434,7 +431,7 @@ function! s:test_action_yank() abort
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
-    let _ = luis#do_action(s:kind, 'yank', { 'word': 'bar' })
+    let _ = luis#internal#do_action(s:kind, 'yank', { 'word': 'bar' })
     call assert_equal(0, _)
     call assert_equal('bar', getreg('"', 1))
     call assert_equal('v', getregtype('"'))
@@ -469,7 +466,7 @@ function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_ta
   \ }
 
   try
-    silent let _ = luis#do_action(s:kind, a:action_name, candidate)
+    silent let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
     call assert_equal(0, _)
 
     call assert_equal(candidate.word, bufname('%'))
@@ -498,8 +495,8 @@ function! s:do_test_split_without_enough_room(action_name, orientation) abort
   let original_last_winnr = winnr('$')
 
   try
-    silent let _ = luis#do_action(s:kind, a:action_name, {
-    \   'word': 'XXX',
+    silent let _ = luis#internal#do_action(s:kind, a:action_name, {
+    \   'word': 'VIM',
     \ })
     call assert_match('Vim(split):E36: Not enough room', _)
 
@@ -531,7 +528,7 @@ function! s:do_test_tab(expected_tabpagenr, action_name) abort
   \ }
 
   try
-    silent let _ = luis#do_action(s:kind, a:action_name, candidate)
+    silent let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
     call assert_equal(0, _)
 
     call assert_equal(candidate.word, bufname('%'))

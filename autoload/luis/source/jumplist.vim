@@ -7,7 +7,7 @@ endfunction
 let s:Source = {
 \   'name': 'jumplist',
 \   'default_kind': g:luis#kind#buffer#export,
-\   'matcher': g:luis#matcher#default,
+\   'matcher': g:luis#matcher#default#export,
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

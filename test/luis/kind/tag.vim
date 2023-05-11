@@ -11,8 +11,8 @@ endfunction
 function! s:test_action_open__invalid_tag() abort
   let winnr = winnr()
 
-  let _ = luis#do_action(s:kind, 'open', {
-  \   'word': 'XXX',
+  let _ = luis#internal#do_action(s:kind, 'open', {
+  \   'word': 'VIM',
   \ })
   call assert_match('Vim(tag):E\%(426\|433\):', _)
 
@@ -36,8 +36,8 @@ endfunction
 function! s:test_action_open_x__invalid_tag() abort
   let winnr = winnr()
 
-  let _ = luis#do_action(s:kind, 'open!', {
-  \   'word': 'XXX',
+  let _ = luis#internal#do_action(s:kind, 'open!', {
+  \   'word': 'VIM',
   \ })
   call assert_match('Vim(tag):E\%(426\|433\):', _)
 
@@ -51,9 +51,7 @@ function! s:test_action_open_x__invalid_tag() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('tag', s:kind.name)
 endfunction
 
@@ -70,7 +68,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   let winnr = winnr()
 
   try
-    silent let _ = luis#do_action(s:kind, a:action_name, {
+    silent let _ = luis#internal#do_action(s:kind, a:action_name, {
     \   'word': 'vimtutor',
     \ })
     if type(a:expected_result) is v:t_string

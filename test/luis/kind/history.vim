@@ -15,7 +15,7 @@ function! s:test_action_delete() abort
     \   'word': 'vim',
     \   'user_data': { 'history_name': 'cmd', 'history_index': 1 },
     \ }
-    let _ = luis#do_action(s:kind, 'delete', candidate)
+    let _ = luis#internal#do_action(s:kind, 'delete', candidate)
 
     call assert_equal(0, _)
     call assert_equal('', histget('cmd', 1))
@@ -29,7 +29,7 @@ function! s:test_action_delete__no_history() abort
   \   'word': 'vim',
   \   'user_data': {},
   \ }
-  let _ = luis#do_action(s:kind, 'delete', candidate)
+  let _ = luis#internal#do_action(s:kind, 'delete', candidate)
   call assert_equal('No history chosen', _)
 endfunction
 
@@ -38,7 +38,7 @@ function! s:test_action_open__cmd_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'cmd' },
   \ }
-  let _ = luis#do_action(s:kind, 'open', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open', candidate)
   call assert_equal(0, _)
   call assert_equal(':vim', s:consume_keys())
 endfunction
@@ -48,7 +48,7 @@ function! s:test_action_open__search_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'search' },
   \ }
-  let _ = luis#do_action(s:kind, 'open', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open', candidate)
   call assert_equal(0, _)
   call assert_equal('/vim', s:consume_keys())
 endfunction
@@ -58,7 +58,7 @@ function! s:test_action_open__expr_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'expr' },
   \ }
-  let _ = luis#do_action(s:kind, 'open', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open', candidate)
   call assert_equal(0, _)
   call assert_equal("i\<C-r>=vim", s:consume_keys())
 endfunction
@@ -72,7 +72,7 @@ function! s:test_action_open__input_history() abort
     \   'word': ' vim',
     \   'user_data': { 'history_name': 'input' },
     \ }
-    silent let _ = luis#do_action(s:kind, 'open', candidate)
+    silent let _ = luis#internal#do_action(s:kind, 'open', candidate)
     call assert_equal(0, _)
     call assert_equal(['hello vim!'], getline(1, line('$')))
   finally
@@ -85,7 +85,7 @@ function! s:test_action_open__no_history() abort
   \   'word': 'vim',
   \   'user_data': {},
   \ }
-  let _ = luis#do_action(s:kind, 'open', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open', candidate)
   call assert_equal('No history chosen', _)
 endfunction
 
@@ -94,7 +94,7 @@ function! s:test_action_open_x__cmd_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'cmd' },
   \ }
-  let _ = luis#do_action(s:kind, 'open!', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open!', candidate)
   call assert_equal(0, _)
   call assert_equal(':vim', s:consume_keys())
 endfunction
@@ -104,7 +104,7 @@ function! s:test_action_open_x__search_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'search' },
   \ }
-  let _ = luis#do_action(s:kind, 'open!', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open!', candidate)
   call assert_equal(0, _)
   call assert_equal('?vim', s:consume_keys())
 endfunction
@@ -114,7 +114,7 @@ function! s:test_action_open_x__expr_history() abort
   \   'word': 'vim',
   \   'user_data': { 'history_name': 'expr' },
   \ }
-  let _ = luis#do_action(s:kind, 'open!', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open!', candidate)
   call assert_equal(0, _)
   call assert_equal("a\<C-r>=vim", s:consume_keys())
 endfunction
@@ -128,7 +128,7 @@ function! s:test_action_open_x__input_history() abort
     \   'word': ' vim',
     \   'user_data': { 'history_name': 'input' },
     \ }
-    silent let _ = luis#do_action(s:kind, 'open!', candidate)
+    silent let _ = luis#internal#do_action(s:kind, 'open!', candidate)
     call assert_equal(0, _)
     call assert_equal(['hello! vim'], getline(1, line('$')))
   finally
@@ -141,7 +141,7 @@ function! s:test_action_open_x__no_history() abort
   \   'word': 'vim',
   \   'user_data': {},
   \ }
-  let _ = luis#do_action(s:kind, 'open!', candidate)
+  let _ = luis#internal#do_action(s:kind, 'open!', candidate)
   call assert_equal('No history chosen', _)
 endfunction
 

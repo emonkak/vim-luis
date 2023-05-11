@@ -8,7 +8,7 @@ function s:test_gather_candidates() abort
 
     call source.on_source_enter()
 
-    let context = { 'pattern': 'XXX' }
+    let context = { 'pattern': 'VIM' }
     " Returns candidates in arbitrary order.
     let candidates = sort(source.gather_candidates(context), { x, y ->
     \   x.word < y.word ? -1 : x.word > y.word ? 1 : 0
@@ -38,8 +38,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#quickfix#new()
-  let schema = luis#_scope().SCHEMA_SOURCE
-  let errors = luis#schema#validate(schema, source)
+  let errors = luis#internal#validate_source(source)
   call assert_equal([], errors)
   call assert_equal('quickfix', source.name)
 endfunction

@@ -15,8 +15,8 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
 endfunction
 
 function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
-  let a:candidate.luis_fuzzy_pos = get(a:context._positions, a:index, 0)
-  let a:candidate.luis_fuzzy_score = get(a:context._scores, a:index, 0)
+  let a:candidate.luis_match_pos = get(a:context._positions, a:index, 0)
+  let a:candidate.luis_match_score = get(a:context._scores, a:index, 0)
   return a:candidate
 endfunction
 
@@ -30,10 +30,10 @@ function! s:compare(x, y) abort
   elseif a:x.luis_sort_priority > a:y.luis_sort_priority
     return 1
   endif
-  if a:x.luis_fuzzy_pos != a:y.luis_fuzzy_pos
-    if a:x.luis_fuzzy_score > a:y.luis_fuzzy_score
+  if a:x.luis_match_pos != a:y.luis_match_pos
+    if a:x.luis_match_score > a:y.luis_match_score
       return -1
-    elseif a:x.luis_fuzzy_score < a:y.luis_fuzzy_score
+    elseif a:x.luis_match_score < a:y.luis_match_score
       return 1
     endif
   endif

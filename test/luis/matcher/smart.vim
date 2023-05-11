@@ -54,6 +54,11 @@ function s:test_filter_candidates() abort
   \ ], candidates, 'fbb')
 endfunction
 
+function s:test_matcher_definition() abort
+  let matcher = g:luis#matcher#smart#export
+  call assert_equal([], luis#internal#validate_matcher(matcher))
+endfunction
+
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#fuzzy#export
   let Test = { expected, candidate, index, context ->
@@ -68,8 +73,8 @@ function s:test_normalize_candidate() abort
   let context = { '_positions': [[0]], '_scores': [100] }
   call Test({
   \   'word': 'foo',
-  \   'luis_fuzzy_pos': [0],
-  \   'luis_fuzzy_score': 100,
+  \   'luis_match_pos': [0],
+  \   'luis_match_score': 100,
   \ }, candidate, index, context)
 endfunction
 
@@ -83,30 +88,30 @@ function s:test_sort_candidates() abort
   \ }
 
   let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
   \ ]
   let context = {}
   call Test([
-  \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 0 },
   \ ], candidates, context)
 
   let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 1 },
-  \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 1 },
   \ ]
   let context = {}
   call Test([
-  \   { 'word': 'FOOBAR', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_smart_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_smart_score': 1.0, 'luis_sort_priority': 1 },
-  \   { 'word': 'foobarbaz', 'luis_smart_score': 0.933333, 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 1 },
   \ ], candidates, context)
 endfunction

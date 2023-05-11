@@ -6,7 +6,7 @@ function! s:test_action_argdelete() abort
   call assert_equal(['foo', 'bar', 'baz'], argv())
 
   try
-    let _ = luis#do_action(s:kind, 'argdelete', {
+    let _ = luis#internal#do_action(s:kind, 'argdelete', {
     \  'word': 'bar',
     \ })
     call assert_equal(0, _)
@@ -22,7 +22,7 @@ endfunction
 
 function! s:test_action_argdelete__invalid_arg() abort
   try
-    let _ = luis#do_action(s:kind, 'argdelete', {
+    let _ = luis#internal#do_action(s:kind, 'argdelete', {
     \  'word': '_',
     \ })
     call assert_match('Vim(argdelete):E480:', _)
@@ -30,8 +30,6 @@ function! s:test_action_argdelete__invalid_arg() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('args', s:kind.name)
 endfunction

@@ -14,7 +14,7 @@ endfunction
 
 function! s:test_action_put__no_register() abort
   for action_name in ['put', 'default']
-    let _ = luis#do_action(s:kind, action_name, {
+    let _ = luis#internal#do_action(s:kind, action_name, {
     \   'word': '',
     \   'user_data': {},
     \ })
@@ -27,7 +27,7 @@ function! s:test_action_delete() abort
   let bufnr = bufnr('%')
   call setreg('a', 'foo', 'c')
   try
-    let _ = luis#do_action(s:kind, 'delete', {
+    let _ = luis#internal#do_action(s:kind, 'delete', {
     \   'word': 'foo',
     \   'user_data': {
     \     'register_name': 'a',
@@ -41,9 +41,7 @@ function! s:test_action_delete() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('register', s:kind.name)
 endfunction
 
@@ -52,7 +50,7 @@ function! s:do_test_put(expected_content, action_name, reg_key, reg_value, reg_t
   let bufnr = bufnr('%')
   call setreg(a:reg_key, a:reg_value, a:reg_type)
   try
-    let _ = luis#do_action(s:kind, a:action_name, {
+    let _ = luis#internal#do_action(s:kind, a:action_name, {
     \   'word': 'bar',
     \   'user_data': {
     \     'register_name': a:reg_key,

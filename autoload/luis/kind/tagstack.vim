@@ -7,7 +7,7 @@ function! s:action_open_x(kind, candidate) abort
 endfunction
 
 function! s:do_open(kind, action_name, candidate) abort
-  let error = luis#do_action(a:kind.prototype, a:action_name, a:candidate)
+  let error = luis#internal#do_action(a:kind.prototype, a:action_name, a:candidate)
   if error isnot 0
     return error
   endif

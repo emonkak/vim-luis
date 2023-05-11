@@ -5,7 +5,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
   for candidate in a:candidates
     let score = s:score(candidate.word, a:context.pattern)
     if score > 0.0
-      let candidate.luis_smart_score = score
+      let candidate.luis_match_score = score
       call add(candidates, candidate)
     endif
   endfor
@@ -26,9 +26,9 @@ function! s:compare(x, y) abort
   elseif a:x.luis_sort_priority > a:y.luis_sort_priority
     return 1
   endif
-  if a:x.luis_smart_score > a:y.luis_smart_score
+  if a:x.luis_match_score > a:y.luis_match_score
     return -1
-  elseif a:x.luis_smart_score < a:y.luis_smart_score
+  elseif a:x.luis_match_score < a:y.luis_match_score
     return 1
   endif
   if a:x.word < a:y.word

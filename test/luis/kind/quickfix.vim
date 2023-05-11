@@ -9,7 +9,7 @@ function s:test_action_open() abort
   let bufnr = bufnr('%')
 
   try
-    silent let _ = luis#do_action(s:kind, 'open', {
+    silent let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': 'xxx',
     \   'user_data': {
     \     'quickfix_nr': 1,
@@ -18,7 +18,7 @@ function s:test_action_open() abort
     call assert_equal(0, _)
     call assert_equal(bufnr('A'), bufnr('%'))
 
-    silent let _ = luis#do_action(s:kind, 'open', {
+    silent let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': 'xxx',
     \   'user_data': {
     \     'quickfix_nr': 2,
@@ -31,8 +31,8 @@ function s:test_action_open() abort
     setlocal bufhidden=unload
     setlocal modified
 
-    silent let _ = luis#do_action(s:kind, 'open', {
-    \   'word': 'XXX',
+    silent let _ = luis#internal#do_action(s:kind, 'open', {
+    \   'word': 'VIM',
     \   'user_data': {
     \     'quickfix_nr': 1,
     \   },
@@ -58,7 +58,7 @@ function s:test_action_open_x() abort
   let bufnr = bufnr('%')
 
   try
-    silent let _ = luis#do_action(s:kind, 'open!', {
+    silent let _ = luis#internal#do_action(s:kind, 'open!', {
     \   'word': 'xxx',
     \   'user_data': {
     \     'quickfix_nr': 1,
@@ -67,7 +67,7 @@ function s:test_action_open_x() abort
     call assert_equal(0, _)
     call assert_equal(bufnr('A'), bufnr('%'))
 
-    silent let _ = luis#do_action(s:kind, 'open!', {
+    silent let _ = luis#internal#do_action(s:kind, 'open!', {
     \   'word': 'xxx',
     \   'user_data': {
     \     'quickfix_nr': 2,
@@ -84,8 +84,6 @@ function s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('quickfix', s:kind.name)
 endfunction

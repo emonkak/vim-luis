@@ -1,7 +1,4 @@
-" Test: vim-ku-core core-internal-key
-runtime! plugin/ku.vim plugin/ku/kind/common.vim
-call vspec#hint({'scope': 'ku#_local_variables()', 'sid': 'ku#_sid_prefix()'})
-function s:describe__s_composite_key_table_from_kinds()  "{{{1
+function s:describe__s_composite_key_table_from_kinds() abort
   It requires the following initialization
 
   " (composite) A a A B A a A b A a A B A a A
@@ -82,10 +79,7 @@ function s:describe__s_composite_key_table_from_kinds()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_custom_kind_key_table()  "{{{1
+function s:describe__s_custom_kind_key_table() abort
   It should succeed with valid name "buffer"
 
   let custom_buffer_key_table = Call('s:custom_kind_key_table', 'buffer')
@@ -111,10 +105,7 @@ function s:describe__s_custom_kind_key_table()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_default_kind_key_table()  "{{{1
+function s:describe__s_default_kind_key_table() abort
   It should return {} for a kind which is not defined
 
   Should Call('s:default_kind_key_table', 'buffer') ==# {}
@@ -135,10 +126,7 @@ function s:describe__s_default_kind_key_table()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_get_char__with_0()  "{{{1
+function s:describe__s_get_char__with_0() abort
   It requires that there is no character in the typeahead buffer
 
   let typeahead = ''
@@ -166,10 +154,7 @@ function s:describe__s_get_char__with_0()  "{{{1
   Should getchar(0) ==# 0
 endfunction
 
-
-
-
-function s:describe__s_get_char__with_1()  "{{{1
+function s:describe__s_get_char__with_1() abort
   It requires that there is no character in the typeahead buffer
 
   let typeahead = ''
@@ -198,10 +183,7 @@ function s:describe__s_get_char__with_1()  "{{{1
   Should getchar(0) ==# 0
 endfunction
 
-
-
-
-function s:describe__s_get_char__without_argument()  "{{{1
+function s:describe__s_get_char__without_argument() abort
   It requires that there is no character in the typeahead buffer
 
   let typeahead = ''
@@ -251,10 +233,7 @@ function s:describe__s_get_char__without_argument()  "{{{1
   set encoding&
 endfunction
 
-
-
-
-function s:describe__s_get_key()  "{{{1
+function s:describe__s_get_key() abort
   It requires that there is no character in the typeahead buffer
 
   let typeahead = ''
@@ -312,10 +291,7 @@ function s:describe__s_get_key()  "{{{1
   set encoding&
 endfunction
 
-
-
-
-function s:describe__s_list_key_tables()  "{{{1
+function s:describe__s_list_key_tables() abort
   It requires the following initialization
 
   let kind_a = {
@@ -352,9 +328,3 @@ function s:describe__s_list_key_tables()  "{{{1
   " Reset side effect.
   ResetContext
 endfunction
-
-
-
-
-" __END__  "{{{1
-" vim: filetype=vim foldmethod=marker

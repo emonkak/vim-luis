@@ -1,7 +1,4 @@
-" Test: vim-ku-core core-internal-action
-runtime! plugin/ku.vim plugin/ku/kind/common.vim
-call vspec#hint({'scope': 'ku#_local_variables()', 'sid': 'ku#_sid_prefix()'})
-function s:describe__ku_x_take_action__choose()  "{{{1
+function s:describe__ku_x_take_action__choose() abort
   It requires the following initialization
 
   function! Test_action_a_open(candidate)
@@ -34,10 +31,7 @@ function s:describe__ku_x_take_action__choose()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__ku_x_take_action__on_action()  "{{{1
+function s:describe__ku_x_take_action__on_action() abort
   It requires the following initialization
 
   function! Test_action_a_open(candidate)
@@ -94,10 +88,7 @@ function s:describe__ku_x_take_action__on_action()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__ku_x_take_action__valid_action()  "{{{1
+function s:describe__ku_x_take_action__valid_action() abort
   It requires the following initialization
 
   function! Test_action_a_open(candidate)
@@ -149,10 +140,7 @@ function s:describe__ku_x_take_action__valid_action()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_choose_action()  "{{{1
+function s:describe__s_choose_action() abort
   It requires that there is no character in the typeahead buffer
 
   let typeahead = ''
@@ -201,10 +189,7 @@ function s:describe__s_choose_action()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_choose_action__ku__kinds()  "{{{1
+function s:describe__s_choose_action__ku__kinds() abort
   It requires the following initialization
 
   let typeahead = ''
@@ -266,10 +251,7 @@ function s:describe__s_choose_action__ku__kinds()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_composite_action_table_from_kinds()  "{{{1
+function s:describe__s_composite_action_table_from_kinds() abort
   It requires the following initialization
 
   " (composite) A a A B A a A b A a A B A a A
@@ -350,10 +332,7 @@ function s:describe__s_composite_action_table_from_kinds()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_custom_action_1()  "{{{1
+function s:describe__s_custom_action_1() abort
   It should succeed to define an action
 
   Should Call('s:custom_kind_action_table', 'file') ==# {}
@@ -371,10 +350,7 @@ function s:describe__s_custom_action_1()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_custom_action_2()  "{{{1
+function s:describe__s_custom_action_2() abort
   It should fail for error cases
 
   Should Call('s:custom_action_2', 'file', 'name1', 'kind2', 'name2') == 0
@@ -409,10 +385,7 @@ function s:describe__s_custom_action_2()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_custom_kind_action_table()  "{{{1
+function s:describe__s_custom_kind_action_table() abort
   It should succeed with valid name "file"
 
   let custom_file_action_table = Call('s:custom_kind_action_table', 'file')
@@ -438,10 +411,7 @@ function s:describe__s_custom_kind_action_table()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_default_kind_action_table()  "{{{1
+function s:describe__s_default_kind_action_table() abort
   It should return {} for a kind which is not defined
 
   Should Call('s:default_kind_action_table', 'buffer') ==# {}
@@ -463,10 +433,7 @@ function s:describe__s_default_kind_action_table()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_find_action()  "{{{1
+function s:describe__s_find_action() abort
   " The followings kinds-s are invalid but it's enough to test.
   let kinds_empty = []
   let kinds_test = [{'name': 'test'}]
@@ -518,10 +485,7 @@ function s:describe__s_find_action()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_list_action_tables()  "{{{1
+function s:describe__s_list_action_tables() abort
   It requires the following initialization
 
   let kind_a = {
@@ -559,10 +523,7 @@ function s:describe__s_list_action_tables()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_list_key_bindings_sorted_by_action_name()  "{{{1
+function s:describe__s_list_key_bindings_sorted_by_action_name() abort
   " BUGS: ad hoc checking
   It should output key bindings in a given a:key_table
 
@@ -581,10 +542,7 @@ function s:describe__s_list_key_bindings_sorted_by_action_name()  "{{{1
   Should message =~# '\<railgun\>'
 endfunction
 
-
-
-
-function s:describe__s_guess_candidate()  "{{{1
+function s:describe__s_guess_candidate() abort
   It requires the following initialization
 
   Should ku#start() == 1
@@ -646,9 +604,3 @@ function s:describe__s_guess_candidate()  "{{{1
   bwipeout!
   ResetContext
 endfunction
-
-
-
-
-" __END__  "{{{1
-" vim: filetype=vim foldmethod=marker

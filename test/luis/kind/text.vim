@@ -5,7 +5,7 @@ function! s:test_action_open() abort
   call setline(1, 'hello!')
   normal! $
   try
-    silent let _ = luis#do_action(s:kind, 'open', {
+    silent let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': ' vim',
     \ })
     call assert_equal(['hello vim!'], getline(1, line('$')))
@@ -19,7 +19,7 @@ function! s:test_action_open_x() abort
   call setline(1, 'hello!')
   normal! $
   try
-    silent let _ = luis#do_action(s:kind, 'open!', {
+    silent let _ = luis#internal#do_action(s:kind, 'open!', {
     \   'word': ' vim',
     \ })
     call assert_equal(['hello! vim'], getline(1, line('$')))
@@ -29,8 +29,6 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('text', s:kind.name)
 endfunction

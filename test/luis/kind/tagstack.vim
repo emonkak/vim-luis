@@ -23,9 +23,7 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('tagstack', s:kind.name)
 endfunction
 
@@ -63,7 +61,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   try
     for i in range(len(tag_bufnrs))
       let tag_bufnr = tag_bufnrs[i]
-      silent let _ = luis#do_action(s:kind, a:action_name, {
+      silent let _ = luis#internal#do_action(s:kind, a:action_name, {
       \   'word': '',
       \   'user_data': {
       \     'buffer_nr': tag_bufnr,

@@ -17,7 +17,7 @@ function! s:test_action_open() abort
   call assert_equal(1, foldclosed(2))
 
   try
-    let _ = luis#do_action(s:kind, 'open', {
+    let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': 'bar',
     \   'user_data': {
     \     'fold_lnum': 1,
@@ -30,7 +30,7 @@ function! s:test_action_open() abort
 
     foldclose!
 
-    let _ = luis#do_action(s:kind, 'open', {
+    let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': 'bar',
     \   'user_data': {
     \     'fold_lnum': 2,
@@ -46,7 +46,7 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__no_fold() abort
-  let _ = luis#do_action(s:kind, 'open', {
+  let _ = luis#internal#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
   \ })
@@ -54,8 +54,6 @@ function! s:test_action_open__no_fold() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('fold', s:kind.name)
 endfunction

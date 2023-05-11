@@ -1,17 +1,11 @@
-" Test: vim-ku-core core-internal-misc
-runtime! plugin/ku.vim plugin/ku/kind/common.vim
-call vspec#hint({'scope': 'ku#_local_variables()', 'sid': 'ku#_sid_prefix()'})
-function s:describe__ku_default_on_action()  "{{{1
+function s:describe__ku_default_on_action() abort
   It should return a given argument as-is
 
   let candidate = {'word': 'MAKINA'}
   Should ku#default_on_action(candidate) is candidate
 endfunction
 
-
-
-
-function s:describe__ku_default_valid_for_acc_p()  "{{{1
+function s:describe__ku_default_valid_for_acc_p() abort
   It should true for anything
 
   Should ku#default_valid_for_acc_p(0) != 0
@@ -19,10 +13,7 @@ function s:describe__ku_default_valid_for_acc_p()  "{{{1
   Should ku#default_valid_for_acc_p({'word': 'Quartett!'}) != 0
 endfunction
 
-
-
-
-function s:describe__s_acc_text()  "{{{1
+function s:describe__s_acc_text() abort
   function! False(...)
     return 0
   endfunction
@@ -116,10 +107,7 @@ function s:describe__s_acc_text()  "{{{1
   Should Call('s:acc_text', 'v/', cs3) == 'var'
 endfunction
 
-
-
-
-function s:describe__s_compare_ignorecase()  "{{{1
+function s:describe__s_compare_ignorecase() abort
   It should return 0 for same characters with the same case
 
   Should Call('s:compare_ignorecase', 'A', 'A') == 0
@@ -143,10 +131,7 @@ function s:describe__s_compare_ignorecase()  "{{{1
   Should Call('s:compare_ignorecase', 'b', 'A') > 0
 endfunction
 
-
-
-
-function s:describe__s_complete_the_prompt()  "{{{1
+function s:describe__s_complete_the_prompt() abort
   It should complete the prompt for the current line
 
   call setline('.', 'Roots26')
@@ -164,10 +149,7 @@ function s:describe__s_complete_the_prompt()  "{{{1
   Should getline('.') ==# ''
 endfunction
 
-
-
-
-function s:describe__s_consume_typeahead_buffer()  "{{{1
+function s:describe__s_consume_typeahead_buffer() abort
   It requires that there is no character in the typeahead buffer
 
   Should getchar(0) is 0
@@ -180,10 +162,7 @@ function s:describe__s_consume_typeahead_buffer()  "{{{1
   Should Call('s:consume_typeahead_buffer') ==# 'So Fabulous!!'
 endfunction
 
-
-
-
-function s:describe__s_contains_the_prompt_p()  "{{{1
+function s:describe__s_contains_the_prompt_p() abort
   It should return true if the current line contains the prompt
 
   Should Call('s:contains_the_prompt_p', Ref('s:PROMPT')) == 1
@@ -195,10 +174,7 @@ function s:describe__s_contains_the_prompt_p()  "{{{1
   Should Call('s:contains_the_prompt_p', 'Roots26') == 0
 endfunction
 
-
-
-
-function s:describe__s_initialize_ku_buffer__with_users_init_autocmd()  "{{{1
+function s:describe__s_initialize_ku_buffer__with_users_init_autocmd() abort
   augroup test
     autocmd FileType ku  echo '" autocmd FileType ku'
   augroup END
@@ -299,9 +275,6 @@ function s:describe__s_initialize_ku_buffer__with_users_init_autocmd()  "{{{1
   augroup END
 endfunction
 
-
-
-
 function s:describe__s_initialize_ku_buffer__with_users_init_ftplugin() "{{{1
   let b:did_ftplugin = 'ku'  " trick the core as if there is a ftplugin
 
@@ -398,10 +371,7 @@ function s:describe__s_initialize_ku_buffer__with_users_init_ftplugin() "{{{1
   " No side effect to reset.
 endfunction
 
-
-
-
-function s:describe__s_initialize_ku_buffer__without_users_settings()  "{{{1
+function s:describe__s_initialize_ku_buffer__without_users_settings() abort
   call Call('s:initialize_ku_buffer')
 
   It should set basic optoins
@@ -495,10 +465,7 @@ function s:describe__s_initialize_ku_buffer__without_users_settings()  "{{{1
   " No side effect to reset.
 endfunction
 
-
-
-
-function s:describe__s_keys_to_delete_backward_component()  "{{{1
+function s:describe__s_keys_to_delete_backward_component() abort
   It requires the following initialization
 
   set virtualedit=onemore
@@ -531,10 +498,7 @@ function s:describe__s_keys_to_delete_backward_component()  "{{{1
   silent bwipeout!
 endfunction
 
-
-
-
-function s:describe__s_kinds_from_kind_names()  "{{{1
+function s:describe__s_kinds_from_kind_names() abort
   It requires the following initialization
 
   let kind_a = {
@@ -581,10 +545,7 @@ function s:describe__s_kinds_from_kind_names()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_ku_active_p()  "{{{1
+function s:describe__s_ku_active_p() abort
   It should return false for the initial state
 
   Should Call('s:ku_active_p') == 0
@@ -610,10 +571,7 @@ function s:describe__s_ku_active_p()  "{{{1
   bwipeout!
 endfunction
 
-
-
-
-function s:describe__s_make_skip_regexp()  "{{{1
+function s:describe__s_make_skip_regexp() abort
   It should return a valid value for normal text
 
   Should Call('s:make_skip_regexp', '') ==# '\V'
@@ -662,10 +620,7 @@ function s:describe__s_make_skip_regexp()  "{{{1
   Should match('__/__i__\__', Call('s:make_skip_regexp', '/i\')) == 2
 endfunction
 
-
-
-
-function s:describe__s_new_session()  "{{{1
+function s:describe__s_new_session() abort
   let F = function('function')
   let G = function('type')
   let original_completeopt = &completeopt
@@ -730,10 +685,7 @@ function s:describe__s_new_session()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_on_CursorMovedI()  "{{{1
+function s:describe__s_on_CursorMovedI() abort
   It requires the following initialization
 
   call Set('s:session', Call('s:new_session', []))
@@ -808,10 +760,7 @@ function s:describe__s_on_CursorMovedI()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_on_CursorMovedI__on_ACC()  "{{{1
+function s:describe__s_on_CursorMovedI__on_ACC() abort
   " BUGS: The situation to test is that the cursor position is beyond the end
   " of the current line in Insert mode.  But it's hard to perfectly emulate
   " this situation by script.
@@ -933,10 +882,7 @@ function s:describe__s_on_CursorMovedI__on_ACC()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_on_InsertEnter()  "{{{1
+function s:describe__s_on_InsertEnter() abort
   It requires the following initialization
 
   set virtualedit=onemore
@@ -1010,10 +956,7 @@ function s:describe__s_on_InsertEnter()  "{{{1
   ResetContext
 endfunction
 
-
-
-
-function s:describe__s_quit_session()  "{{{1
+function s:describe__s_quit_session() abort
   topleft new
   botright new
   set completeopt=preview
@@ -1050,10 +993,7 @@ function s:describe__s_quit_session()  "{{{1
   only
 endfunction
 
-
-
-
-function s:describe__s_remove_prompt()  "{{{1
+function s:describe__s_remove_prompt() abort
   It should remove a prompt in a:s
 
   Should Call('s:remove_prompt', Ref('s:PROMPT').'abc') ==# 'abc'
@@ -1065,10 +1005,7 @@ function s:describe__s_remove_prompt()  "{{{1
   Should Call('s:remove_prompt', '!@#') ==# '!@#'
 endfunction
 
-
-
-
-function s:describe__s_valid_key_p()  "{{{1
+function s:describe__s_valid_key_p() abort
   It should return false for invalid argument
 
   Should Call('s:valid_key_p', {}, '8bit', 0) == 0
@@ -1100,9 +1037,3 @@ function s:describe__s_valid_key_p()  "{{{1
   Should Call('s:valid_key_p', {'A': [1, 2, 3]}, 'A', 'list of strings') == 0
   Should Call('s:valid_key_p', {'A': [1,'2',3]}, 'A', 'list of numbers') == 0
 endfunction
-
-
-
-
-" __END__  "{{{1
-" vim: filetype=vim foldmethod=marker

@@ -1,14 +1,10 @@
-silent runtime! 'test/spy.vim'
-
 function! s:test_gather_candidates() abort
   if !has('patch-8.0.0018')
     " When using ":sleep", channel input is not handled.
     return 'patch-8.0.0018 is required.'
   endif
 
-  let spy = Spy(funcref('luis#update_candidates'))
-
-  call spy.override({ _ -> 0 })
+  let spy = Spy({ -> 0 })
 
   function! luis#update_candidates() abort closure
     call spy.call([])
@@ -55,18 +51,16 @@ function! s:test_gather_candidates() abort
 
     call source.on_source_leave()
   finally
-    call spy.restore()
+    silent runtime! autoload/luis.vim
   endtry
 endfunction
 
 function! s:test_gather_candidates__to_candidate() abort
   if !has('patch-8.0.0018')
-    return 'patch-8.0.0018 is required'
+    return 'patch-8.0.0018 is required.'
   endif
 
-  let spy = Spy(funcref('luis#update_candidates'))
-
-  call spy.override({ _ -> 0 })
+  let spy = Spy({ -> 0 })
 
   function! luis#update_candidates() abort closure
     call spy.call([])
@@ -117,18 +111,16 @@ function! s:test_gather_candidates__to_candidate() abort
 
     call source.on_source_leave()
   finally
-    call spy.restore()
+    silent runtime! autoload/luis.vim
   endtry
 endfunction
 
 function! s:test_gather_candidates__debounce_time() abort
   if !has('patch-8.0.0018')
-    return 'patch-8.0.0018 is required'
+    return 'patch-8.0.0018 is required.'
   endif
 
-  let spy = Spy(funcref('luis#update_candidates'))
-
-  call spy.override({ _ -> 0 })
+  let spy = Spy({ -> 0 })
 
   function! luis#update_candidates() abort closure
     call spy.call([])
@@ -183,15 +175,14 @@ function! s:test_gather_candidates__debounce_time() abort
 
     call source.on_source_leave()
   finally
-    call spy.restore()
+    silent runtime! autoload/luis.vim
   endtry
 endfunction
 
 function s:test_source_definition() abort
   let command = ['test/data/filter.sh', 'bash', '-c', "for n in {0..100}; do echo $n; done"]
   let source = luis#source#async#new('files', g:luis#kind#file#export, command)
-  let schema = luis#_scope().SCHEMA_SOURCE
-  let errors = luis#schema#validate(schema, source)
+  let errors = luis#internal#validate_source(source)
   call assert_equal([], errors)
   call assert_equal('async/files', source.name)
 endfunction

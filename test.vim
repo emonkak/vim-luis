@@ -4,14 +4,14 @@ function s:run(package_dir) abort
   set nohidden noswapfile
 
   let args = filter(getline(0, line('$')), 'v:val != ""')
+  %argdelete
   %bwipeout!
-  argdelete *
 
   let &runtimepath .= ',' . a:package_dir
   let &packpath .= ',' . a:package_dir
 
-  for test in globpath(a:package_dir, 'test/**/*.vim', 0, 1)
-    source `=test`
+  for test_file in globpath(a:package_dir, 'test/**/*.vim', 0, 1)
+    source `=test_file`
   endfor
 
   let script_paths = {}
@@ -50,7 +50,7 @@ function s:run(package_dir) abort
 
   for test_function in test_functions
     let script_num = matchstr(test_function, '^<SNR>\zs\d\+')
-    let script_name = fnamemodify(script_paths[script_num], ':.')
+    let script_name = fnamemodify(script_paths[script_num], ':.:r')
     let test_name = substitute(test_function, '^<SNR>\d\+_', '', 'I')
     let full_name = script_name . '::' . test_name
 
@@ -164,4 +164,4 @@ endfunction
 
 verbose echo matchstr(execute('version'), '^\n*\zs[^\n]\+') "\n"
 
-autocmd VimEnter * verbose call s:run(expand('<sfile>:p:h'))
+autocmd VimEnter *  verbose call s:run(expand('<sfile>:p:h'))

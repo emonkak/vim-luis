@@ -8,7 +8,7 @@ function! s:test_action_delete() abort
   call assert_notequal('', execute('marks a', 'silent!'))
 
   try
-    let _ = luis#do_action(s:kind, 'delete', {
+    let _ = luis#internal#do_action(s:kind, 'delete', {
     \   'word': 'bar',
     \   'user_data': {
     \     'mark_name': 'a',
@@ -22,7 +22,7 @@ function! s:test_action_delete() abort
 endfunction
 
 function! s:test_action_delete__no_mark() abort
-  let _ = luis#do_action(s:kind, 'delete', {
+  let _ = luis#internal#do_action(s:kind, 'delete', {
   \   'word': '',
   \   'user_data': {},
   \ })
@@ -38,7 +38,7 @@ function! s:test_action_open() abort
   call assert_equal(1, line('.'))
 
   try
-    let _ = luis#do_action(s:kind, 'open', {
+    let _ = luis#internal#do_action(s:kind, 'open', {
     \   'word': 'bar',
     \   'user_data': {
     \     'mark_name': 'a',
@@ -52,7 +52,7 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__no_mark() abort
-  let _ = luis#do_action(s:kind, 'open', {
+  let _ = luis#internal#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
   \ })
@@ -60,8 +60,6 @@ function! s:test_action_open__no_mark() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('mark', s:kind.name)
 endfunction

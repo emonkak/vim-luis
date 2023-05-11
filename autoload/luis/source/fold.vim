@@ -7,7 +7,7 @@ endfunction
 let s:Source = {
 \   'name': 'fold',
 \   'default_kind': g:luis#kind#fold#export,
-\   'matcher': g:luis#matcher#default,
+\   'matcher': g:luis#matcher#default#export,
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

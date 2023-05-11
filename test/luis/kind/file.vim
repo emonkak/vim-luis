@@ -28,7 +28,7 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__no_file() abort
-  let _ = luis#do_action(s:kind, 'open', {
+  let _ = luis#internal#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
   \ })
@@ -44,7 +44,7 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_action_open_x__no_file() abort
-  let _ = luis#do_action(s:kind, 'open', {
+  let _ = luis#internal#do_action(s:kind, 'open', {
   \   'word': '',
   \   'user_data': {},
   \ })
@@ -52,9 +52,7 @@ function! s:test_action_open_x__no_file() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  let schema = luis#_scope().SCHEMA_KIND
-  let errors = luis#schema#validate(schema, s:kind)
-  call assert_equal([], errors)
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('file', s:kind.name)
 endfunction
 
@@ -64,7 +62,7 @@ function! s:do_test_cd(expected_result, action_name, path, getcwd_args) abort
   \   { 'word': '', 'user_data': { 'file_path': a:path } },
   \ ]
     let original_cwd = call('getcwd', a:getcwd_args)
-    let _ = luis#do_action(s:kind, a:action_name, candidate)
+    let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
     if type(_) is v:t_string
       call assert_match(a:expected_result, _)
       call assert_equal(original_cwd, call('getcwd', a:getcwd_args))
@@ -84,7 +82,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   \ ]
     let bufnr = s:new_buffer(a:buf_options)
     try
-      silent let _ = luis#do_action(s:kind, a:action_name, candidate)
+      silent let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
       else

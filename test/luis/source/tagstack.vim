@@ -80,8 +80,7 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#tagstack#new()
-  let schema = luis#_scope().SCHEMA_SOURCE
-  let errors = luis#schema#validate(schema, source)
+  let errors = luis#internal#validate_source(source)
   call assert_equal([], errors)
   call assert_equal('tagstack', source.name)
 endfunction

@@ -2,14 +2,12 @@ silent packadd vim-metarw
 silent packadd vim-metarw-dummy
 
 function s:test_gather_candidates() abort
-  let spy = Spy(funcref('metarw#dummy#complete'))
-
   let metarw_candidates = [
   \   'dummy:foo:',
   \   'dummy:foo:bar/',
   \   'dummy:foo:bar/baz',
   \ ]
-  call spy.override({ _ -> [metarw_candidates, '', ''] })
+  let spy = Spy({ -> [metarw_candidates, '', ''] })
 
   function! metarw#dummy#complete(arglead, cmdline, cursorpos) abort closure
     return spy.call([a:arglead, a:cmdline, a:cursorpos])
@@ -17,7 +15,7 @@ function s:test_gather_candidates() abort
 
   try
     let scheme = 'dummy'
-    let pattern = 'XXX'
+    let pattern = 'VIM'
     let source = luis#source#metarw#new(scheme)
 
     let candidates = source.gather_candidates({ 'pattern': pattern })
@@ -43,7 +41,7 @@ function s:test_gather_candidates() abort
     \   'return_value': [metarw_candidates, '', ''],
     \ }], spy.calls())
   finally
-    call spy.restore()
+    silent runtime! autoload/metarw/dummy.vim
   endtry
 endfunction
 
@@ -77,8 +75,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#metarw#new('dummy')
-  let schema = luis#_scope().SCHEMA_SOURCE
-  let errors = luis#schema#validate(schema, source)
+  let errors = luis#internal#validate_source(source)
   call assert_equal([], errors)
   call assert_equal('metarw/dummy', source.name)
 endfunction

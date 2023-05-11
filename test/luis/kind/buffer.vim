@@ -24,7 +24,7 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open_no__corresponding_buffer() abort
-  let _ = luis#do_action(s:kind, 'open', {
+  let _ = luis#internal#do_action(s:kind, 'open', {
   \   'word': tempname(),
   \   'user_data': {},
   \ })
@@ -40,7 +40,7 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_action_open_x__no_corresponding_buffer() abort
-  let _ = luis#do_action(s:kind, 'open!', {
+  let _ = luis#internal#do_action(s:kind, 'open!', {
   \   'word': tempname(),
   \   'user_data': {},
   \ })
@@ -78,10 +78,8 @@ function! s:test_action_wipeout_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
+  call assert_equal([], luis#internal#validate_kind(s:kind))
   call assert_equal('buffer', s:kind.name)
-  call assert_true(type(s:kind.action_table), v:t_dict)
-  call assert_true(type(s:kind.key_table), v:t_dict)
-  call assert_equal(s:kind.prototype, g:luis#kind#common#export)
 endfunction
 
 function! s:assert_buffer(expected_bufexists, expected_buflisted, expected_bufloaded, bufnr) abort
@@ -101,7 +99,7 @@ function! s:do_test_delete(expected_result, expected_bufexists, expected_buflist
     let bufnr_2 = s:new_buffer(a:buf_options)
     try
       let candidate = MakeCandidate(bufnr_2)
-      let _ = luis#do_action(s:kind, a:action_name, candidate)
+      let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
         call assert_equal(bufnr_2, bufnr('%'))
@@ -127,7 +125,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
     let bufnr_2 = s:new_buffer(a:buf_options)
     try
       let candidate = MakeCandidate(bufnr_1)
-      let _ = luis#do_action(s:kind, a:action_name, candidate)
+      let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
         call assert_equal(bufnr_2, bufnr('%'))

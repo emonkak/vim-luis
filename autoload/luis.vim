@@ -1,94 +1,14 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
-let s:USER_DATA_CAN_ONLY_BE_STRING =
-\ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
-
 let s:BUFFER_NAME = has('win32') || has('win64') ? '[luis]' : '*luis*'
 
 let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
-let s:SCHEMA_KIND = {
-\   'type': 'struct',
-\   'properties': {
-\     'name': {
-\       'type': v:t_string,
-\     },
-\     'action_table': {
-\       'type': 'dict',
-\       'item': {
-\         'type': v:t_func,
-\       },
-\     },
-\     'key_table': {
-\       'type': 'dict',
-\       'item': {
-\         'type': v:t_string,
-\       },
-\     },
-\   },
-\ }
-
-let s:SCHEMA_KIND.properties.prototype = {
-\   'type': 'struct',
-\   'properties': s:SCHEMA_KIND.properties,
-\   'optional': 1,
-\ }
-
-let s:SCHEMA_MATCHER = {
-\   'type': 'struct',
-\   'properties': {
-\      'filter_candidates': {
-\        'type': v:t_func,
-\      },
-\      'normalize_candidate': {
-\        'type': v:t_func,
-\      },
-\      'sort_candidates': {
-\        'type': v:t_func,
-\      },
-\    },
-\ }
-
-let s:SCHEMA_SOURCE = {
-\   'type': 'struct',
-\   'properties': {
-\     'name': {
-\       'type': v:t_string,
-\     },
-\     'default_kind': s:SCHEMA_KIND,
-\     'matcher': s:SCHEMA_MATCHER,
-\     'gather_candidates': {
-\       'type': v:t_func,
-\     },
-\     'on_action': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_preview': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_source_enter': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_source_leave': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'is_special_char': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'is_valid_for_acc': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\   },
-\ }
+let s:USER_DATA_CAN_ONLY_BE_STRING =
+\ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 
 " buffer number of the luis buffer
 if !exists('s:bufnr')
@@ -101,26 +21,18 @@ if !exists('s:session')
   let s:session = {}
 endif
 
-function! luis#do_action(kind, action_name, candidate) abort
-  let Action = s:find_action(a:kind, a:action_name)
-  if Action is 0
-    return 'Action ' .  string(a:action_name) . ' is not defined'
-  endif
-  return Action(a:kind, a:candidate)
-endfunction
-
 function! luis#define_default_ui_key_mappings() abort
-  nmap <buffer> <C-c> <Plug>(luis-quit-session)
-  nmap <buffer> <C-i> <Plug>(luis-choose-action)
-  nmap <buffer> <C-m> <Plug>(luis-do-default-action)
-  nmap <buffer> <CR> <Plug>(luis-do-default-action)
-  nmap <buffer> <Tab> <Plug>(luis-choose-action)
+  nmap <buffer> <C-c>  <Plug>(luis-quit-session)
+  nmap <buffer> <C-i>  <Plug>(luis-choose-action)
+  nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
+  nmap <buffer> <CR>  <Plug>(luis-do-default-action)
+  nmap <buffer> <Tab>  <Plug>(luis-choose-action)
 
-  imap <buffer> <C-c> <Plug>(luis-quit-session)
-  imap <buffer> <C-i> <Plug>(luis-choose-action)
-  imap <buffer> <C-m> <Plug>(luis-do-default-action)
-  imap <buffer> <CR> <Plug>(luis-do-default-action)
-  imap <buffer> <Tab> <Plug>(luis-choose-action)
+  imap <buffer> <C-c>  <Plug>(luis-quit-session)
+  imap <buffer> <C-i>  <Plug>(luis-choose-action)
+  imap <buffer> <C-m>  <Plug>(luis-do-default-action)
+  imap <buffer> <CR>  <Plug>(luis-do-default-action)
+  imap <buffer> <Tab>  <Plug>(luis-choose-action)
 
   imap <buffer> <BS>  <Plug>(luis-delete-backward-char)
   imap <buffer> <C-h>  <Plug>(luis-delete-backward-char)
@@ -144,19 +56,16 @@ function! luis#restart() abort
 endfunction
 
 function! luis#start(source, ...) abort
-  if s:session_is_active()
+  if s:is_active_session()
     echohl ErrorMsg
     echo 'luis: Already active'
     echohl NONE
     return 0
   endif
 
-  let errors = luis#schema#validate(s:SCHEMA_SOURCE, a:source)
+  let errors = luis#internal#validate_source(a:source)
   if !empty(errors)
-    echoerr 'luis: Invalid source'
-    for error in errors
-      echoerr error
-    endfor
+    echoerr 'luis: Invalid source' . "\n" . join(errors, "\n")
     return 0
   endif
 
@@ -218,7 +127,7 @@ function! luis#start(source, ...) abort
 endfunction
 
 function! luis#take_action(...) abort
-  if !s:session_is_active()
+  if !s:is_active_session()
     echohl ErrorMsg
     echo 'luis: Not active'
     echohl NONE
@@ -236,7 +145,9 @@ function! luis#take_action(...) abort
   endif
 
   let kind = s:kind_from_candidate(candidate)
-  let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
+  let action_name = a:0 > 0
+  \               ? a:1
+  \               : luis#internal#choose_action(kind, candidate)
 
   if action_name isnot 0
     if has_key(s:session.source, 'on_action')
@@ -255,7 +166,7 @@ function! luis#take_action(...) abort
     return 0
   endif
 
-  let error = luis#do_action(kind, action_name, candidate)
+  let error = luis#internal#do_action(kind, action_name, candidate)
   if error isnot 0
     echohl ErrorMsg
     echomsg error
@@ -267,7 +178,7 @@ function! luis#take_action(...) abort
 endfunction
 
 function! luis#update_candidates() abort
-  if s:session_is_active() && mode() =~# 'i'
+  if s:is_active_session() && mode() =~# 'i'
     call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif
 endfunction
@@ -276,240 +187,39 @@ function! luis#_omnifunc(findstart, base) abort
   if a:findstart
     let s:session.last_candidates = []
 
-    " To determine whether the content of the current line is inserted by
+    " To determine whether the content of the current pattern is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
-  else
-    let source = s:session.source
-    let matcher = source.matcher
-    let context = { 'pattern': s:remove_prompt(a:base), 'source': source }
-    let candidates = source.gather_candidates(context)
-    let candidates = matcher.filter_candidates(candidates, context)
-    call map(
-    \   candidates,
-    \   'matcher.normalize_candidate(
-    \     s:normalize_candidate(v:val),
-    \     v:key,
-    \     context
-    \   )'
-    \ )
-    let candidates = matcher.sort_candidates(candidates, context)
-    let s:session.last_candidates = candidates
-    return candidates
-  endif
-endfunction
-
-function! luis#_scope() abort
-  return s:
-endfunction
-
-function! luis#_sid_prefix() abort
-  return '<SNR>' . s:sid() . '_'
-endfunction
-
-function! s:acc_text(line, sep, candidates) abort
-  " ACC = Automatic Component Completion
-
-  let user_input_raw = s:remove_prompt(a:line)
-  let line_components = split(user_input_raw, a:sep, 1)
-
-  if len(line_components) < 2
-    echoerr 'luis: Assumption on ACC is failed: ' . string(line_components)
-    return ''
   endif
 
-  let result = ''
-  let last_start_pos = -1
-  let last_end_pos = -1
+  let pattern = s:remove_prompt(a:base)
+  let source = s:session.source
+  let matcher = source.matcher
+  let context = { 'pattern': pattern, 'source': source }
 
-  " Find a candidate which has the same components but the last 2 ones of
-  " line_components. Because line_components[-1] is always empty and
-  " line_components[-2] is almost imperfect name of a component.
-  "
-  " Example:
-  "
-  " (a) a:line ==# 'usr/share/m/',
-  "     line_components ==# ['usr', 'share', 'm', '']
-  "
-  "     The 1st candidate prefixed with 'usr/share/' will be used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completed text will be 'usr/share/man'.
-  "
-  " (b) a:line ==# 'u/'
-  "     line_components ==# ['u', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr'.
-  "
-  " (c) a:line ==# 'm/'
-  "     line_components ==# ['m', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr/share/man'.
-  "     Because user seems to want to complete till the component which
-  "     matches to 'm'.
-  for candidate in a:candidates
-    let candidate_components = split(candidate.word, '\V' . a:sep, 1)
+  let candidates = source.gather_candidates(context)
+  let candidates = matcher.filter_candidates(candidates, context)
+  call map(
+  \   candidates,
+  \   'matcher.normalize_candidate(
+  \     s:normalize_candidate(v:val),
+  \     v:key,
+  \     context
+  \   )'
+  \ )
+  let candidates = matcher.sort_candidates(candidates, context)
+  let s:session.last_candidates = candidates
 
-    if len(line_components) == 2
-      " OK - the case (b) or (c)
-    elseif len(line_components) - 2 <= len(candidate_components)
-      for i in range(len(line_components) - 2)
-        if line_components[i] != candidate_components[i]
-          break
-        endif
-      endfor
-      if line_components[i] != candidate_components[i]
-        continue
-      endif
-      " OK - the case (a)
-    else
-      continue
-    endif
-
-    if has_key(s:session.source, 'is_valid_for_acc')
-    \  && !s:session.source.is_valid_for_acc(candidate)
-      continue
-    endif
-
-    " Find the index of the last component to be completed.
-    "
-    " For example, with candidate ==# 'usr/share/man/man1':
-    "   If line_components ==# ['u', '']:
-    "     c == 2 - 2
-    "     i == 0
-    "     t ==# 'usr/share/man/man1'
-    "            ^
-    "   If line_components ==# ['m', '']:
-    "     c == 2 - 2
-    "     i == 10
-    "     t ==# 'usr/share/man/man1'
-    "                      ^
-    "   If line_components ==# ['usr', 'share', 'm', '']:
-    "     c == 4 - 2
-    "     i == 0
-    "     t ==# 'man/man1'
-    "            ^
-    " Prefix components are all of line_components but the last two ones.
-    let count_of_prefix = len(line_components) - 2
-    " Pattern for the partially typed component = line_components[-2].
-    let pattern = '\c' . s:make_skip_regexp(line_components[-2])
-    " Tail of candidate.word without 'prefix' component in line_components.
-    let tail = join(candidate_components[count_of_prefix:], a:sep)
-
-    " Find the shortest match at the most forward position.
-    let start_pos = match(tail, pattern)
-    let end_pos = matchend(tail, pattern)
-    if start_pos < 0
-    \  || end_pos < 0
-    \  || (last_start_pos >= 0 && last_start_pos <= start_pos)
-    \  || (last_end_pos >= 0 && last_end_pos <= end_pos)
-      continue  " Try next one.
-    endif
-
-    let i = stridx(tail, a:sep, end_pos)
-    if i >= 0
-      " Several candidate_components are matched for ACC.
-      let index_to_the_tail_of_completed_text = -(len(tail) - i + 1)
-      let result = candidate.word[:index_to_the_tail_of_completed_text]
-    else
-      " All of candidate_components are matched for ACC.
-      let result = candidate.word
-    endif
-
-    let last_start_pos = start_pos
-    let last_end_pos = end_pos
-  endfor
-
-  return result
+  return candidates
 endfunction
 
-function! s:choose_action(kind, candidate) abort
-  " Prompt      Candidate Source
-  "    |          |         |
-  "   _^_______  _^______  _^__
-  "   Candidate: Makefile (file)
-  "   ^C cancel      ^O open        ...
-  "   What action?   ~~ ~~~~
-  "   ~~~~~~~~~~~~    |   |
-  "         |         |   |
-  "      Message     Key  Action
-  "
-  " Here "Prompt" is highlighted with luisChoosePrompt,
-  " "Candidate" is highlighted with luisChooseCandidate, and so forth.
-  let key_table = s:composite_key_table(a:kind)
-  " "Candidate: {candidate} ({source})"
-  echohl NONE
-  echo ''
-  echohl luisChoosePrompt
-  echon 'Candidate'
-  echohl NONE
-  echon ': '
-  echohl luisChooseCandidate
-  echon a:candidate.word
-  echohl NONE
-  echon ' ('
-  echohl luisChooseKind
-  echon a:kind.name
-  echohl NONE
-  echon ')'
-  call s:list_key_bindings(key_table)
-  echohl luisChooseMessage
-  echo 'What action? '
-  echohl NONE
-
-  " Take user input.
-  let k = s:get_key()
-  redraw  " clear the menu message lines to avoid hit-enter prompt.
-
-  " Return the action bound to the key k.
-  if has_key(key_table, k)
-    return key_table[k]
-  else
-    echo 'The key' string(k) 'is not associated with any action'
-    \    '-- nothing happened.'
-    return 0
-  endif
-endfunction
-
-function! s:compare_ignorecase(x, y) abort
-  " Comparing function for sort() to do consistently case-insensitive sort.
-  "
-  " sort(list, 1) does case-insensitive sort,
-  " but its result may not be in a consistent order.
-  " For example,
-  " sort(['b', 'a', 'B', 'A'], 1) may return ['a', 'A', 'b', 'B'],
-  " sort(['b', 'A', 'B', 'a'], 1) may return ['A', 'a', 'b', 'B'],
-  " and so forth.
-  "
-  " With this function, sort() always return ['A', 'a', 'B', 'b'].
-  return a:x <? a:y ? -1
-  \    : (a:x >? a:y ? 1
-  \    : (a:x <# a:y ? -1
-  \    : (a:x ># a:y ? 1
-  \    : 0)))
+function! luis#_session() abort
+  return s:session
 endfunction
 
 function! s:complete_the_prompt() abort
   call setline('.', s:PROMPT . getline('.'))
   return
-endfunction
-
-function! s:composite_key_table(kind) abort
-  let key_table = {}
-  let kind = a:kind
-
-  while 1
-    call extend(key_table, kind.key_table)
-    if !has_key(kind, 'prototype')
-      break
-    endif
-    let kind = kind.prototype
-  endwhile
-
-  return key_table
 endfunction
 
 function! s:consume_typeahead_buffer() abort
@@ -528,37 +238,6 @@ endfunction
 
 function! s:contains_the_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
-endfunction
-
-function! s:find_action(kind, action_name) abort
-  let kind = a:kind
-
-  while 1
-    if has_key(kind.action_table, a:action_name)
-      return kind.action_table[a:action_name]
-    endif
-    if !has_key(kind, 'prototype')
-      break
-    endif
-    let kind = kind.prototype
-  endwhile
-
-  return 0
-endfunction
-
-function! s:get_key() abort
-  " Alternative getchar() to get a logical key such as <F1> and <M-{x}>.
-
-  let k1 = getchar()
-  let k1 = type(k1) is v:t_number ? nr2char(k1) : k1
-
-  if k1 ==# "\<Esc>"
-    let k2 = getchar(0)
-    let k2 = type(k2) is v:t_number ? nr2char(k2) : k2
-    return k1 . k2
-  else
-    return k1
-  endif
 endfunction
 
 function! s:guess_candidate() abort
@@ -580,11 +259,6 @@ function! s:guess_candidate() abort
     endfor
 
     echoerr 'luis: No match found in s:session.last_candidates'
-    echoerr '  current_pattern_raw' string(current_pattern_raw)
-    echoerr '  s:session.last_pattern_raw'
-    \          string(s:session.last_pattern_raw)
-    echoerr '  s:session.last_candidates'
-    \          string(s:session.last_candidates)
     return 0
   endif
 
@@ -603,9 +277,6 @@ function! s:guess_candidate() abort
 endfunction
 
 function! s:initialize_luis_buffer() abort
-  " The current buffer is initialized.
-
-  " Basic settings.
   setlocal bufhidden=hide
   setlocal buftype=nofile
   setlocal nobuflisted
@@ -613,7 +284,6 @@ function! s:initialize_luis_buffer() abort
   setlocal omnifunc=luis#_omnifunc
   silent file `=s:BUFFER_NAME`
 
-  " Autocommands.
   augroup plugin-luis
     autocmd BufLeave <buffer>  call s:quit_session()
     autocmd BufUnload <buffer>  let s:bufnr = -1
@@ -625,7 +295,6 @@ function! s:initialize_luis_buffer() abort
     autocmd WinLeave <buffer>  call s:quit_session()
   augroup END
 
-  " Key mappings - fundamentals.
   nnoremap <buffer> <silent> <SID>(choose-action)
   \        :<C-u>call luis#take_action()<CR>
   nnoremap <buffer> <silent> <SID>(do-default-action)
@@ -663,15 +332,16 @@ function! s:initialize_luis_buffer() abort
   \        <SID>(delete-backward-line)
   inoremap <buffer> <script> <Plug>(luis-delete-backward-component)
   \        <SID>(delete-backward-component)
-  " <C-n>/<C-p> ... Vim doesn't expand these keys in Insert mode completion.
 
-  " User's initialization.
   setfiletype luis
 
-  " Key mappings - user interface.
   if !exists('#FileType#luis') && !exists('b:did_ftplugin')
     call luis#define_default_ui_key_mappings()
   endif
+endfunction
+
+function! s:is_active_session() abort
+  return bufexists(s:bufnr) && bufwinnr(s:bufnr) != -1
 endfunction
 
 function! s:is_valid_completed_item(completed_item) abort
@@ -706,7 +376,13 @@ function! s:keys_to_complete() abort
       " in line. For example, without this condition, user cannot input the
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
-      let acc_text = s:acc_text(line, sep, s:session.last_candidates)
+      let pattern = s:remove_prompt(line)
+      let acc_text = luis#internal#acc_text(
+      \   pattern,
+      \   sep,
+      \   s:session.last_candidates,
+      \   s:session.source
+      \ )
       let s:session.is_inserted_by_acc = 1
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
@@ -744,7 +420,6 @@ function! s:keys_to_delete_backward_component() abort
   "
   "   >/usr/|
   "     ^^^^
-
   let line = getline('.')
   if len(line) < col('.')
     if has_key(s:session.source, 'is_special_char')
@@ -768,76 +443,6 @@ function! s:kind_from_candidate(candidate) abort
   return has_key(a:candidate.user_data, 'kind')
   \      ? a:candidate.user_data.kind
   \      : s:session.source.default_kind
-endfunction
-
-function! s:list_key_bindings(key_table) abort
-  " actions => {
-  "   'keys': [[key_value, key_repr], ...],
-  "   'label': label
-  " }
-  let actions = {}
-  for [key, action] in items(a:key_table)
-    if !has_key(actions, action)
-      let actions[action] = {'keys': []}
-    endif
-    call add(actions[action].keys, [key, strtrans(key)])
-  endfor
-  for _ in values(actions)
-    call sort(_.keys)
-    let _.label = join(map(copy(_.keys), 'v:val[1]'), ' ')
-  endfor
-  silent! unlet _
-
-  " key  action
-  " ---  ------
-  "  ^H  left  
-  " -----------
-  "   cell
-  let action_names = sort(keys(actions), 's:compare_ignorecase')
-  let max_action_name_width = max(map(keys(actions), 'len(v:val)'))
-  let max_label_width = max(map(values(actions), 'len(v:val.label)'))
-  let max_cell_width = max_action_name_width + 1 + max_label_width
-  let spacer = '   '
-  let columns = (&columns + len(spacer) - 1) / (max_cell_width + len(spacer))
-  let columns = max([columns, 1])
-  let n = len(actions)
-  let rows = n / columns + (n % columns != 0)
-
-  for row in range(rows)
-    for column in range(columns)
-      let i = column * rows + row
-      if !(i < n)
-        continue
-      endif
-
-      echon column == 0 ? "\n" : spacer
-
-      echohl luisChooseAction
-      let _ = action_names[i]
-      echon _
-      echohl NONE
-      echon repeat(' ', max_action_name_width - len(_))
-
-      echohl luisChooseKey
-      echon ' '
-      let _ = actions[action_names[i]].label
-      echon _
-      echohl NONE
-      echon repeat(' ', max_label_width - len(_))
-    endfor
-  endfor
-
-  return
-endfunction
-
-function! s:make_skip_regexp(s) abort
-  " 'abc' ==> '\Va*b*c'
-  " '\!/' ==> '\V\\*!*/'
-  " Here '*' means '\.\{-}'
-  let [init, last] = [a:s[:-2], a:s[-1:]]
-  return '\V'
-  \    . substitute(escape(init, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
-  \    . escape(last, '\')
 endfunction
 
 function! s:new_session(source, options) abort
@@ -923,12 +528,4 @@ endfunction
 
 function! s:remove_prompt(s) abort
   return s:contains_the_prompt(a:s) ? a:s[len(s:PROMPT):] : a:s
-endfunction
-
-function! s:session_is_active() abort
-  return bufexists(s:bufnr) && bufwinnr(s:bufnr) != -1
-endfunction
-
-function! s:sid() abort
-  return matchstr(get(function('s:sid'), 'name'), '^<SNR>\zs\d\+')
 endfunction

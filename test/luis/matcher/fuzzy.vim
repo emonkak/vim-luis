@@ -51,6 +51,11 @@ function s:test_filter_candidates() abort
   \ ])
 endfunction
 
+function s:test_matcher_definition() abort
+  let matcher = g:luis#matcher#fuzzy#export
+  call assert_equal([], luis#internal#validate_matcher(matcher))
+endfunction
+
 function s:test_normalize_candidate() abort
   let matcher = g:luis#matcher#fuzzy#export
   let Test = { candidate, index, context, expected ->
@@ -65,8 +70,8 @@ function s:test_normalize_candidate() abort
   let context = { '_positions': [[0]], '_scores': [100] }
   call Test(candidate, index, context, {
   \   'word': 'foo',
-  \   'luis_fuzzy_pos': [0],
-  \   'luis_fuzzy_score': 100
+  \   'luis_match_pos': [0],
+  \   'luis_match_score': 100
   \ })
 endfunction
 
@@ -80,30 +85,30 @@ function s:test_sort_candidates() abort
   \ }
 
   let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_fuzzy_score': 189, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \ ]
   let context = {}
   call Test(candidates, context, [
-  \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobarbaz', 'luis_fuzzy_score': 189, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
   \ ])
 
   let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_fuzzy_score': 189, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
   \ ]
   let context = {}
   call Test(candidates, context, [
-  \   { 'word': 'FOOBAR', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_fuzzy_score': 192, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_fuzzy_score': 195, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'foobarbaz', 'luis_fuzzy_score': 189, 'luis_fuzzy_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
   \ ])
 endfunction
