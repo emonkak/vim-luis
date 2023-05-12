@@ -1,3 +1,7 @@
+function! luis#matcher#exact#import() abort
+  return s:Matcher
+endfunction
+
 let s:Matcher = {}
 
 function! s:Matcher.filter_candidates(candidates, context) abort dict 
@@ -32,5 +36,3 @@ function! s:compare(x, y) abort
   endif
   return 0
 endfunction
-
-let g:luis#matcher#exact#export = s:Matcher

@@ -5,24 +5,23 @@ function! s:test_gather_candidates() abort
   endif
 
   let spy = Spy({ -> 0 })
-
-  function! luis#update_candidates() abort closure
-    call spy.call([])
-  endfunction
+  let session = {
+  \   'reload_candidates': spy.to_funcref(),
+  \ }
 
   try
+    let kind = luis#kind#file#import()
     let command = [
     \   'test/data/filter.sh',
     \   'bash',
     \   '-c',
-    \   "for n in {001..100}; do echo $n; done"
+    \   'for n in {001..100}; do echo $n; done'
     \ ]
-    let source = luis#source#async#new('files', g:luis#kind#file#export, command)
+    let source = luis#source#async#new('files', kind, command)
 
-    call source.on_source_enter()
+    call source.on_source_enter({ 'session': session })
 
-    let context = { 'pattern': '00' }
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates({ 'pattern': '00' })
 
     call assert_equal(candidates, [])
 
@@ -33,9 +32,10 @@ function! s:test_gather_candidates() abort
       endif
     endfor
 
-    call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
+    call assert_equal(1, spy.call_count())
+    call assert_equal(session, spy.last_self())
 
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates(({ 'pattern': '00' }))
     call assert_equal([
     \   { 'word': '001' },
     \   { 'word': '002' },
@@ -49,7 +49,7 @@ function! s:test_gather_candidates() abort
     \   { 'word': '100' },
     \ ], candidates)
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     silent runtime! autoload/luis.vim
   endtry
@@ -61,12 +61,12 @@ function! s:test_gather_candidates__to_candidate() abort
   endif
 
   let spy = Spy({ -> 0 })
-
-  function! luis#update_candidates() abort closure
-    call spy.call([])
-  endfunction
+  let session = {
+  \   'reload_candidates': spy.to_funcref(),
+  \ }
 
   try
+    let kind = luis#kind#file#import()
     let command = [
     \   'test/data/filter.sh',
     \   'bash',
@@ -78,15 +78,14 @@ function! s:test_gather_candidates__to_candidate() abort
     \ }
     let source = luis#source#async#new(
     \   'files',
-    \   g:luis#kind#file#export,
+    \   kind,
     \   command,
     \   options
     \ )
 
-    call source.on_source_enter()
+    call source.on_source_enter({ 'session': session })
 
-    let context = { 'pattern': '1' }
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates({ 'pattern': '1' })
 
     call assert_equal(candidates, [])
 
@@ -97,9 +96,10 @@ function! s:test_gather_candidates__to_candidate() abort
       endif
     endfor
 
-    call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
+    call assert_equal(1, spy.call_count())
+    call assert_equal(session, spy.last_self())
 
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates(({ 'pattern': '1' }))
     call assert_equal([
     \   { 'word': '01', 'kind': 'A' },
     \   { 'word': '01', 'kind': 'B' },
@@ -109,7 +109,7 @@ function! s:test_gather_candidates__to_candidate() abort
     \   { 'word': '10', 'kind': 'C' },
     \ ], candidates)
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     silent runtime! autoload/luis.vim
   endtry
@@ -121,32 +121,31 @@ function! s:test_gather_candidates__debounce_time() abort
   endif
 
   let spy = Spy({ -> 0 })
-
-  function! luis#update_candidates() abort closure
-    call spy.call([])
-  endfunction
+  let session = {
+  \   'reload_candidates': spy.to_funcref(),
+  \ }
 
   try
+    let kind = luis#kind#file#import()
     let command = [
     \   'test/data/filter.sh',
     \   'bash',
     \   '-c',
-    \   "for n in {001..100}; do echo $n; done"
+    \   'for n in {001..100}; do echo $n; done'
     \ ]
     let options = {
     \   'debounce_time': 10,
     \ }
     let source = luis#source#async#new(
     \   'files',
-    \   g:luis#kind#file#export,
+    \   kind,
     \   command,
     \   options
     \ )
 
-    call source.on_source_enter()
+    call source.on_source_enter({ 'session': session })
 
-    let context = { 'pattern': '00' }
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates({ 'pattern': '00' })
 
     call assert_equal(candidates, [])
 
@@ -157,9 +156,10 @@ function! s:test_gather_candidates__debounce_time() abort
       endif
     endfor
 
-    call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
+    call assert_equal(1, spy.call_count())
+    call assert_equal(session, spy.last_self())
 
-    let candidates = source.gather_candidates(context)
+    let candidates = source.gather_candidates({ 'pattern': '00' })
     call assert_equal([
     \   { 'word': '001' },
     \   { 'word': '002' },
@@ -173,16 +173,22 @@ function! s:test_gather_candidates__debounce_time() abort
     \   { 'word': '100' },
     \ ], candidates)
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     silent runtime! autoload/luis.vim
   endtry
 endfunction
 
 function s:test_source_definition() abort
-  let command = ['test/data/filter.sh', 'bash', '-c', "for n in {0..100}; do echo $n; done"]
-  let source = luis#source#async#new('files', g:luis#kind#file#export, command)
-  let errors = luis#internal#validate_source(source)
+  let kind = luis#kind#file#import()
+  let command = [
+  \   'test/data/filter.sh',
+  \   'bash',
+  \    '-c',
+  \    'for n in {0..100}; do echo $n; done'
+  \ ]
+  let source = luis#source#async#new('files', kind, command)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('async/files', source.name)
 endfunction

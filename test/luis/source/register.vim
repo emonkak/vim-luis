@@ -3,42 +3,45 @@ function! s:test_gather_candidates() abort
   0verbose let original_registers = s:clear_registers()
 
   " " Clear "." register.
-  " normal! i
+  normal! i
   "
   " " Add "a", "b", "c", registers.
-  " call setreg('a', ['foo'], 'v')
-  " call setreg('b', ['bar'], 'V')
-  " call setreg('c', ['baz'], "\<C-v>")
+  call setreg('a', ['foo'], 'v')
+  call setreg('b', ['bar'], 'V')
+  call setreg('c', ['baz'], "\<C-v>")
 
   try
-    " let source = luis#source#register#new()
-    "
-    " call source.on_source_enter()
-    "
-    " let candidates = source.gather_candidates({})
-    " call assert_equal([
-    " \   {
-    " \     'word': '"a',
-    " \     'menu': 'foo',
-    " \     'user_data': { 'register_name': 'a' },
-    " \     'kind': 'c',
-    " \     'luis_sort_priority': 97,
-    " \   },
-    " \   {
-    " \     'word': '"b',
-    " \     'menu': 'bar',
-    " \     'user_data': { 'register_name': 'b' },
-    " \     'kind': 'l',
-    " \     'luis_sort_priority': 98,
-    " \   },
-    " \   {
-    " \     'word': '"c',
-    " \     'menu': 'baz',
-    " \     'user_data': { 'register_name': 'c' },
-    " \     'kind': 'b',
-    " \     'luis_sort_priority': 99,
-    " \   },
-    " \ ], candidates)
+    let source = luis#source#register#new()
+
+    call source.on_source_enter({})
+
+    let candidates = source.gather_candidates({})
+    call assert_equal([
+    \   {
+    \     'word': 'foo',
+    \     'menu': '"a',
+    \     'user_data': { 'register_name': 'a' },
+    \     'kind': 'c',
+    \     'dup': 1,
+    \     'luis_sort_priority': 97,
+    \   },
+    \   {
+    \     'word': 'bar',
+    \     'menu': '"b',
+    \     'user_data': { 'register_name': 'b' },
+    \     'kind': 'l',
+    \     'dup': 1,
+    \     'luis_sort_priority': 98,
+    \   },
+    \   {
+    \     'word': 'baz',
+    \     'menu': '"c',
+    \     'user_data': { 'register_name': 'c' },
+    \     'kind': 'b',
+    \     'dup': 1,
+    \     'luis_sort_priority': 99,
+    \   },
+    \ ], candidates)
   finally
     call s:restore_registers(original_registers)
     bwipeout!
@@ -47,7 +50,7 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#register#new()
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('register', source.name)
 endfunction

@@ -1,117 +1,95 @@
-function s:test_filter_candidates() abort
-  let matcher = g:luis#matcher#smart#export
-  let Test = { expected, candidates, pattern ->
-  \   assert_equal(
-  \     expected,
-  \     map(
-  \       matcher.filter_candidates(candidates, { 'pattern': pattern }),
-  \      '{ "word": v:val.word }'
-  \     )
-  \   )
-  \ }
+let s:matcher = luis#matcher#smart#import()
 
-  let candidates = [
+function s:test_filter_candidates() abort
+  let cs = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
 
-  call Test([
-  \   { 'word': 'foo' },
-  \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, '')
-  call Test([
-  \   { 'word': 'foo' },
-  \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'foo')
-  call Test([
-  \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'bar')
-  call Test([
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'baz')
-  call Test([], candidates, 'qux')
-  call Test([
-  \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'foobar')
-  call Test([
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'foobaz')
-  call Test([
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'foobarbaz')
-  call Test([], candidates, 'foobarqux')
-  call Test([
-  \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'fb')
-  call Test([
-  \   { 'word': 'foobarbaz' },
-  \ ], candidates, 'fbb')
+  call assert_equal([
+  \   { 'word': 'foo', 'luis_match_score': 900 },
+  \   { 'word': 'foobar', 'luis_match_score': 900 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 900 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': '' }))
+  call assert_equal([
+  \   { 'word': 'foo', 'luis_match_score': 1000 },
+  \   { 'word': 'foobar', 'luis_match_score': 950 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 933 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foo' }))
+  call assert_equal([
+  \   { 'word': 'foobar', 'luis_match_score': 500 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 633 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'bar' }))
+  call assert_equal([
+  \   { 'word': 'foobarbaz', 'luis_match_score': 333 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'baz' }))
+  call assert_equal([], s:matcher.filter_candidates(cs, { 'pattern': 'qux' }))
+
+  call assert_equal([
+  \   { 'word': 'foobar', 'luis_match_score': 1000 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 967 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobar' }))
+  call assert_equal([
+  \   { 'word': 'foobarbaz', 'luis_match_score': 667 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobaz' }))
+  call assert_equal(
+  \   [],
+  \   s:matcher.filter_candidates(cs, { 'pattern': 'foobarbar' })
+  \ )
+  call assert_equal([
+  \   { 'word': 'foobarbaz', 'luis_match_score': 1000 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobarbaz' }))
+
+  call assert_equal([
+  \   { 'word': 'foobar', 'luis_match_score': 633 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 722 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'fb' }))
+  call assert_equal([
+  \   { 'word': 'foobarbaz', 'luis_match_score': 533 },
+  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'fbb' }))
 endfunction
 
 function s:test_matcher_definition() abort
-  let matcher = g:luis#matcher#smart#export
-  call assert_equal([], luis#internal#validate_matcher(matcher))
+  call assert_equal([], luis#_validate_matcher(s:matcher))
 endfunction
 
 function s:test_normalize_candidate() abort
-  let matcher = g:luis#matcher#fuzzy#export
-  let Test = { expected, candidate, index, context ->
-  \   assert_equal(
-  \     expected,
-  \     matcher.normalize_candidate(copy(candidate), index, context)
-  \   )
-  \ }
-
   let candidate = { 'word': 'foo' }
   let index = 0
-  let context = { '_positions': [[0]], '_scores': [100] }
-  call Test({
-  \   'word': 'foo',
-  \   'luis_match_pos': [0],
-  \   'luis_match_score': 100,
-  \ }, candidate, index, context)
+  let context = {}
+  call assert_equal(
+  \   candidate,
+  \   s:matcher.normalize_candidate(copy(candidate), index, context)
+  \ )
 endfunction
 
 function s:test_sort_candidates() abort
-  let matcher = g:luis#matcher#smart#export
-  let Test = { expected, candidates, context ->
-  \   assert_equal(
-  \     expected,
-  \     matcher.sort_candidates(copy(candidates), context)
-  \   )
-  \ }
-
-  let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
+  let cs = [
+  \   { 'word': 'foobarbaz', 'luis_match_score': 933, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1000, 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 950, 'luis_sort_priority': 0 },
   \ ]
   let context = {}
-  call Test([
-  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 0 },
-  \ ], candidates, context)
+  call assert_equal([
+  \   { 'word': 'foo', 'luis_match_score': 1000, 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 933, 'luis_sort_priority': 0 },
+  \ ], s:matcher.sort_candidates(cs, context))
 
-  let candidates = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 1 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 1 },
+  let cs = [
+  \   { 'word': 'foobarbaz', 'luis_match_score': 933, 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1000, 'luis_sort_priority': 1 },
   \ ]
   let context = {}
-  call Test([
-  \   { 'word': 'FOOBAR', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 0.95, 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 1.0, 'luis_sort_priority': 1 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 0.933333, 'luis_sort_priority': 1 },
-  \ ], candidates, context)
+  call assert_equal([
+  \   { 'word': 'FOOBAR', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 950, 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 1000, 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 933, 'luis_sort_priority': 1 },
+  \ ], s:matcher.sort_candidates(cs, context))
 endfunction

@@ -50,7 +50,7 @@ function s:run(package_dir) abort
 
   for test_function in test_functions
     let script_num = matchstr(test_function, '^<SNR>\zs\d\+')
-    let script_name = fnamemodify(script_paths[script_num], ':.:r')
+    let script_name = fnamemodify(script_paths[script_num], ':.')
     let test_name = substitute(test_function, '^<SNR>\d\+_', '', 'I')
     let full_name = script_name . '::' . test_name
 
@@ -70,11 +70,12 @@ function s:run(package_dir) abort
       \  || col('$') > 1
       \  || winnr('$') > 1
       \  || tabpagenr('$') > 1
+      \  || getchar(0) isnot 0
         call add(errors, {
         \   'script_name': script_name,
         \   'test_name': test_name,
         \   'messages': [
-        \     'CAUTION: Unclean buffers, windows, or tabs were found, therefore the execution of remaining tests has been aborted.'
+        \     'CAUTION: Unclean buffers, windows, tabs, or typeahead buffer were found, therefore the execution of remaining tests has been aborted.'
         \   ],
         \ })
         break
@@ -119,6 +120,7 @@ function s:run(package_dir) abort
       \   'test_name': test_name,
       \   'messages': [message],
       \ })
+      let failed += 1
       echon 'FAILED' "\n"
     endtry
   endfor

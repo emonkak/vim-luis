@@ -1,4 +1,8 @@
-function! s:action_open(kind, candidate) abort
+function! luis#kind#colorscheme#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_open(candidate, context) abort
   try
     execute 'colorscheme' a:candidate.word
   catch
@@ -7,11 +11,11 @@ function! s:action_open(kind, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#colorscheme#export = {
+let s:Kind = {
 \   'name': 'colorscheme',
 \   'action_table': {
 \     'open': function('s:action_open'),
 \   },
 \   'key_table': {},
-\   'prototype': luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

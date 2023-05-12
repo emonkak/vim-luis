@@ -1,4 +1,8 @@
-function! s:action_delete(kind, candidate) abort
+function! luis#kind#mark#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_delete(candidate, context) abort
   if !has_key(a:candidate.user_data, 'mark_name')
     return 'No mark chosen'
   endif
@@ -6,7 +10,7 @@ function! s:action_delete(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_open(kind, candidate) abort
+function! s:action_open(candidate, context) abort
   if !has_key(a:candidate.user_data, 'mark_name')
     return 'No mark chosen'
   endif
@@ -14,7 +18,7 @@ function! s:action_open(kind, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#mark#export = {
+let s:Kind = {
 \   'name': 'mark',
 \   'action_table': {
 \     'open': function('s:action_open'),
@@ -24,5 +28,5 @@ let g:luis#kind#mark#export = {
 \     "\<C-d>": 'delete',
 \     'd': 'delete',
 \   },
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

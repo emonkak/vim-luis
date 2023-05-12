@@ -1,19 +1,23 @@
-function! s:action_open(kind, candidate) abort
+function! luis#kind#text#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_open(candidate, context) abort
   execute 'normal!' "i\<C-r>=a:candidate.word\<CR>"
   return 0
 endfunction
 
-function! s:action_open_x(kind, candidate) abort
+function! s:action_open_x(candidate, context) abort
   execute 'normal!' "a\<C-r>=a:candidate.word\<CR>"
   return 0
 endfunction
 
-let g:luis#kind#text#export = {
+let s:Kind = {
 \   'name': 'text',
 \   'action_table': {
 \     'open': function('s:action_open'),
 \     'open!': function('s:action_open_x'),
 \   },
 \   'key_table': {},
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

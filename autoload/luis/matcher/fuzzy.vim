@@ -1,22 +1,26 @@
+function! luis#matcher#fuzzy#import() abort
+  return s:Matcher
+endfunction
+
 let s:Matcher = {}
 
 function! s:Matcher.filter_candidates(candidates, context) abort dict 
   if a:context.pattern != ''
     let [candidates, positions, scores] =
-    \ matchfuzzypos(a:candidates, a:context.pattern, { 'key': 'word' })
-    let a:context._positions = positions
-    let a:context._scores = scores
+    \   matchfuzzypos(a:candidates, a:context.pattern, { 'key': 'word' })
+    let a:context._match_positions = positions
+    let a:context._match_scores = scores
   else
     let candidates = a:candidates
-    let a:context._positions = []
-    let a:context._scores = []
+    let a:context._match_positions = []
+    let a:context._match_scores = []
   endif
   return candidates
 endfunction
 
 function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
-  let a:candidate.luis_match_pos = get(a:context._positions, a:index, 0)
-  let a:candidate.luis_match_score = get(a:context._scores, a:index, 0)
+  let a:candidate.luis_match_pos = get(a:context._match_positions, a:index, 0)
+  let a:candidate.luis_match_score = get(a:context._match_scores, a:index, 0)
   return a:candidate
 endfunction
 
@@ -44,5 +48,3 @@ function! s:compare(x, y) abort
   endif
   return 0
 endfunction
-
-let g:luis#matcher#fuzzy#export = s:Matcher

@@ -1,19 +1,21 @@
-let s:kind = g:luis#kind#mark#export
+let s:kind = luis#kind#mark#import()
 
 function! s:test_action_delete() abort
-  enew!
+  enew
   mark a
   let bufnr = bufnr('%')
 
   call assert_notequal('', execute('marks a', 'silent!'))
 
   try
-    let _ = luis#internal#do_action(s:kind, 'delete', {
-    \   'word': 'bar',
+    let Action = s:kind.action_table.delete
+    let candidate = {
+    \   'word': 'VIM',
     \   'user_data': {
     \     'mark_name': 'a',
     \   },
-    \ })
+    \ }
+    let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal('', execute('marks a', 'silent!'))
   finally
@@ -22,15 +24,17 @@ function! s:test_action_delete() abort
 endfunction
 
 function! s:test_action_delete__no_mark() abort
-  let _ = luis#internal#do_action(s:kind, 'delete', {
-  \   'word': '',
+  let Action = s:kind.action_table.delete
+  let candidate = {
+  \   'word': 'VIM',
   \   'user_data': {},
-  \ })
+  \ }
+  let _ = Action(candidate, {})
   call assert_equal('No mark chosen', _)
 endfunction
 
 function! s:test_action_open() abort
-  enew!
+  enew
   call setline(1, range(1, 10))
   5mark a
   let bufnr = bufnr('%')
@@ -38,12 +42,14 @@ function! s:test_action_open() abort
   call assert_equal(1, line('.'))
 
   try
-    let _ = luis#internal#do_action(s:kind, 'open', {
-    \   'word': 'bar',
+    let Action = s:kind.action_table.open
+    let candidate = {
+    \   'word': 'VIM',
     \   'user_data': {
     \     'mark_name': 'a',
     \   },
-    \ })
+    \ }
+    let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(5, line('.'))
   finally
@@ -52,14 +58,16 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__no_mark() abort
-  let _ = luis#internal#do_action(s:kind, 'open', {
+  let Action = s:kind.action_table.open
+  let candidate = {
   \   'word': '',
   \   'user_data': {},
-  \ })
+  \ }
+  let _ = Action(candidate, {})
   call assert_equal('No mark chosen', _)
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#internal#validate_kind(s:kind))
+  call assert_equal([], luis#_validate_kind(s:kind))
   call assert_equal('mark', s:kind.name)
 endfunction

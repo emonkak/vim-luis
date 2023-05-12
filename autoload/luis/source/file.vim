@@ -6,8 +6,8 @@ endfunction
 
 let s:Source = {
 \   'name': 'file',
-\   'default_kind': g:luis#kind#file#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#file#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -71,18 +71,18 @@ function! s:Source.is_valid_for_acc(candidate) abort dict
   return a:candidate.kind ==# 'dir'
 endfunction
 
-function! s:Source.on_action(candidate) abort dict
+function! s:Source.on_action(candidate, context) abort dict
   if !has_key(a:candidate.user_data, 'file_path')
     let a:candidate.user_data.file_path =
     \   fnamemodify(s:expand_path(a:candidate.word), ':p')
   endif
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let self._cached_candidates = {}
 endfunction
 
-function! s:Source.on_source_leave() abort dict
+function! s:Source.on_source_leave(context) abort dict
 endfunction
 
 function! s:expand_path(path) abort

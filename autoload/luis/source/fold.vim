@@ -6,15 +6,15 @@ endfunction
 
 let s:Source = {
 \   'name': 'fold',
-\   'default_kind': g:luis#kind#fold#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#fold#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let original_winnr = winnr()
   let original_lazyredraw = &lazyredraw
   let original_foldtext = &l:foldtext

@@ -7,15 +7,15 @@ endfunction
 
 let s:Source = {
 \   'name': 'tags',
-\   'default_kind': g:luis#kind#tag#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#tag#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let candidates = []
 
   for tag_file in self._tag_files

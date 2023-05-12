@@ -1,4 +1,8 @@
-function! s:action_cd(kind, candidate) abort
+function! luis#kind#file#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_cd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
   try
     cd `=fnamemodify(path, ':p:h')`
@@ -8,7 +12,7 @@ function! s:action_cd(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_lcd(kind, candidate) abort
+function! s:action_lcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
   try
     lcd `=fnamemodify(path, ':p:h')`
@@ -18,7 +22,7 @@ function! s:action_lcd(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_tcd(kind, candidate) abort
+function! s:action_tcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
   try
     tcd `=fnamemodify(path, ':p:h')`
@@ -28,11 +32,11 @@ function! s:action_tcd(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_open(kind, candidate) abort
+function! s:action_open(candidate, context) abort
   return s:open('edit', a:candidate)
 endfunction
 
-function! s:action_open_x(kind, candidate) abort
+function! s:action_open_x(candidate, context) abort
   return s:open('edit!', a:candidate)
 endfunction
 
@@ -59,7 +63,7 @@ function! s:path_from_candidate(candidate) abort
   \      : a:candidate.word
 endfunction
 
-let g:luis#kind#file#export = {
+let s:Kind = {
 \   'name': 'file',
 \   'action_table': {
 \     'cd': function('s:action_cd'),
@@ -71,10 +75,10 @@ let g:luis#kind#file#export = {
 \     '/': 'cd',
 \     '?': 'lcd',
 \   },
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }
 
 if exists(':tcd')
-  let g:luis#kind#file#export.action_table.tcd = function('s:action_tcd')
-  let g:luis#kind#file#export.key_table["\<C-_>"] = 'tcd'
+  let s:Kind.action_table.tcd = function('s:action_tcd')
+  let s:Kind.key_table["\<C-_>"] = 'tcd'
 endif

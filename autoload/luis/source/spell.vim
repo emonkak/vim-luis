@@ -4,8 +4,8 @@ endfunction
 
 let s:Source = {
 \   'name': 'spell',
-\   'default_kind': g:luis#kind#text#export,
-\   'matcher': g:luis#matcher#through#export,
+\   'default_kind': luis#kind#text#import(),
+\   'matcher': luis#matcher#through#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

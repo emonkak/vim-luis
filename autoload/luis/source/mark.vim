@@ -6,15 +6,15 @@ endfunction
 
 let s:Source = {
 \   'name': 'mark',
-\   'default_kind': g:luis#kind#mark#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#mark#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let candidates = []
   let bufnr = winbufnr(winnr('#'))
   let bufname = bufname(bufnr)

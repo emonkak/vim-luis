@@ -1,4 +1,5 @@
+let s:matcher = luis#matcher#default#import()
+
 function s:test_matcher_definition() abort
-  let matcher = g:luis#matcher#default#export
-  call assert_equal([], luis#internal#validate_matcher(matcher))
+  call assert_equal([], luis#_validate_matcher(s:matcher))
 endfunction

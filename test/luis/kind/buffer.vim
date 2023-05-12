@@ -1,4 +1,4 @@
-let s:kind = g:luis#kind#buffer#export
+let s:kind = luis#kind#buffer#import()
 
 function! s:test_action_delete() abort
   call s:do_test_delete(0, 1, 0, 0, 'delete', {})
@@ -24,10 +24,8 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open_no__corresponding_buffer() abort
-  let _ = luis#internal#do_action(s:kind, 'open', {
-  \   'word': tempname(),
-  \   'user_data': {},
-  \ })
+  let Action = s:kind.action_table.open
+  let _ = Action({ 'word': tempname(), 'user_data': {} }, {})
   call assert_notequal(0, _)
 endfunction
 
@@ -40,10 +38,8 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_action_open_x__no_corresponding_buffer() abort
-  let _ = luis#internal#do_action(s:kind, 'open!', {
-  \   'word': tempname(),
-  \   'user_data': {},
-  \ })
+  let Action = s:kind.action_table['open!']
+  let _ = Action({ 'word': tempname(), 'user_data': {} }, {})
   call assert_notequal(0, _)
 endfunction
 
@@ -78,7 +74,7 @@ function! s:test_action_wipeout_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#internal#validate_kind(s:kind))
+  call assert_equal([], luis#_validate_kind(s:kind))
   call assert_equal('buffer', s:kind.name)
 endfunction
 
@@ -98,8 +94,9 @@ function! s:do_test_delete(expected_result, expected_bufexists, expected_buflist
     let bufnr_1 = s:new_buffer({ '&bufhidden': 'hide' })
     let bufnr_2 = s:new_buffer(a:buf_options)
     try
+      let Action = s:kind.action_table[a:action_name]
       let candidate = MakeCandidate(bufnr_2)
-      let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
+      let _ = Action(candidate, {})
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
         call assert_equal(bufnr_2, bufnr('%'))
@@ -124,8 +121,9 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
     call setline(1, range(1, 10))
     let bufnr_2 = s:new_buffer(a:buf_options)
     try
+      let Action = s:kind.action_table[a:action_name]
       let candidate = MakeCandidate(bufnr_1)
-      let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
+      let _ = Action(candidate, {})
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
         call assert_equal(bufnr_2, bufnr('%'))

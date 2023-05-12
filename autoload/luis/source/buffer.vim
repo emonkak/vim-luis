@@ -6,22 +6,22 @@ endfunction
 
 let s:Source = {
 \   'name': 'buffer',
-\   'default_kind': g:luis#kind#buffer#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#buffer#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_preview(candidate) abort dict
+function! s:Source.on_preview(candidate, context) abort dict
   let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
   \         ? a:candidate.user_data.buffer_nr
   \         : self._alternate_bufnr
-  call s:switch_last_window(bufnr)
+  call s:switch_buffer_within_last_window(bufnr)
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let candidates = []
   for buf in getbufinfo({ 'buflisted': 1 })
     if empty(buf.name)
@@ -52,8 +52,8 @@ function! s:Source.on_source_enter() abort dict
   let self._alternate_bufnr = bufnr('#')
 endfunction
 
-function! s:Source.on_source_leave() abort dict
-  call s:switch_last_window(self._alternate_bufnr)
+function! s:Source.on_source_leave(context) abort dict
+  call s:switch_buffer_within_last_window(self._alternate_bufnr)
 endfunction
 
 function! s:buffer_indicator(buf) abort
@@ -81,7 +81,7 @@ function! s:buffer_indicator(buf) abort
   return indicators
 endfunction
 
-function! s:switch_last_window(bufnr) abort
+function! s:switch_buffer_within_last_window(bufnr) abort
   let original_winnr = winnr()
   noautocmd wincmd p  " Prevent close luis window
   noautocmd execute 'buffer' a:bufnr

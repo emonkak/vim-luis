@@ -1,3 +1,7 @@
+function! luis#matcher#smart#import() abort
+  return s:Matcher
+endfunction
+
 let s:Matcher = {}
 
 function! s:Matcher.filter_candidates(candidates, context) abort dict
@@ -5,7 +9,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
   for candidate in a:candidates
     let score = s:score(candidate.word, a:context.pattern)
     if score > 0.0
-      let candidate.luis_match_score = score
+      let candidate.luis_match_score = float2nr(round(score * 1000))
       call add(candidates, candidate)
     endif
   endfor
@@ -73,5 +77,3 @@ function! s:score(word, pattern) abort
   " Pattern doesn't match to word.
   return 0.0
 endfunction
-
-let g:luis#matcher#smart#export = s:Matcher

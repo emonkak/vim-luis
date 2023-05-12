@@ -1,4 +1,8 @@
-function! s:action_open(kind, candidate) abort
+function! luis#kind#history#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_open(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
     return 'No history chosen'
   endif
@@ -15,7 +19,7 @@ function! s:action_open(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_open_x(kind, candidate) abort
+function! s:action_open_x(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
     return 'No history chosen'
   endif
@@ -32,7 +36,7 @@ function! s:action_open_x(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_delete(kind, candidate) abort
+function! s:action_delete(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
   \  && !has_key(a:candidate.user_data, 'history_index')
     return 'No history chosen'
@@ -43,7 +47,7 @@ function! s:action_delete(kind, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#history#export = {
+let s:Kind = {
 \   'name': 'history',
 \   'action_table': {
 \     'open': function('s:action_open'),
@@ -53,5 +57,5 @@ let g:luis#kind#history#export = {
 \   'key_table': {
 \     'd': 'delete',
 \   },
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

@@ -1,32 +1,36 @@
-function! s:action_delete(kind, candidate) abort
+function! luis#kind#buffer#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_delete(candidate, context) abort
   return s:do_command('bdelete', a:candidate)
 endfunction
 
-function! s:action_delete_x(kind, candidate) abort
+function! s:action_delete_x(candidate, context) abort
   return s:do_command('bdelete!', a:candidate)
 endfunction
 
-function! s:action_open(kind, candidate) abort
+function! s:action_open(candidate, context) abort
   return s:do_command('buffer', a:candidate)
 endfunction
 
-function! s:action_open_x(kind, candidate) abort
+function! s:action_open_x(candidate, context) abort
   return s:do_command('buffer!', a:candidate)
 endfunction
 
-function! s:action_unload(kind, candidate) abort
+function! s:action_unload(candidate, context) abort
   return s:do_command('bunload', a:candidate)
 endfunction
 
-function! s:action_unload_x(kind, candidate) abort
+function! s:action_unload_x(candidate, context) abort
   return s:do_command('bunload!', a:candidate)
 endfunction
 
-function! s:action_wipeout(kind, candidate) abort
+function! s:action_wipeout(candidate, context) abort
   return s:do_command('bwipeout', a:candidate)
 endfunction
 
-function! s:action_wipeout_x(kind, candidate) abort
+function! s:action_wipeout_x(candidate, context) abort
   return s:do_command('bwipeout!', a:candidate)
 endfunction
 
@@ -50,7 +54,7 @@ function! s:do_command(command, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#buffer#export = {
+let s:Kind = {
 \   'name': 'buffer',
 \   'action_table': {
 \     'delete': function('s:action_delete'),
@@ -70,5 +74,5 @@ let g:luis#kind#buffer#export = {
 \     'u': 'unload',
 \     'w': 'wipeout',
 \   },
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

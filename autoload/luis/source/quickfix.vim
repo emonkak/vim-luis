@@ -6,15 +6,15 @@ endfunction
 
 let s:Source = {
 \   'name': 'quickfix',
-\   'default_kind': g:luis#kind#quickfix#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#quickfix#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let qflist = getqflist()
   let first_errors_for_buffer = {}  " buffer number -> error number
 

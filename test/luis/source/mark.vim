@@ -20,7 +20,7 @@ function s:test_gather_candidates() abort
   try
     let source = luis#source#mark#new()
 
-    call source.on_source_enter()
+    call source.on_source_enter({})
 
     let candidates = source.gather_candidates({})
     call assert_equal([
@@ -81,7 +81,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#mark#new()
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('mark', source.name)
 endfunction

@@ -11,7 +11,7 @@ function s:test_gather_candidates() abort
   try
     let source = luis#source#buffer#new()
 
-    call source.on_source_enter()
+    call source.on_source_enter({})
 
     call assert_equal([
     \   {
@@ -46,7 +46,7 @@ function s:test_gather_candidates() abort
     \   },
     \ ], source.gather_candidates({ 'pattern': '' }))
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     silent %bwipeout
   endtry
@@ -67,12 +67,12 @@ function s:test_preview() abort
   try
     let source = luis#source#buffer#new()
 
-    call source.on_source_enter()
+    call source.on_source_enter({})
 
     call source.on_preview({
     \  'word': '',
     \  'user_data': { 'buffer_nr': bufnr_2  },
-    \ })
+    \ }, {})
 
     call assert_equal(bufnr_2, winbufnr(winid_1))
     call assert_equal(bufnr_2, winbufnr(winid_2))
@@ -80,12 +80,12 @@ function s:test_preview() abort
     call source.on_preview({
     \  'word': '',
     \  'user_data': {},
-    \ })
+    \ }, {})
 
     call assert_equal(bufnr_1, winbufnr(winid_1))
     call assert_equal(bufnr_2, winbufnr(winid_2))
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     silent %bwipeout
   endtry
@@ -93,7 +93,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#buffer#new()
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('buffer', source.name)
 endfunction

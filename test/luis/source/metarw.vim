@@ -36,10 +36,15 @@ function s:test_gather_candidates() abort
     \     'user_data': { 'file_path': 'dummy:foo:bar/baz' },
     \   },
     \ ], candidates)
-    call assert_equal([{
-    \   'args': [scheme . ':' . pattern, scheme . ':' . pattern, 0],
-    \   'return_value': [metarw_candidates, '', ''],
-    \ }], spy.calls())
+    call assert_equal(1, spy.call_count())
+    call assert_equal(
+    \   [scheme . ':' . pattern, scheme . ':' . pattern, 0],
+    \   spy.last_args()
+    \ )
+    call assert_equal(
+    \   [metarw_candidates, '', ''],
+    \   spy.last_return_value()
+    \ )
   finally
     silent runtime! autoload/metarw/dummy.vim
   endtry
@@ -53,7 +58,7 @@ function s:test_on_action() abort
   \   'user_data': {},
   \ }
 
-  call source.on_action(candidate)
+  call source.on_action(candidate, {})
 
   call assert_equal({
   \   'word': 'foo:bar',
@@ -75,7 +80,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#metarw#new('dummy')
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('metarw/dummy', source.name)
 endfunction

@@ -6,8 +6,8 @@ function! luis#source#metarw#new(scheme) abort
 endfunction
 
 let s:Source = {
-\   'default_kind': g:luis#kind#file#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#file#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -33,7 +33,7 @@ function! s:Source.is_special_char(char) abort dict
   return a:char == s:path_separator() || a:char == ':'
 endfunction
 
-function! s:Source.on_action(candidate) abort dict
+function! s:Source.on_action(candidate, context) abort dict
   if !has_key(a:candidate.user_data, 'file_path')
     let a:candidate.user_data.file_path = self._scheme
     \                                   . ':'

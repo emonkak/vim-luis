@@ -1,29 +1,33 @@
-let s:kind = g:luis#kind#quickfix#export
+let s:kind = luis#kind#quickfix#import()
 
 function s:test_action_open() abort
   cgetexpr ['A:12:foo', 'B:24:bar', 'C:baz']
   call assert_equal([1, 1, 0], map(getqflist(), 'v:val.valid'))
   call assert_equal([bufnr('A'), bufnr('B'), 0], map(getqflist(), 'v:val.bufnr'))
 
-  enew!
+  enew
   let bufnr = bufnr('%')
 
   try
-    silent let _ = luis#internal#do_action(s:kind, 'open', {
-    \   'word': 'xxx',
+    let Action = s:kind.action_table.open
+
+    let candidate = {
+    \   'word': 'A',
     \   'user_data': {
     \     'quickfix_nr': 1,
     \   },
-    \ })
+    \ }
+    silent let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(bufnr('A'), bufnr('%'))
 
-    silent let _ = luis#internal#do_action(s:kind, 'open', {
-    \   'word': 'xxx',
+    let candidate = {
+    \   'word': 'B',
     \   'user_data': {
     \     'quickfix_nr': 2,
     \   },
-    \ })
+    \ }
+    silent let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(bufnr('B'), bufnr('%'))
 
@@ -31,12 +35,13 @@ function s:test_action_open() abort
     setlocal bufhidden=unload
     setlocal modified
 
-    silent let _ = luis#internal#do_action(s:kind, 'open', {
-    \   'word': 'VIM',
+    let candidate = {
+    \   'word': 'A',
     \   'user_data': {
     \     'quickfix_nr': 1,
     \   },
-    \ })
+    \ }
+    silent let _ = Action(candidate, {})
     call assert_match('Vim(cc):E37:', _)
     call assert_equal(bufnr, bufnr('%'))
   finally
@@ -52,27 +57,31 @@ function s:test_action_open_x() abort
   call assert_equal([1, 1, 0], map(getqflist(), 'v:val.valid'))
   call assert_equal([bufnr('A'), bufnr('B'), 0], map(getqflist(), 'v:val.bufnr'))
 
-  enew!
+  enew
   setlocal bufhidden=unload
   setlocal modified
   let bufnr = bufnr('%')
 
   try
-    silent let _ = luis#internal#do_action(s:kind, 'open!', {
-    \   'word': 'xxx',
+    let Action = s:kind.action_table['open!']
+
+    let candidate = {
+    \   'word': 'A',
     \   'user_data': {
     \     'quickfix_nr': 1,
     \   },
-    \ })
+    \ }
+    silent let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(bufnr('A'), bufnr('%'))
 
-    silent let _ = luis#internal#do_action(s:kind, 'open!', {
-    \   'word': 'xxx',
+    let candidate = {
+    \   'word': 'B',
     \   'user_data': {
     \     'quickfix_nr': 2,
     \   },
-    \ })
+    \ }
+    silent let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(bufnr('B'), bufnr('%'))
   finally
@@ -84,6 +93,6 @@ function s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#internal#validate_kind(s:kind))
+  call assert_equal([], luis#_validate_kind(s:kind))
   call assert_equal('quickfix', s:kind.name)
 endfunction

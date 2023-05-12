@@ -1,8 +1,12 @@
-function! s:action_open(kind, candidate) abort
+function! luis#kind#quickfix#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_open(candidate, context) abort
   return s:open('', a:candidate)
 endfunction
 
-function! s:action_open_x(kind, candidate) abort
+function! s:action_open_x(candidate, context) abort
   return s:open('!', a:candidate)
 endfunction
 
@@ -24,12 +28,12 @@ function! s:open(bang, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#quickfix#export = {
+let s:Kind = {
 \   'name': 'quickfix',
 \   'action_table': {
 \     'open': function('s:action_open'),
 \     'open!': function('s:action_open_x'),
 \   },
 \   'key_table': {},
-\   'prototype': g:luis#kind#buffer#export,
+\   'prototype': luis#kind#buffer#import(),
 \ }

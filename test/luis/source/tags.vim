@@ -1,7 +1,7 @@
 function! s:test_gather_candidates() abort
   let source = luis#source#tags#new([getcwd() . '/test/data/tags'])
 
-  call source.on_source_enter()
+  call source.on_source_enter({})
 
   let candidates = source.gather_candidates({})
   call assert_equal([
@@ -25,7 +25,7 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#tags#new([])
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('tags', source.name)
 endfunction

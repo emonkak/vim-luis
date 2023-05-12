@@ -1,4 +1,8 @@
-function! s:action_Put(kind, candidate) abort
+function! luis#kind#register#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_Put(candidate, context) abort
   if !has_key(a:candidate.user_data, 'register_name')
     return 'No register chosen'
   endif
@@ -6,7 +10,7 @@ function! s:action_Put(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_delete(kind, candidate) abort
+function! s:action_delete(candidate, context) abort
   if !has_key(a:candidate.user_data, 'register_name')
     return 'No register chosen'
   endif
@@ -14,7 +18,7 @@ function! s:action_delete(kind, candidate) abort
   return 0
 endfunction
 
-function! s:action_put(kind, candidate) abort
+function! s:action_put(candidate, context) abort
   if !has_key(a:candidate.user_data, 'register_name')
     return 'No register chosen'
   endif
@@ -22,7 +26,7 @@ function! s:action_put(kind, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#register#export = {
+let s:Kind = {
 \   'name': 'register',
 \   'action_table': {
 \     'Put': function('s:action_Put'),
@@ -36,5 +40,5 @@ let g:luis#kind#register#export = {
 \     'd': 'delete',
 \     'p': 'put',
 \   },
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }

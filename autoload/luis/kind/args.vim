@@ -1,4 +1,8 @@
-function! s:action_argdelete(kind, candidate) abort
+function! luis#kind#args#import() abort
+  return s:Kind
+endfunction
+
+function! s:action_argdelete(candidate, context) abort
   try
     execute 'argdelete' fnameescape(a:candidate.word)
   catch
@@ -7,7 +11,7 @@ function! s:action_argdelete(kind, candidate) abort
   return 0
 endfunction
 
-let g:luis#kind#args#export = {
+let s:Kind = {
 \   'name': 'args',
 \   'action_table': {
 \     'argdelete': function('s:action_argdelete'),
@@ -15,5 +19,5 @@ let g:luis#kind#args#export = {
 \   'key_table': {
 \     'R': 'argdelete',
 \   },
-\   'prototype': g:luis#kind#buffer#export,
+\   'prototype': luis#kind#buffer#import(),
 \ }

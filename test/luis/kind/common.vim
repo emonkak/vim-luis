@@ -1,4 +1,4 @@
-function! s:action_open(kind, candidate) abort
+function! s:action_open(candidate, context) abort
   edit `=a:candidate.word`
   return 0
 endfunction
@@ -9,7 +9,7 @@ let s:kind = {
 \     'open': function('s:action_open'),
 \   },
 \   'key_table': {},
-\   'prototype': g:luis#kind#common#export,
+\   'prototype': luis#kind#common#import(),
 \ }
 
 function! s:test_action_Bottom() abort
@@ -157,7 +157,8 @@ function! s:test_action_Yank() abort
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
-    let _ = luis#internal#do_action(s:kind, 'Yank', { 'word': 'bar' })
+    let Action = s:kind.prototype.action_table.Yank
+    let _ = Action({ 'word': 'bar' }, {})
     call assert_equal(0, _)
     call assert_equal("bar\n", getreg('"', 1))
     call assert_equal('V', getregtype('"'))
@@ -237,16 +238,19 @@ function! s:test_action_below() abort
 endfunction
 
 function! s:test_action_cancel() abort
-  let _ = luis#internal#do_action(s:kind, 'cancel', {})
+  let Action = s:kind.prototype.action_table.cancel
+  let _ = Action({}, {})
   call assert_equal(0, _)
 endfunction
 
 function! s:test_action_ex() abort
-  let _ = luis#internal#do_action(s:kind, 'ex', { 'word': 'vim' })
+  let Action = s:kind.prototype.action_table.ex
+
+  let _ = Action({ 'word': 'vim' }, {})
   call assert_equal(0, _)
   call assert_equal(": vim\<C-b>", s:consume_keys())
 
-  let _ = luis#internal#do_action(s:kind, 'ex', { 'word': 'v i' })
+  let _ = Action({ 'word': 'v i' }, {})
   call assert_equal(0, _)
   call assert_equal(": v\\ i\<C-b>", s:consume_keys())
 endfunction
@@ -287,11 +291,14 @@ function! s:test_action_left() abort
 endfunction
 
 function! s:test_action_open() abort
-  for action_name in ['open', 'open!', 'default']
-    let candidate = {
-    \   'word': tempname(),
-    \ }
-    silent let _ = luis#internal#do_action(s:kind, action_name, candidate)
+  for Action in [
+  \   s:kind.action_table['open'],
+  \   s:kind.prototype.action_table['open!'],
+  \   s:kind.prototype.action_table['default'],
+  \ ]
+    let candidate = { 'word': tempname() }
+    let context = { 'kind': s:kind }
+    silent let _ = Action(candidate, context)
     call assert_equal(0, _)
     call assert_equal(candidate.word, bufname('%'))
     silent execute 'bwipeout' candidate.word
@@ -299,15 +306,16 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__not_defined() abort
-  let _ = luis#internal#do_action(s:kind.prototype, 'open', {})
+  let Action = s:kind.prototype.action_table.open
+  let _ = Action({}, {})
   call assert_notequal(0, _)
 endfunction
 
 function! s:test_action_put() abort
-  enew!
-  call assert_equal([''], getline(1, line('$')))
+  enew
   try
-    let _ = luis#internal#do_action(s:kind, 'put', { 'word': 'VIM' })
+    let Action = s:kind.prototype.action_table.put
+    let _ = Action({ 'word': 'VIM' }, {})
     call assert_equal(0, _)
     call assert_equal(['', 'VIM'], getline(1, line('$')))
   finally
@@ -316,10 +324,10 @@ function! s:test_action_put() abort
 endfunction
 
 function! s:test_action_put_x() abort
-  enew!
-  call assert_equal([''], getline(1, line('$')))
+  enew
   try
-    let _ = luis#internal#do_action(s:kind, 'put!', { 'word': 'VIM' })
+    let Action = s:kind.prototype.action_table['put!']
+    let _ = Action({ 'word': 'VIM' }, {})
     call assert_equal(0, _)
     call assert_equal(['VIM', ''], getline(1, line('$')))
   finally
@@ -329,18 +337,15 @@ endfunction
 
 function! s:test_action_reselect() abort
   let spy = Spy({ -> 0 })
+  let session = {
+  \   'restart': spy.to_funcref(),
+  \ }
 
-  function! luis#restart() abort closure
-    return spy.call([])
-  endfunction
-
-  try
-    let _ = luis#internal#do_action(s:kind, 'reselect', {})
-    call assert_equal(0, _)
-    call assert_equal([{ 'args': [], 'return_value': 0 }], spy.calls())
-  finally
-    silent runtime! autoload/luis.vim
-  endtry
+  let Action = s:kind.prototype.action_table.reselect
+  let _ = Action({ 'word': 'XXX' }, { 'session': session })
+  call assert_equal(0, _)
+  call assert_equal(1, spy.call_count())
+  call assert_equal(session, spy.last_self())
 endfunction
 
 function! s:test_action_right() abort
@@ -431,7 +436,8 @@ function! s:test_action_yank() abort
   let reg_type = getregtype('"')
   let @" = 'foo'
   try
-    let _ = luis#internal#do_action(s:kind, 'yank', { 'word': 'bar' })
+    let Action = s:kind.prototype.action_table.yank
+    let _ = Action({ 'word': 'bar' }, {})
     call assert_equal(0, _)
     call assert_equal('bar', getreg('"', 1))
     call assert_equal('v', getregtype('"'))
@@ -461,12 +467,11 @@ function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_ta
   call assert_notequal(original_bufnr, bufnr('%'))
   call assert_equal(3, winnr('$'))
 
-  let candidate = {
-  \   'word': tempname(),
-  \ }
-
   try
-    silent let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
+    let candidate = { 'word': tempname() }
+    let Action = s:kind.prototype.action_table[a:action_name]
+    let context = { 'kind': s:kind }
+    silent let _ = Action(candidate, context)
     call assert_equal(0, _)
 
     call assert_equal(candidate.word, bufname('%'))
@@ -495,9 +500,9 @@ function! s:do_test_split_without_enough_room(action_name, orientation) abort
   let original_last_winnr = winnr('$')
 
   try
-    silent let _ = luis#internal#do_action(s:kind, a:action_name, {
-    \   'word': 'VIM',
-    \ })
+    let Action = s:kind.prototype.action_table[a:action_name]
+    let context = { 'kind': s:kind }
+    silent let _ = Action({ 'word': 'XXX' }, context)
     call assert_match('Vim(split):E36: Not enough room', _)
 
     call assert_equal(original_bufnr, bufnr('%'))
@@ -523,12 +528,11 @@ function! s:do_test_tab(expected_tabpagenr, action_name) abort
   call assert_equal(2, tabpagenr())
   call assert_equal(3, tabpagenr('$'))
 
-  let candidate = {
-  \   'word': tempname(),
-  \ }
-
   try
-    silent let _ = luis#internal#do_action(s:kind, a:action_name, candidate)
+    let Action = s:kind.prototype.action_table[a:action_name]
+    let candidate = { 'word': tempname() }
+    let context = { 'kind': s:kind }
+    silent let _ = Action(candidate, context)
     call assert_equal(0, _)
 
     call assert_equal(candidate.word, bufname('%'))

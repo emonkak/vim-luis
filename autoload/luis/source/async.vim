@@ -22,7 +22,7 @@ function! luis#source#async#new(name, default_kind, command, ...) abort
 endfunction
 
 let s:Source = {
-\   'matcher': g:luis#matcher#through#export,
+\   'matcher': luis#matcher#through#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -42,15 +42,15 @@ function! s:Source.gather_candidates(context) abort dict
   return self._current_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   if has('nvim')
     let self._job = jobstart(self._command, {
-    \   'on_stdout': function('s:on_nvim_stdout', [self]),
+    \   'on_stdout': function('s:on_nvim_stdout', [self, a:context.session]),
     \   'on_exit': function('s:on_nvim_exit', [self]),
     \ })
   else
     let self._job = job_start(self._command, {
-    \   'out_cb': function('s:on_vim_stdout', [self]),
+    \   'out_cb': function('s:on_vim_stdout', [self, a:context.session]),
     \   'exit_cb': function('s:on_vim_exit', [self]),
     \ })
     let status = job_status(self._job)
@@ -62,7 +62,7 @@ function! s:Source.on_source_enter() abort dict
   let self._last_line = ''
 endfunction
 
-function! s:Source.on_source_leave() abort dict
+function! s:Source.on_source_leave(context) abort dict
   if self._job isnot s:INVALID_JOB
     if has('nvim')
       call jobclose(self._job)
@@ -79,7 +79,7 @@ function! s:on_nvim_exit(source, job, exit_code, event) abort
   endif
 endfunction
 
-function! s:on_nvim_stdout(source, job, data, event) abort
+function! s:on_nvim_stdout(source, session, job, data, event) abort
   let is_eof = 0
 
   let line = a:source._last_line . a:data[0]
@@ -98,7 +98,7 @@ function! s:on_nvim_stdout(source, job, data, event) abort
   let a:source._last_line = a:data[-1]
 
   if is_eof
-    call luis#update_candidates()
+    call a:session.reload_candidates()
   endif
 endfunction
 
@@ -115,7 +115,7 @@ function! s:on_vim_exit(source, job, status) abort
   endif
 endfunction
 
-function! s:on_vim_stdout(source, job, message) abort
+function! s:on_vim_stdout(source, session, job, message) abort
   let is_eof = 0
 
   for line in split(a:message, "\n")
@@ -125,7 +125,7 @@ function! s:on_vim_stdout(source, job, message) abort
   endfor
 
   if is_eof
-    call luis#update_candidates()
+    call a:session.reload_candidates()
   endif
 endfunction
 

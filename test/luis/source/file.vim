@@ -71,7 +71,7 @@ function s:test_gather_candidates__home_directory() abort
   try
     let source = luis#source#file#new()
 
-    call source.on_source_enter()
+    call source.on_source_enter({})
 
     call assert_equal([
     \   { 'word': '~/dir1', 'abbr': '~/dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/dir1/' } },
@@ -101,7 +101,7 @@ function s:test_gather_candidates__home_directory() abort
     \   { 'word': '$HOME/link1', 'abbr': '$HOME/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
     \ ], source.gather_candidates({ 'pattern': '$HOME/.' }))
 
-    call source.on_source_leave()
+    call source.on_source_leave({})
   finally
     let $HOME = old_HOME
   endtry
@@ -137,21 +137,21 @@ function s:test_on_action() abort
   let source = luis#source#file#new()
 
   let candidate = { 'word': 'test.vim', 'user_data': {} }
-  call source.on_action(candidate)
+  call source.on_action(candidate, {})
   call assert_equal({
   \   'word': 'test.vim',
   \   'user_data': { 'file_path': cwd . '/test.vim' },
   \ }, candidate)
 
   let candidate = { 'word': '~/.vimrc', 'user_data': {} }
-  call source.on_action(candidate)
+  call source.on_action(candidate, {})
   call assert_equal({
   \   'word': '~/.vimrc',
   \   'user_data': { 'file_path': $HOME . '/.vimrc' },
   \ }, candidate)
 
   let candidate = { 'word': '$HOME/.vimrc', 'user_data': {} }
-  call source.on_action(candidate)
+  call source.on_action(candidate, {})
   call assert_equal({
   \   'word': '$HOME/.vimrc',
   \   'user_data': { 'file_path': $HOME . '/.vimrc' },
@@ -160,7 +160,7 @@ endfunction
 
 function s:test_source_definition() abort
   let source = luis#source#file#new()
-  let errors = luis#internal#validate_source(source)
+  let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('file', source.name)
 endfunction

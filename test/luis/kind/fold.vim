@@ -1,4 +1,4 @@
-let s:kind = g:luis#kind#fold#export
+let s:kind = luis#kind#fold#import()
 
 function! s:test_action_open() abort
   enew!
@@ -17,12 +17,12 @@ function! s:test_action_open() abort
   call assert_equal(1, foldclosed(2))
 
   try
-    let _ = luis#internal#do_action(s:kind, 'open', {
+    let Action = s:kind.action_table.open
+    let candidate = {
     \   'word': 'bar',
-    \   'user_data': {
-    \     'fold_lnum': 1,
-    \   },
-    \ })
+    \   'user_data': { 'fold_lnum': 1 }
+    \ }
+    let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(1, line('.'))
     call assert_equal(-1, foldclosed(1))
@@ -30,12 +30,12 @@ function! s:test_action_open() abort
 
     foldclose!
 
-    let _ = luis#internal#do_action(s:kind, 'open', {
+    let Action = s:kind.action_table.open
+    let candidate = {
     \   'word': 'bar',
-    \   'user_data': {
-    \     'fold_lnum': 2,
-    \   },
-    \ })
+    \   'user_data': { 'fold_lnum': 2 }
+    \ }
+    let _ = Action(candidate, {})
     call assert_equal(0, _)
     call assert_equal(2, line('.'))
     call assert_equal(-1, foldclosed(1))
@@ -46,14 +46,16 @@ function! s:test_action_open() abort
 endfunction
 
 function! s:test_action_open__no_fold() abort
-  let _ = luis#internal#do_action(s:kind, 'open', {
-  \   'word': '',
-  \   'user_data': {},
-  \ })
+  let Action = s:kind.action_table.open
+    let candidate = {
+    \   'word': 'bar',
+    \   'user_data': {}
+    \ }
+  let _ = Action(candidate, {})
   call assert_equal('No fold chosen', _)
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#internal#validate_kind(s:kind))
+  call assert_equal([], luis#_validate_kind(s:kind))
   call assert_equal('fold', s:kind.name)
 endfunction

@@ -14,15 +14,15 @@ endfunction
 
 let s:Source = {
 \   'name': 'register',
-\   'default_kind': g:luis#kind#register#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#register#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let candidates = []
   for i in range(len(s:REGISTER_CHARS))
     let name = s:REGISTER_CHARS[i]
@@ -31,9 +31,10 @@ function! s:Source.on_source_enter() abort dict
       continue
     endif
     call add(candidates, {
-    \   'word': '"' . name,
-    \   'menu': contents[0],
+    \   'word': contents[0],
+    \   'menu': '"' . name,
     \   'kind': get(s:REGISTER_TYPES, getregtype(name)[0], ''),
+    \   'dup': 1,
     \   'user_data': {
     \     'register_name': name,
     \   },

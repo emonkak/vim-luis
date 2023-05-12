@@ -1,4 +1,4 @@
-let s:kind = g:luis#kind#tagstack#export
+let s:kind = luis#kind#tagstack#import()
 
 function! s:test_action_open() abort
   if !exists('*settagstack')
@@ -23,7 +23,7 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#internal#validate_kind(s:kind))
+  call assert_equal([], luis#_validate_kind(s:kind))
   call assert_equal('tagstack', s:kind.name)
 endfunction
 
@@ -61,13 +61,18 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   try
     for i in range(len(tag_bufnrs))
       let tag_bufnr = tag_bufnrs[i]
-      silent let _ = luis#internal#do_action(s:kind, a:action_name, {
+      let Action = s:kind.action_table[a:action_name]
+      let candidate = {
       \   'word': '',
       \   'user_data': {
       \     'buffer_nr': tag_bufnr,
       \     'tagstack_index': i + 1
       \   },
-      \ })
+      \ }
+      let context = {
+      \   'kind': s:kind,
+      \ }
+      silent let _ = Action(candidate, context)
       if type(a:expected_result) is v:t_string
         call assert_match(a:expected_result, _)
         call assert_equal(bufnr, bufnr('%'))

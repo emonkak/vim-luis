@@ -6,14 +6,14 @@ endfunction
 
 let s:Source = {
 \   'name': 'args',
-\   'default_kind': g:luis#kind#args#export,
-\   'matcher': g:luis#matcher#default#export,
+\   'default_kind': luis#kind#args#import(),
+\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_source_enter() abort dict
+function! s:Source.on_source_enter(context) abort dict
   let self._cached_candidates = map(argv(), '{ "word": v:val }')
 endfunction
