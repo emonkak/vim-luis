@@ -142,7 +142,8 @@ function! luis#start(new_session) abort
 
   let errors = luis#_validate_session(a:new_session)
   if !empty(errors)
-    echoerr 'luis: Invalid session:' . "\n" . join(errors, "\n")
+    let errmsg = 'luis: Invalid session:' . "\n" . join(errors, "\n")
+    echoerr errmsg
     return 0
   endif
 

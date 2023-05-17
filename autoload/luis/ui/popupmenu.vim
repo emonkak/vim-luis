@@ -107,9 +107,11 @@ function! s:Session.guess_candidate() abort dict
       endif
     endfor
 
-    echoerr 'luis: No match found in self.last_candidates'
-    \       ('(current_pattern_raw: ' . string(current_pattern_raw) . ')')
-    \       ('(last_pattern_raw: ' . string(self.last_pattern_raw) . ')')
+    let errmsg = 'luis: No match found in self.last_candidates:' . "\n"
+    \          . '  current_pattern_raw: ' . string(current_pattern_raw) . "\n"
+    \          . '  last_pattern_raw: ' . string(self.last_pattern_raw) . "\n"
+    \          . '  last_candidates: ' . string(self.last_candidates)
+    echoerr errmsg
     return 0
   endif
 
