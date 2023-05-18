@@ -12,6 +12,8 @@ let s:BUFFER_NAME = has('win32') || has('win64')
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 
+let s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS = has('patch-8.1.1123')
+
 if !exists('s:luis_bufnr')
   let s:luis_bufnr = -1
 endif
@@ -250,7 +252,7 @@ function! s:initialize_luis_buffer() abort
     autocmd BufUnload <buffer>  let s:luis_bufnr = -1
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
-    if has('patch-8.1.1123')  " Has 'equal' field support for complete items.
+    if exists('#TextChangedP')
       autocmd TextChangedP <buffer>  call s:on_TextChangedP()
     endif
   augroup END
@@ -429,7 +431,7 @@ function! s:on_TextChangedP() abort
   "       not.
   "       https://github.com/vim/vim/issues/12230
   let complete_info = complete_info(['selected'])
-  if complete_info.selected == -1
+  if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS && complete_info.selected == -1
     call feedkeys(s:keys_to_complete(), 'n')
   endif
 
