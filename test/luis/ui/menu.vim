@@ -35,7 +35,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -52,7 +52,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -77,7 +77,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -94,7 +94,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -119,7 +119,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -133,7 +133,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -170,7 +170,7 @@ function! s:test_omni_func() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -225,7 +225,7 @@ function! s:test_omni_func() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -260,7 +260,7 @@ function! s:test_omni_func__default_matcher() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-ui-menu', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -291,7 +291,7 @@ function! s:test_omni_func__default_matcher() abort
 
     call session.quit()
 
-    call assert_notequal('luis-ui-menu', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -318,7 +318,7 @@ function! s:test_reload_candidates() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -339,7 +339,7 @@ function! s:test_reload_candidates() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -353,7 +353,7 @@ function! s:test_start() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let session = luis#ui#menu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source)
 
   call assert_false(session.is_active())
 
@@ -364,7 +364,7 @@ function! s:test_start() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -378,7 +378,7 @@ function! s:test_start() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -395,7 +395,7 @@ function! s:test_start() abort
     " Reuse existing luis buffer.
     call assert_equal('A', s:consume_keys())
     call assert_equal(luis_bufnr, bufnr('%'))
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -409,7 +409,7 @@ function! s:test_start() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -447,7 +447,7 @@ function! s:test_start__with_options() abort
   try
     call assert_notequal(original_bufnr, luis_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -463,7 +463,7 @@ function! s:test_start__with_options() abort
 
     call session.quit()
 
-    call assert_notequal('luis', &l:filetype)
+    call assert_notequal('luis-menu', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -482,7 +482,7 @@ function! s:test_start__with_options() abort
     " Reuse existing luis buffer.
     call assert_equal(luis_bufnr, bufnr('%'))
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis', &l:filetype)
+    call assert_equal('luis-menu', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())

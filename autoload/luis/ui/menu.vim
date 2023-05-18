@@ -1,11 +1,13 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
 
-let s:BUFFER_NAME = has('win32') || has('win64') ? '[luis]' : '*luis*'
-
 let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
+
+let s:BUFFER_NAME = has('win32') || has('win64')
+\                              ? '[luis-menu]'
+\                              : '*luis-menu*'
 
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
@@ -33,10 +35,11 @@ function! luis#ui#menu#define_default_key_mappings() abort
   imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
 endfunction
 
-function! luis#ui#menu#new_session(source, options) abort
+function! luis#ui#menu#new_session(source, ...) abort
+  let options = get(a:000, 0, {})
   let session = copy(s:Session)
-  let session.hook = get(a:options, 'hook', {})
-  let session.initial_pattern = get(a:options, 'initial_pattern', '')
+  let session.hook = get(options, 'hook', {})
+  let session.initial_pattern = get(options, 'initial_pattern', '')
   let session.is_inserted_by_acc = 0
   let session.is_quitting = 0
   let session.last_candidates = []
@@ -311,9 +314,9 @@ function! s:initialize_luis_buffer() abort
   inoremap <buffer> <script> <Plug>(luis-delete-backward-component)
   \        <SID>(delete-backward-component)
 
-  setfiletype luis
+  setfiletype luis-menu
 
-  if !exists('#FileType#luis') && !exists('b:did_ftplugin')
+  if !exists('#FileType#luis-menu') && !exists('b:did_ftplugin')
     call luis#ui#menu#define_default_key_mappings()
   endif
 endfunction
