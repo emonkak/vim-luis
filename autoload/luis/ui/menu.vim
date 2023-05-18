@@ -14,7 +14,7 @@ if !exists('s:luis_bufnr')
   let s:luis_bufnr = -1
 endif
 
-function! luis#ui#popupmenu#define_default_key_mappings() abort
+function! luis#ui#menu#define_default_key_mappings() abort
   nmap <buffer> <C-c>  <Plug>(luis-quit-session)
   nmap <buffer> <C-i>  <Plug>(luis-choose-action)
   nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
@@ -33,7 +33,7 @@ function! luis#ui#popupmenu#define_default_key_mappings() abort
   imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
 endfunction
 
-function! luis#ui#popupmenu#new_session(source, options) abort
+function! luis#ui#menu#new_session(source, options) abort
   let session = copy(s:Session)
   let session.hook = get(a:options, 'hook', {})
   let session.initial_pattern = get(a:options, 'initial_pattern', '')
@@ -51,7 +51,7 @@ function! luis#ui#popupmenu#new_session(source, options) abort
   return session
 endfunction
 
-function! luis#ui#popupmenu#_omnifunc(findstart, base) abort
+function! luis#ui#menu#_omnifunc(findstart, base) abort
   let session = b:luis_session
 
   if a:findstart
@@ -258,7 +258,7 @@ function! s:initialize_luis_buffer() abort
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal omnifunc=luis#ui#popupmenu#_omnifunc
+  setlocal omnifunc=luis#ui#menu#_omnifunc
   silent file `=s:BUFFER_NAME`
 
   augroup plugin-luis
@@ -312,7 +312,7 @@ function! s:initialize_luis_buffer() abort
   setfiletype luis
 
   if !exists('#FileType#luis') && !exists('b:did_ftplugin')
-    call luis#ui#popupmenu#define_default_key_mappings()
+    call luis#ui#menu#define_default_key_mappings()
   endif
 endfunction
 

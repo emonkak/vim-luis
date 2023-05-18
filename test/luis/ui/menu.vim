@@ -2,7 +2,7 @@ function! s:test_guess_candidate__from_completed_item() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   try
     let candidate = { 'word': 'VIM', 'user_data': {} }
@@ -24,7 +24,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -66,7 +66,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -108,7 +108,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -160,7 +160,7 @@ function! s:test_omni_func() abort
   \   'force'
   \ ))
 
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -200,7 +200,7 @@ function! s:test_omni_func() abort
     \   },
     \ ]
 
-    call assert_equal(expected_candidates, luis#ui#popupmenu#_omnifunc(0, '>' . pattern))
+    call assert_equal(expected_candidates, luis#ui#menu#_omnifunc(0, '>' . pattern))
 
     call assert_equal([[context]], source_spies.gather_candidates.args())
     call assert_equal([
@@ -232,7 +232,7 @@ function! s:test_reload_candidates() abort
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
   let source.gather_candidates = { context -> [{ 'word': 'VIM' }] }
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -278,7 +278,7 @@ function! s:test_start() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let session = luis#ui#popupmenu#new_session(source, {})
+  let session = luis#ui#menu#new_session(source, {})
 
   call assert_false(session.is_active())
 
@@ -358,7 +358,7 @@ function! s:test_start__with_options() abort
   \   'on_source_enter': { context -> 0 },
   \   'on_source_leave': { context -> 0 },
   \ })
-  let session = luis#ui#popupmenu#new_session(source, {
+  let session = luis#ui#menu#new_session(source, {
   \   'hook': hook,
   \   'initial_pattern': 'VIM',
   \ })
