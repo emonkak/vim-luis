@@ -47,7 +47,7 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_string,
 \     },
 \     'default_kind': s:SCHEMA_KIND,
-\     'matcher': s:SCHEMA_MATCHER,
+\     'matcher': extend({ 'optional': 1 }, s:SCHEMA_MATCHER, 'keep'),
 \     'gather_candidates': {
 \       'type': v:t_func,
 \     },

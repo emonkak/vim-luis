@@ -149,15 +149,14 @@ function! s:test_omni_func() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-
   let kind = s:create_mock_kind()
   let [matcher, matcher_spies] = SpyDict(s:create_mock_matcher())
   let [source, source_spies] = SpyDict(extend(
-  \   s:create_mock_source(kind, matcher),
   \   {
   \     'gather_candidates': { context -> candidates },
   \   },
-  \   'force'
+  \   s:create_mock_source(kind, matcher),
+  \   'keep'
   \ ))
 
   let session = luis#ui#menu#new_session(source, {})
@@ -178,7 +177,11 @@ function! s:test_omni_func() abort
     call assert_true(session.is_active())
 
     let pattern = 'foo'
-    let context = { 'pattern': pattern, 'session': session }
+    let expected_context = {
+    \   'pattern': pattern,
+    \   'matcher': matcher,
+    \   'session': session,
+    \ }
     let expected_candidates = [
     \   {
     \     'word': 'foo',
@@ -200,19 +203,24 @@ function! s:test_omni_func() abort
     \   },
     \ ]
 
-    call assert_equal(expected_candidates, luis#ui#menu#_omnifunc(0, '>' . pattern))
-
-    call assert_equal([[context]], source_spies.gather_candidates.args())
+    call assert_equal(
+    \   expected_candidates,
+    \   luis#ui#menu#_omnifunc(0, '>' . pattern)
+    \ )
+    call assert_equal(
+    \   [[expected_context]],
+    \   source_spies.gather_candidates.args()
+    \ )
     call assert_equal([
-    \   [candidates, context],
+    \   [candidates, expected_context],
     \ ], matcher_spies.filter_candidates.args())
     call assert_equal([
-    \   [candidates[0], 0, context],
-    \   [candidates[1], 1, context],
-    \   [candidates[2], 2, context],
+    \   [candidates[0], 0, expected_context],
+    \   [candidates[1], 1, expected_context],
+    \   [candidates[2], 2, expected_context],
     \ ], matcher_spies.normalize_candidate.args())
     call assert_equal([
-    \   [expected_candidates, context],
+    \   [expected_candidates, expected_context],
     \ ], matcher_spies.sort_candidates.args())
 
     call session.quit()
@@ -224,6 +232,73 @@ function! s:test_omni_func() abort
     call assert_false(session.is_active())
   finally
     execute luis_bufnr 'bwipeout!'
+  endtry
+endfunction
+
+function! s:test_omni_func__default_matcher() abort
+  let kind = s:create_mock_kind()
+  let [matcher, matcher_spies] = SpyDict(s:create_mock_matcher())
+  let [source, source_spies] = SpyDict(extend(
+  \   {
+  \     'gather_candidates': { context -> [] },
+  \   },
+  \   s:create_mock_source(kind, matcher),
+  \   'keep'
+  \ ))
+
+  let session = luis#ui#menu#new_session(source, {})
+
+  call assert_false(session.is_active())
+
+  let original_bufnr = bufnr('%')
+  call session.start()
+  let luis_bufnr = bufnr('%')
+
+  let original_default_matcher = luis#matcher#default#import()
+  let g:luis_default_matcher = matcher
+
+  try
+    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_equal('A', s:consume_keys())
+    call assert_equal('luis-ui-menu', &l:filetype)
+    call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
+    call assert_equal(2, winnr('$'))
+    call assert_equal(1, winnr())
+    call assert_true(session.is_active())
+
+    let pattern = 'foo'
+    let expected_context = {
+    \   'pattern': pattern,
+    \   'matcher': matcher,
+    \   'session': session,
+    \ }
+
+    call assert_equal(
+    \   [],
+    \   luis#ui#menu#_omnifunc(0, '>' . pattern)
+    \ )
+    call assert_equal(
+    \   [[expected_context]],
+    \   source_spies.gather_candidates.args()
+    \ )
+    call assert_equal([
+    \   [[], expected_context],
+    \ ], matcher_spies.filter_candidates.args())
+    call assert_false(matcher_spies.normalize_candidate.called())
+    call assert_equal([
+    \   [[], expected_context],
+    \ ], matcher_spies.sort_candidates.args())
+
+    call session.quit()
+
+    call assert_notequal('luis-ui-menu', &l:filetype)
+    call assert_equal(original_bufnr, bufnr('%'))
+    call assert_equal(1, winnr('$'))
+    call assert_equal(1, winnr())
+    call assert_false(session.is_active())
+  finally
+    execute luis_bufnr 'bwipeout!'
+    let g:luis_default_matcher = original_default_matcher
   endtry
 endfunction
 

@@ -15,7 +15,6 @@ endfunction
 let s:Source = {
 \   'name': 'register',
 \   'default_kind': luis#kind#register#import(),
-\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

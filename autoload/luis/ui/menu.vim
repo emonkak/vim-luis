@@ -64,8 +64,10 @@ function! luis#ui#menu#_omnifunc(findstart, base) abort
 
   let pattern = s:remove_prompt(a:base)
   let source = session.source
-  let matcher = source.matcher
-  let context = { 'pattern': pattern, 'session': session }
+  let matcher = has_key(source, 'matcher')
+  \           ? source.matcher
+  \           : luis#matcher#default#import()
+  let context = { 'pattern': pattern, 'matcher': matcher, 'session': session }
 
   let candidates = source.gather_candidates(context)
   let candidates = matcher.filter_candidates(candidates, context)

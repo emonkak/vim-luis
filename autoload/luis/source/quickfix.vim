@@ -7,7 +7,6 @@ endfunction
 let s:Source = {
 \   'name': 'quickfix',
 \   'default_kind': luis#kind#quickfix#import(),
-\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

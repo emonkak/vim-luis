@@ -8,7 +8,6 @@ endfunction
 
 let s:Source = {
 \   'default_kind': luis#kind#history#import(),
-\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

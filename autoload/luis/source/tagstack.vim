@@ -7,7 +7,6 @@ endfunction
 let s:Source = {
 \   'name': 'tagstack',
 \   'default_kind': luis#kind#tagstack#import(),
-\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict

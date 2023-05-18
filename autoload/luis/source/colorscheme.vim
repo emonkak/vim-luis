@@ -7,7 +7,6 @@ endfunction
 let s:Source = {
 \   'name': 'colorscheme',
 \   'default_kind': luis#kind#colorscheme#import(),
-\   'matcher': luis#matcher#default#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
