@@ -63,37 +63,37 @@ function s:test_normalize_candidate() abort
   let context = { '_match_positions': [[0]], '_match_scores': [100] }
   call assert_equal({
   \   'word': 'foo',
-  \   'luis_match_pos': [0],
+  \   'luis_match_positions': [0],
   \   'luis_match_score': 100
   \ }, s:matcher.normalize_candidate(copy(candidate), index, context))
 endfunction
 
 function s:test_sort_candidates() abort
   let cs = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
   \ ]
   let context = {}
   call assert_equal([
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
   \ ], s:matcher.sort_candidates(copy(cs), context))
 
   let cs = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
   \ ]
   let context = {}
   call assert_equal([
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_pos': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
   \ ], s:matcher.sort_candidates(copy(cs), context))
 endfunction
