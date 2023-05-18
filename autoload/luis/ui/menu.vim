@@ -436,11 +436,11 @@ function! s:on_TextChangedP() abort
   let session = b:luis_session
   let session.selected_index = complete_info.selected
 
-  if has_key(session.source, 'on_preview')
+  if has_key(session.source, 'on_select')
     let candidate = session.guess_candidate()
     if candidate isnot 0
       let context = { 'session': session }
-      call session.source.on_preview(candidate, context)
+      call session.source.on_select(candidate, context)
     endif
   endif
 endfunction

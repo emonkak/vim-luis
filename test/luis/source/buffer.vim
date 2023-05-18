@@ -69,7 +69,7 @@ function s:test_preview() abort
 
     call source.on_source_enter({})
 
-    call source.on_preview({
+    call source.on_select({
     \  'word': '',
     \  'user_data': { 'buffer_nr': bufnr_2  },
     \ }, {})
@@ -77,7 +77,7 @@ function s:test_preview() abort
     call assert_equal(bufnr_2, winbufnr(winid_1))
     call assert_equal(bufnr_2, winbufnr(winid_2))
 
-    call source.on_preview({
+    call source.on_select({
     \  'word': '',
     \  'user_data': {},
     \ }, {})

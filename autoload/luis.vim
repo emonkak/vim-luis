@@ -55,7 +55,7 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'on_preview': {
+\     'on_select': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },

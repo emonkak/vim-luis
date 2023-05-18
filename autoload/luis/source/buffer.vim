@@ -13,7 +13,7 @@ function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_preview(candidate, context) abort dict
+function! s:Source.on_select(candidate, context) abort dict
   let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
   \         ? a:candidate.user_data.buffer_nr
   \         : self._alternate_bufnr
