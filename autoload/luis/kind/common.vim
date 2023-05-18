@@ -70,7 +70,7 @@ function! s:action_put_x(candidate, context) abort
 endfunction
 
 function! s:action_reselect(candidate, context) abort
-  call a:context.session.restart()
+  call a:context.session.start()
   return 0
 endfunction
 

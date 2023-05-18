@@ -38,7 +38,6 @@ endfunction
 function! luis#ui#menu#new_session(source, ...) abort
   let options = get(a:000, 0, {})
   let session = copy(s:Session)
-  let session.hook = get(options, 'hook', {})
   let session.initial_pattern = get(options, 'initial_pattern', '')
   let session.is_inserted_by_acc = 0
   let session.is_quitting = 0
@@ -142,19 +141,7 @@ function! s:Session.quit() abort dict
   " Assumption: The current buffer is the luis buffer.
   " We have to check self.is_quitting to avoid unnecessary
   " :close'ing, because s:Session.quit() may be called recursively.
-  if self.is_quitting
-    return 0
-  endif
-
   let self.is_quitting = 1
-
-  let context = { 'session': self }
-  if has_key(self.source, 'on_source_leave')
-    call self.source.on_source_leave(context)
-  endif
-  if has_key(self.hook, 'on_source_leave')
-    call self.hook.on_source_leave(context)
-  endif
 
   close
 
@@ -162,14 +149,8 @@ function! s:Session.quit() abort dict
   let &equalalways = self.original_equalalways
   let &completeopt = self.original_completeopt
   execute self.original_curwinnr 'wincmd w'
+
   let self.is_quitting = 0
-
-  return 1
-endfunction
-
-function! s:Session.restart() abort dict
-  let self.initial_pattern = s:remove_prompt(self.last_pattern_raw)
-  return self.start()
 endfunction
 
 function! s:Session.start() abort dict
@@ -204,8 +185,11 @@ function! s:Session.start() abort dict
   "       Insert mode is also implemented by feedkeys(). These feedings must
   "       be done carefully.
   silent % delete _
+  let pattern = self.last_pattern_raw != ''
+  \           ? self.last_pattern_raw
+  \           : s:PROMPT . self.initial_pattern
   call setline(s:LNUM_STATUS, 'Source: ' . self.source.name)
-  call setline(s:LNUM_PATTERN, s:PROMPT . self.initial_pattern)
+  call setline(s:LNUM_PATTERN, pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
 
   " Start Insert mode.
@@ -219,14 +203,6 @@ function! s:Session.start() abort dict
   "       example, typed character, mapped character, etc.
   let typeahead_buffer = s:consume_typeahead_buffer()
   call feedkeys('A' . typeahead_buffer, 'n')
-
-  let context = { 'session': self }
-  if has_key(self.hook, 'on_source_enter')
-    call self.hook.on_source_enter(context)
-  endif
-  if has_key(self.source, 'on_source_enter')
-    call self.source.on_source_enter(context)
-  endif
 endfunction
 
 function! s:Session.reload_candidates() abort dict
@@ -267,13 +243,16 @@ function! s:initialize_luis_buffer() abort
   silent file `=s:BUFFER_NAME`
 
   augroup plugin-luis
-    autocmd BufLeave <buffer>  call b:luis_session.quit()
+    autocmd BufLeave,WinLeave <buffer>
+    \   if !b:luis_session.is_quitting
+    \ |   call luis#quit()
+    \ | endif
+    autocmd BufUnload <buffer>  let s:luis_bufnr = -1
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     if has('patch-8.1.1123')  " Has 'equal' field support for complete items.
       autocmd TextChangedP <buffer>  call s:on_TextChangedP()
     endif
-    autocmd WinLeave <buffer>  call b:luis_session.quit()
   augroup END
 
   nnoremap <buffer> <silent> <SID>(choose-action)
@@ -281,7 +260,7 @@ function! s:initialize_luis_buffer() abort
   nnoremap <buffer> <silent> <SID>(do-default-action)
   \        :<C-u>call luis#take_action('default')<CR>
   nnoremap <buffer> <silent> <SID>(quit-session)
-  \        :<C-u>call b:luis_session.quit()<CR>
+  \        :<C-u>call luis#quit()<CR>
   inoremap <buffer> <expr> <SID>(accept-completion)
   \        pumvisible() ? '<C-y>' : ''
   inoremap <buffer> <expr> <SID>(cancel-completion)

@@ -91,9 +91,6 @@ let s:SCHEMA_SESSION = {
 \     'start': {
 \       'type': v:t_func,
 \     },
-\     'restart': {
-\       'type': v:t_func,
-\     },
 \     'reload_candidates': {
 \       'type': v:t_func,
 \       'optional': 1,
@@ -103,6 +100,8 @@ let s:SCHEMA_SESSION = {
 
 let s:session = {}
 
+let s:hook = {}
+
 function! luis#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
@@ -110,6 +109,19 @@ function! luis#do_action(kind, action_name, candidate) abort
   endif
   let context = { 'kind': a:kind, 'session': s:session }
   return Action(a:candidate, context)
+endfunction
+
+function! luis#quit() abort
+  if empty(s:session) || !s:session.is_active()
+    echohl ErrorMsg
+    echo 'luis: Not active'
+    echohl NONE
+    return 0
+  endif
+
+  call s:quit_session(s:session, s:hook)
+
+  return 1
 endfunction
 
 function! luis#restart() abort
@@ -127,12 +139,12 @@ function! luis#restart() abort
     return 0
   endif
 
-  call s:session.restart()
+  call s:start_session(s:session, s:hook)
 
   return 1
 endfunction
 
-function! luis#start(new_session) abort
+function! luis#start(new_session, ...) abort
   if !empty(s:session) && s:session.is_active()
     echohl ErrorMsg
     echo 'luis: Already active'
@@ -147,9 +159,13 @@ function! luis#start(new_session) abort
     return 0
   endif
 
-  call a:new_session.start()
+  let options = get(a:000, 0, {})
+  let hook = get(options, 'hook', {})
+
+  call s:start_session(a:new_session, hook)
 
   let s:session = a:new_session
+  let s:hook = hook
 
   return 1
 endfunction
@@ -184,7 +200,7 @@ function! luis#take_action(...) abort
   " current buffer/window and user expects that such actions do something on
   " the buffer/window which was the current one until the luis buffer became
   " active.
-  call s:session.quit()
+  call s:quit_session(s:session, s:hook)
 
   if action_name is 0
     " In these cases, error messages are already noticed by other functions.
@@ -326,6 +342,7 @@ endfunction
 
 function! luis#_reset_session() abort
   let s:session = {}
+  let s:hook = {}
 endfunction
 
 function! s:choose_action(kind, candidate) abort
@@ -511,4 +528,32 @@ function! s:make_skip_regexp(s) abort
   return '\V'
   \    . substitute(escape(init, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
   \    . escape(last, '\')
+endfunction
+
+function! s:quit_session(session, hook) abort
+  let context = { 'session': a:session }
+
+  if has_key(a:session.source, 'on_source_leave')
+    call a:session.source.on_source_leave(context)
+  endif
+
+  if has_key(a:hook, 'on_source_leave')
+    call a:hook.on_source_leave(context)
+  endif
+
+  call a:session.quit()
+endfunction
+
+function! s:start_session(session, hook) abort
+  call a:session.start()
+
+  let context = { 'session': a:session }
+
+  if has_key(a:hook, 'on_source_enter')
+    call a:hook.on_source_enter(context)
+  endif
+
+  if has_key(a:session.source, 'on_source_enter')
+    call a:session.source.on_source_enter(context)
+  endif
 endfunction

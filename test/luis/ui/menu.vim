@@ -352,7 +352,7 @@ endfunction
 function! s:test_start() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
+  let source = s:create_mock_source(kind, matcher)
   let session = luis#ui#menu#new_session(source)
 
   call assert_false(session.is_active())
@@ -369,12 +369,6 @@ function! s:test_start() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
-    call assert_equal(1, source_spies.on_source_enter.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_enter.last_args()
-    \ )
-    call assert_equal(0, source_spies.on_source_leave.call_count())
 
     call session.quit()
 
@@ -383,12 +377,6 @@ function! s:test_start() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
-    call assert_equal(1, source_spies.on_source_enter.call_count())
-    call assert_equal(1, source_spies.on_source_leave.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_leave.last_args()
-    \ )
 
     call session.start()
 
@@ -400,12 +388,6 @@ function! s:test_start() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
-    call assert_equal(2, source_spies.on_source_enter.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_enter.last_args()
-    \ )
-    call assert_equal(1, source_spies.on_source_leave.call_count())
 
     call session.quit()
 
@@ -414,12 +396,6 @@ function! s:test_start() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
-    call assert_equal(2, source_spies.on_source_enter.call_count())
-    call assert_equal(2, source_spies.on_source_leave.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_leave.last_args()
-    \ )
   finally
     execute luis_bufnr 'bwipeout!'
   endtry
@@ -428,13 +404,8 @@ endfunction
 function! s:test_start__with_options() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict({
-  \   'on_source_enter': { context -> 0 },
-  \   'on_source_leave': { context -> 0 },
-  \ })
+  let source = s:create_mock_source(kind, matcher)
   let session = luis#ui#menu#new_session(source, {
-  \   'hook': hook,
   \   'initial_pattern': 'VIM',
   \ })
 
@@ -452,14 +423,6 @@ function! s:test_start__with_options() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
-    call assert_equal(1, source_spies.on_source_enter.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_enter.last_args()
-    \ )
-    call assert_equal(0, source_spies.on_source_leave.call_count())
-    call assert_equal(1, hook_spies.on_source_enter.call_count())
-    call assert_equal(0, hook_spies.on_source_leave.call_count())
 
     call session.quit()
 
@@ -468,14 +431,6 @@ function! s:test_start__with_options() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
-    call assert_equal(1, source_spies.on_source_enter.call_count())
-    call assert_equal(1, source_spies.on_source_leave.call_count())
-    call assert_equal(
-    \   [{ 'session': session }],
-    \   source_spies.on_source_leave.last_args()
-    \ )
-    call assert_equal(1, hook_spies.on_source_enter.call_count())
-    call assert_equal(1, hook_spies.on_source_leave.call_count())
 
     call session.start()
 

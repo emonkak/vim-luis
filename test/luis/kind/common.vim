@@ -336,16 +336,15 @@ function! s:test_action_put_x() abort
 endfunction
 
 function! s:test_action_reselect() abort
-  let spy = Spy({ -> 0 })
-  let session = {
-  \   'restart': spy.to_funcref(),
-  \ }
+  let [session, session_spies] = SpyDict({
+  \   'start': { -> 0 },
+  \ })
 
   let Action = s:kind.prototype.action_table.reselect
   let _ = Action({ 'word': 'XXX' }, { 'session': session })
   call assert_equal(0, _)
-  call assert_equal(1, spy.call_count())
-  call assert_equal(session, spy.last_self())
+  call assert_equal(1, session_spies.start.call_count())
+  call assert_equal(session, session_spies.start.last_self())
 endfunction
 
 function! s:test_action_right() abort
