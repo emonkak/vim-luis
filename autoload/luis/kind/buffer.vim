@@ -38,7 +38,7 @@ function! s:do_command(command, candidate) abort
   let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
   \         ? a:candidate.user_data.buffer_nr
   \         : bufnr(fnameescape(a:candidate.word))
-  if bufnr < 1 
+  if bufnr < 1
     return 'There is no corresponding buffer to candidate: '
     \      . string(a:candidate.word)
   endif

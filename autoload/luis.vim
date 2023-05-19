@@ -482,7 +482,7 @@ function! s:list_key_bindings(key_table) abort
 
   " key  action
   " ---  ------
-  "  ^H  left  
+  "  ^H  left
   " -----------
   "   cell
   let action_names = sort(keys(actions), 's:compare_ignorecase')

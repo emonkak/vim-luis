@@ -19,7 +19,7 @@ function! s:Source.on_source_enter(context) abort dict
 
   for tag_file in self._tag_files
     let lines = readfile(tag_file)
-    for line in lines 
+    for line in lines
       let components = split(line, '\t')
       if len(components) < 2
         continue

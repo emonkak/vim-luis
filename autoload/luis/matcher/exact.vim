@@ -4,7 +4,7 @@ endfunction
 
 let s:Matcher = {}
 
-function! s:Matcher.filter_candidates(candidates, context) abort dict 
+function! s:Matcher.filter_candidates(candidates, context) abort dict
   let candidates = a:candidates
   if a:context.pattern != ''
     let candidates = filter(
@@ -15,7 +15,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
   return candidates
 endfunction
 
-function! s:Matcher.normalize_candidate(candidate, index, context) abort dict 
+function! s:Matcher.normalize_candidate(candidate, index, context) abort dict
   if !has_key(a:candidate, 'luis_sort_priority')
     let a:candidate.luis_sort_priority = 0
   endif
