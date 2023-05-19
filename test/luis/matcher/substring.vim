@@ -1,4 +1,4 @@
-let s:matcher = luis#matcher#exact#import()
+let s:matcher = luis#matcher#substring#import()
 
 function s:test_filter_candidates() abort
   let cs = [

@@ -1,4 +1,4 @@
-function! luis#matcher#exact#import() abort
+function! luis#matcher#substring#import() abort
   return s:Matcher
 endfunction
 
