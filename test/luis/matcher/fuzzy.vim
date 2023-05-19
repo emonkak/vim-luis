@@ -64,7 +64,18 @@ function s:test_normalize_candidate() abort
   call assert_equal({
   \   'word': 'foo',
   \   'luis_match_positions': [0],
-  \   'luis_match_score': 100
+  \   'luis_match_score': 100,
+  \   'luis_sort_priority': 0,
+  \ }, s:matcher.normalize_candidate(copy(candidate), index, context))
+
+  let candidate = { 'word': 'foo', 'luis_sort_priority': 1 }
+  let index = 0
+  let context = { '_match_positions': [[0]], '_match_scores': [100] }
+  call assert_equal({
+  \   'word': 'foo',
+  \   'luis_match_positions': [0],
+  \   'luis_match_score': 100,
+  \   'luis_sort_priority': 1,
   \ }, s:matcher.normalize_candidate(copy(candidate), index, context))
 endfunction
 

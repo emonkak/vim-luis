@@ -53,7 +53,15 @@ function s:test_normalize_candidate() abort
   let index = 0
   let context = {}
   call assert_equal(
-  \    candidate,
+  \    { 'word': 'foo', 'luis_sort_priority': 0 },
+  \    s:matcher.normalize_candidate(copy(candidate), index, context)
+  \ )
+
+  let candidate = { 'word': 'foo', 'luis_sort_priority': 1 }
+  let index = 0
+  let context = {}
+  call assert_equal(
+  \    { 'word': 'foo', 'luis_sort_priority': 1 },
   \    s:matcher.normalize_candidate(copy(candidate), index, context)
   \ )
 endfunction

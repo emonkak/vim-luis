@@ -187,19 +187,16 @@ function! s:test_omni_func() abort
     \     'word': 'foo',
     \     'equal': 1,
     \     'user_data': {},
-    \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'foobar',
     \     'equal': 1,
     \     'user_data': {},
-    \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'foobarbaz',
     \     'equal': 1,
     \     'user_data': {},
-    \     'luis_sort_priority': 0,
     \   },
     \ ]
 

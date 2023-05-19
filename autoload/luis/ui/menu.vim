@@ -407,9 +407,6 @@ function! s:normalize_candidate(candidate) abort
   if s:USER_DATA_CAN_ONLY_BE_STRING
     let a:candidate.user_data = json_encode(a:candidate.user_data)
   endif
-  if !has_key(a:candidate, 'luis_sort_priority')
-    let a:candidate.luis_sort_priority = 0
-  endif
   return a:candidate
 endfunction
 
