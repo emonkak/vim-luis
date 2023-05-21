@@ -6,8 +6,8 @@ let s:PROMPT = '>'
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
 let s:BUFFER_NAME = has('win32') || has('win64')
-\                              ? '[luis-menu]'
-\                              : '*luis-menu*'
+\                              ? '[luis-pmenu]'
+\                              : '*luis-pmenu*'
 
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
@@ -18,7 +18,7 @@ if !exists('s:luis_bufnr')
   let s:luis_bufnr = -1
 endif
 
-function! luis#ui#menu#define_default_key_mappings() abort
+function! luis#ui#pmenu#define_default_key_mappings() abort
   nmap <buffer> <C-c>  <Plug>(luis-quit-session)
   nmap <buffer> <C-i>  <Plug>(luis-choose-action)
   nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
@@ -37,7 +37,7 @@ function! luis#ui#menu#define_default_key_mappings() abort
   imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
 endfunction
 
-function! luis#ui#menu#new_session(source, ...) abort
+function! luis#ui#pmenu#new_session(source, ...) abort
   let options = get(a:000, 0, {})
   let session = copy(s:Session)
   let session.initial_pattern = get(options, 'initial_pattern', '')
@@ -55,7 +55,7 @@ function! luis#ui#menu#new_session(source, ...) abort
   return session
 endfunction
 
-function! luis#ui#menu#_omnifunc(findstart, base) abort
+function! luis#ui#pmenu#_omnifunc(findstart, base) abort
   let session = b:luis_session
 
   if a:findstart
@@ -241,10 +241,10 @@ function! s:initialize_luis_buffer() abort
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal omnifunc=luis#ui#menu#_omnifunc
+  setlocal omnifunc=luis#ui#pmenu#_omnifunc
   silent file `=s:BUFFER_NAME`
 
-  augroup plugin-luis
+  augroup plugin-luis-pmenu
     autocmd BufLeave,WinLeave <buffer>
     \   if !b:luis_session.is_quitting
     \ |   call luis#quit()
@@ -295,10 +295,10 @@ function! s:initialize_luis_buffer() abort
   inoremap <buffer> <script> <Plug>(luis-delete-backward-component)
   \        <SID>(delete-backward-component)
 
-  setfiletype luis-menu
+  setfiletype luis-pmenu
 
-  if !exists('#FileType#luis-menu') && !exists('b:did_ftplugin')
-    call luis#ui#menu#define_default_key_mappings()
+  if !exists('#FileType#luis-pmenu') && !exists('b:did_ftplugin')
+    call luis#ui#pmenu#define_default_key_mappings()
   endif
 endfunction
 

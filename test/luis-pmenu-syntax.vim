@@ -2,7 +2,7 @@ function! s:test_syntax() abort
   syntax enable
 
   enew
-  setfiletype luis-menu
+  setfiletype luis-pmenu
   call setline(1, ['Source: buffer', '>vim'])
 
   try
