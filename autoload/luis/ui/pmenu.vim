@@ -48,7 +48,7 @@ function! luis#ui#pmenu#new_session(source, ...) abort
   let session.last_pattern_raw = ''
   let session.original_backspace = &backspace
   let session.original_completeopt = &completeopt
-  let session.original_curwinnr = winnr()
+  let session.original_winnr = 0
   let session.original_equalalways = &equalalways
   let session.selected_index = -1
   let session.source = a:source
@@ -150,12 +150,17 @@ function! s:Session.quit() abort dict
   let &backspace = self.original_backspace
   let &equalalways = self.original_equalalways
   let &completeopt = self.original_completeopt
-  execute self.original_curwinnr 'wincmd w'
+  if self.original_winnr > 0
+    execute self.original_winnr 'wincmd w'
+    let self.original_winnr = 0
+  endif
 
   let self.is_quitting = 0
 endfunction
 
 function! s:Session.start() abort dict
+  let self.original_winnr = winnr()
+
   " Open or create the luis buffer.
   if bufexists(s:luis_bufnr)
     topleft split
