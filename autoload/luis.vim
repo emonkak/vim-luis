@@ -55,10 +55,6 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'on_select': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
 \     'on_source_enter': {
 \       'type': v:t_func,
 \       'optional': 1,
@@ -75,6 +71,10 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
+\     'preview_candidate': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
 \   },
 \ }
 
@@ -87,13 +87,12 @@ let s:SCHEMA_SESSION = {
 \     'quit': {
 \       'type': v:t_func,
 \     },
+\     'reload_candidates': {
+\       'type': v:t_func,
+\     },
 \     'source': s:SCHEMA_SOURCE,
 \     'start': {
 \       'type': v:t_func,
-\     },
-\     'reload_candidates': {
-\       'type': v:t_func,
-\       'optional': 1,
 \     },
 \   },
 \ }
@@ -102,123 +101,7 @@ let s:session = {}
 
 let s:hook = {}
 
-function! luis#do_action(kind, action_name, candidate) abort
-  let Action = s:find_action(a:kind, a:action_name)
-  if Action is 0
-    return 'luis: Action ' . string(a:action_name) . ' is not defined'
-  endif
-  let context = { 'kind': a:kind, 'session': s:session }
-  return Action(a:candidate, context)
-endfunction
-
-function! luis#quit() abort
-  if empty(s:session) || !s:session.is_active()
-    echohl ErrorMsg
-    echo 'luis: Not active'
-    echohl NONE
-    return 0
-  endif
-
-  call s:quit_session(s:session, s:hook)
-
-  return 1
-endfunction
-
-function! luis#restart() abort
-  if empty(s:session)
-    echohl ErrorMsg
-    echo 'luis: Not started yet'
-    echohl NONE
-    return 0
-  endif
-
-  if s:session.is_active()
-    echohl ErrorMsg
-    echo 'luis: Already active'
-    echohl NONE
-    return 0
-  endif
-
-  call s:start_session(s:session, s:hook)
-
-  return 1
-endfunction
-
-function! luis#start(new_session, ...) abort
-  if !empty(s:session) && s:session.is_active()
-    echohl ErrorMsg
-    echo 'luis: Already active'
-    echohl NONE
-    return 0
-  endif
-
-  let errors = luis#_validate_session(a:new_session)
-  if !empty(errors)
-    let errmsg = 'luis: Invalid session:' . "\n" . join(errors, "\n")
-    echoerr errmsg
-    return 0
-  endif
-
-  let options = get(a:000, 0, {})
-  let hook = get(options, 'hook', {})
-
-  call s:start_session(a:new_session, hook)
-
-  let s:session = a:new_session
-  let s:hook = hook
-
-  return 1
-endfunction
-
-function! luis#take_action(...) abort
-  if empty(s:session) || !s:session.is_active()
-    echohl ErrorMsg
-    echo 'luis: Not active'
-    echohl NONE
-    return 0
-  endif
-
-  let candidate = s:session.guess_candidate()
-  if candidate is 0
-    " Ignore. Assumes that error message is already displayed by caller.
-    return 0
-  endif
-
-  let kind = s:kind_from_candidate(candidate, s:session.source.default_kind)
-  let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
-
-  if action_name isnot 0
-    if has_key(s:session.source, 'on_action')
-      call s:session.source.on_action(candidate, {
-      \   'kind': kind,
-      \   'session': s:session,
-      \ })
-    endif
-  endif
-
-  " Close the luis window, because some kind of actions does something on the
-  " current buffer/window and user expects that such actions do something on
-  " the buffer/window which was the current one until the luis buffer became
-  " active.
-  call s:quit_session(s:session, s:hook)
-
-  if action_name is 0
-    " In these cases, error messages are already noticed by other functions.
-    return 0
-  endif
-
-  let error = luis#do_action(kind, action_name, candidate)
-  if error isnot 0
-    echohl ErrorMsg
-    echomsg error
-    echohl NONE
-    return 0
-  endif
-
-  return 1
-endfunction
-
-function! luis#_acc_text(pattern, candidates, source) abort
+function! luis#acc_text(pattern, candidates, source) abort
   " ACC = Automatic Component Completion
   let sep = a:pattern[-1:]
   let components = split(a:pattern, sep, 1)
@@ -324,6 +207,122 @@ function! luis#_acc_text(pattern, candidates, source) abort
   return ''
 endfunction
 
+function! luis#do_action(kind, action_name, candidate) abort
+  let Action = s:find_action(a:kind, a:action_name)
+  if Action is 0
+    return 'luis: Action ' . string(a:action_name) . ' is not defined'
+  endif
+  let context = { 'kind': a:kind, 'session': s:session }
+  return Action(a:candidate, context)
+endfunction
+
+function! luis#quit() abort
+  if empty(s:session) || !s:session.is_active()
+    echohl ErrorMsg
+    echo 'luis: Not active'
+    echohl NONE
+    return 0
+  endif
+
+  call s:quit_session(s:session, s:hook)
+
+  return 1
+endfunction
+
+function! luis#restart() abort
+  if empty(s:session)
+    echohl ErrorMsg
+    echo 'luis: Not started yet'
+    echohl NONE
+    return 0
+  endif
+
+  if s:session.is_active()
+    echohl ErrorMsg
+    echo 'luis: Already active'
+    echohl NONE
+    return 0
+  endif
+
+  call s:start_session(s:session, s:hook)
+
+  return 1
+endfunction
+
+function! luis#start(new_session, ...) abort
+  if !empty(s:session) && s:session.is_active()
+    echohl ErrorMsg
+    echo 'luis: Already active'
+    echohl NONE
+    return 0
+  endif
+
+  let errors = luis#_validate_session(a:new_session)
+  if !empty(errors)
+    let errmsg = 'luis: Invalid session:' . "\n" . join(errors, "\n")
+    echoerr errmsg
+    return 0
+  endif
+
+  let options = get(a:000, 0, {})
+  let hook = get(options, 'hook', {})
+
+  call s:start_session(a:new_session, hook)
+
+  let s:session = a:new_session
+  let s:hook = hook
+
+  return 1
+endfunction
+
+function! luis#take_action(...) abort
+  if empty(s:session) || !s:session.is_active()
+    echohl ErrorMsg
+    echo 'luis: Not active'
+    echohl NONE
+    return 0
+  endif
+
+  let candidate = s:session.guess_candidate()
+  let kind = s:kind_from_candidate(candidate, s:session.source.default_kind)
+  let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
+
+  if action_name isnot 0
+    if has_key(s:session.source, 'on_action')
+      call s:session.source.on_action(candidate, {
+      \   'kind': kind,
+      \   'session': s:session,
+      \ })
+    endif
+  endif
+
+  " Close the luis window, because some kind of actions does something on the
+  " current buffer/window and user expects that such actions do something on
+  " the buffer/window which was the current one until the luis buffer became
+  " active.
+  call s:quit_session(s:session, s:hook)
+
+  if action_name is 0
+    " In these cases, error messages are already noticed by other functions.
+    return 0
+  endif
+
+  let error = luis#do_action(kind, action_name, candidate)
+  if error isnot 0
+    echohl ErrorMsg
+    echomsg error
+    echohl NONE
+    return 0
+  endif
+
+  return 1
+endfunction
+
+function! luis#_reset_session() abort
+  let s:session = {}
+  let s:hook = {}
+endfunction
+
 function! luis#_validate_kind(kind) abort
   return luis#schema#validate(s:SCHEMA_KIND, a:kind)
 endfunction
@@ -332,17 +331,12 @@ function! luis#_validate_matcher(matcher) abort
   return luis#schema#validate(s:SCHEMA_MATCHER, a:matcher)
 endfunction
 
-function! luis#_validate_source(source) abort
-  return luis#schema#validate(s:SCHEMA_SOURCE, a:source)
-endfunction
-
 function! luis#_validate_session(source) abort
   return luis#schema#validate(s:SCHEMA_SESSION, a:source)
 endfunction
 
-function! luis#_reset_session() abort
-  let s:session = {}
-  let s:hook = {}
+function! luis#_validate_source(source) abort
+  return luis#schema#validate(s:SCHEMA_SOURCE, a:source)
 endfunction
 
 function! s:choose_action(kind, candidate) abort

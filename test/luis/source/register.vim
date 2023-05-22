@@ -1,14 +1,14 @@
-function! s:test_gather_candidates() abort
-  " Clear registers except read-only registers.
-  0verbose let original_registers = s:clear_registers()
+let s:ALL_REGISTER_CHARS = '"0123456789-abcdefghijklmnopqrstuvwxyz#=*+/'
 
-  " " Clear "." register.
+function! s:test_gather_candidates() abort
+  0verbose let saved_registers = s:clean_registers(s:ALL_REGISTER_CHARS)
+
+  " Clear the content of "." register.
   normal! i
-  "
-  " " Add "a", "b", "c", registers.
+
   call setreg('a', ['foo'], 'v')
-  call setreg('b', ['bar'], 'V')
-  call setreg('c', ['baz'], "\<C-v>")
+  call setreg('b', ['bar', 'foo'], 'V')
+  call setreg('c', ['baz', 'bar', 'foo'], "\<C-v>")
 
   try
     let source = luis#source#register#new()
@@ -43,8 +43,49 @@ function! s:test_gather_candidates() abort
     \   },
     \ ], candidates)
   finally
-    call s:restore_registers(original_registers)
+    call s:restore_registers(saved_registers)
     bwipeout!
+  endtry
+endfunction
+
+function! s:test_preview_candidates() abort
+  0verbose let saved_registers = s:clean_registers('abc')
+
+  call setreg('a', ['foo'], "v")
+  call setreg('b', ['bar', 'foo'], 'V')
+  call setreg('c', ['baz', 'bar', 'foo'], '\<C-v>')
+
+  try
+    let source = luis#source#register#new()
+
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': { 'register_name': 'a' },
+    \ }
+    call assert_equal(
+    \   { 'type': 'text', 'lines': ['foo'] },
+    \   source.preview_candidate(candidate, {})
+    \ )
+
+    let candidate = {
+    \   'word': 'bar',
+    \   'user_data': { 'register_name': 'b' },
+    \ }
+    call assert_equal(
+    \   { 'type': 'text', 'lines': ['bar', 'foo'] },
+    \   source.preview_candidate(candidate, {})
+    \ )
+
+    let candidate = {
+    \   'word': 'baz',
+    \   'user_data': { 'register_name': 'c' },
+    \ }
+    call assert_equal(
+    \   { 'type': 'text', 'lines': ['baz', 'bar', 'foo'] },
+    \   source.preview_candidate(candidate, {})
+    \ )
+  finally
+    0verbose call s:restore_registers(saved_registers)
   endtry
 endfunction
 
@@ -55,11 +96,11 @@ function! s:test_source_definition() abort
   call assert_equal('register', source.name)
 endfunction
 
-function! s:clear_registers() abort
-  let REGISTER_CHARS = '"0123456789-abcdefghijklmnopqrstuvwxyz#=*+/'
+function! s:clean_registers(register_chars) abort
+  " Clean register contents except read-only registers.
   let registers = []
-  for i in range(len(REGISTER_CHARS))
-    let name = REGISTER_CHARS[i]
+  for i in range(len(a:register_chars))
+    let name = a:register_chars[i]
     let value = getreg(name, 1)
     if value == ''
       continue

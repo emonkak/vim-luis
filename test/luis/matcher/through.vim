@@ -1,6 +1,6 @@
 let s:matcher = luis#matcher#through#import()
 
-function s:test_filter_candidates() abort
+function! s:test_filter_candidates() abort
   let cs = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
@@ -13,11 +13,11 @@ function s:test_filter_candidates() abort
   call assert_equal(cs, s:matcher.filter_candidates(cs, { 'pattern': 'qux' }))
 endfunction
 
-function s:test_matcher_definition() abort
+function! s:test_matcher_definition() abort
   call assert_equal([], luis#_validate_matcher(s:matcher))
 endfunction
 
-function s:test_normalize_candidate() abort
+function! s:test_normalize_candidate() abort
   let candidate = { 'word': 'foo' }
   let index = 0
   let context = {}
@@ -27,7 +27,7 @@ function s:test_normalize_candidate() abort
   \ )
 endfunction
 
-function s:test_sort_candidates() abort
+function! s:test_sort_candidates() abort
   let cs = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },

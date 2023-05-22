@@ -37,8 +37,8 @@ function! s:test_gather_candidates() abort
     \     'menu': 'usr_01.txt:1:1',
     \     'user_data': {
     \       'buffer_nr': bufnr_1,
+    \       'buffer_pos': [1, 1],
     \       'tagstack_index': 1,
-    \       'buffer_pos': [bufnr_1, 1, 1, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 1,
@@ -48,8 +48,8 @@ function! s:test_gather_candidates() abort
     \     'menu': 'usr_01.txt:1:1',
     \     'user_data': {
     \       'buffer_nr': bufnr_1,
+    \       'buffer_pos': [1, 1],
     \       'tagstack_index': 2,
-    \       'buffer_pos': [bufnr_1, 1, 1, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 2,
@@ -59,8 +59,8 @@ function! s:test_gather_candidates() abort
     \     'menu': 'usr_02.txt:1:1',
     \     'user_data': {
     \       'buffer_nr': bufnr_2,
+    \       'buffer_pos': [1, 1],
     \       'tagstack_index': 3,
-    \       'buffer_pos': [bufnr_2, 1, 1, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 3,
@@ -76,6 +76,37 @@ function! s:test_gather_candidates() abort
     silent %bwipeout
     cd `=original_cwd`
   endtry
+endfunction
+
+function! s:test_preview_candidate() abort
+  let source = luis#source#tagstack#new()
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [1, 1]  },
+  \ }
+  call assert_equal(
+  \   { 'type': 'buffer', 'bufnr': 123, 'lnum': 1 },
+  \   source.preview_candidate(candidate, {})
+  \ )
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': { 'buffer_nr': 123 },
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, {})
+  \ )
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': {},
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, {})
+  \ )
 endfunction
 
 function! s:test_source_definition() abort

@@ -30,3 +30,20 @@ function! s:Source.on_source_enter(context) abort dict
   endfor
   let self._cached_candidates = candidates
 endfunction
+
+function! s:Source.preview_candidate(candidate, context) abort
+  if filereadable(a:candidate.word)
+    let dimensions = a:context.preview_dimensions
+    let lines = readfile(a:candidate.word, '', dimensions.height)
+    try
+      return {
+      \   'type': 'text',
+      \   'lines': lines,
+      \ }
+    catch /\<E484:/
+      return { 'type': 'text', 'lines': [v:exception] }
+    endtry
+  else
+    return { 'type': 'none' }
+  endif
+endfunction

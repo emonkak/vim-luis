@@ -13,76 +13,65 @@ function! s:Source.gather_candidates(context) abort dict
   return self._cached_candidates
 endfunction
 
-function! s:Source.on_select(candidate, context) abort dict
-  let bufnr = has_key(a:candidate.user_data, 'buffer_nr')
-  \         ? a:candidate.user_data.buffer_nr
-  \         : self._alternate_bufnr
-  call s:switch_buffer_within_last_window(bufnr)
-endfunction
-
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  for buf in getbufinfo({ 'buflisted': 1 })
-    if empty(buf.name)
+  for bufinfo in getbufinfo({ 'buflisted': 1 })
+    if bufinfo.name == ''
       let bufname = '[No Name]'
       let dup = 1
       let sort_priority = 3
     else
-      let bufname = fnamemodify(buf.name, ':~:.')
+      let bufname = fnamemodify(bufinfo.name, ':~:.')
       let dup = 0
-      let sort_priority = getbufvar(buf.bufnr, '&buftype') != ''
+      let sort_priority = getbufvar(bufinfo.bufnr, '&buftype') != ''
       \                 ? 2
-      \                 : bufname ==# buf.name
+      \                 : bufname ==# bufinfo.name
       \                 ? 1
       \                 : 0
     endif
     call add(candidates, {
     \   'word': bufname,
-    \   'menu': 'buffer ' . buf.bufnr,
-    \   'kind': s:buffer_indicator(buf),
+    \   'menu': 'buffer ' . bufinfo.bufnr,
+    \   'kind': s:buffer_indicator(bufinfo),
     \   'dup': dup,
     \   'user_data': {
-    \     'buffer_nr': buf.bufnr,
+    \     'buffer_nr': bufinfo.bufnr,
     \   },
     \   'luis_sort_priority': sort_priority,
     \ })
   endfor
   let self._cached_candidates = candidates
-  let self._alternate_bufnr = bufnr('#')
 endfunction
 
-function! s:Source.on_source_leave(context) abort dict
-  call s:switch_buffer_within_last_window(self._alternate_bufnr)
+function! s:Source.preview_candidate(candidate, context) abort
+  if has_key(a:candidate.user_data, 'buffer_nr')
+    return { 'type': 'buffer', 'bufnr': a:candidate.user_data.buffer_nr }
+  else
+    return { 'type': 'none' }
+  endif
 endfunction
 
-function! s:buffer_indicator(buf) abort
+function! s:buffer_indicator(bufinfo) abort
   let indicators = ''
-  if !a:buf.listed
+  if !a:bufinfo.listed
     let indicators .= 'u'
   endif
-  if a:buf.bufnr == bufnr('%')
+  if a:bufinfo.bufnr == bufnr('%')
     let indicators .= '%'
-  elseif a:buf.bufnr == bufnr('#')
+  elseif a:bufinfo.bufnr == bufnr('#')
     let indicators .= '#'
   endif
-  if a:buf.loaded
-    let indicators .= a:buf.hidden ? 'h' : 'a'
+  if a:bufinfo.loaded
+    let indicators .= a:bufinfo.hidden ? 'h' : 'a'
   endif
-  if !getbufvar(a:buf.bufnr, '&modifiable')
+  if !getbufvar(a:bufinfo.bufnr, '&modifiable')
     let indicators .= '-'
   endif
-  if getbufvar(a:buf.bufnr, '&readonly')
+  if getbufvar(a:bufinfo.bufnr, '&readonly')
     let indicators .= '='
   endif
-  if getbufvar(a:buf.bufnr, '&modified')
+  if getbufvar(a:bufinfo.bufnr, '&modified')
     let indicators .= '+'
   endif
   return indicators
-endfunction
-
-function! s:switch_buffer_within_last_window(bufnr) abort
-  let original_winnr = winnr()
-  noautocmd wincmd p  " Prevent close luis window
-  noautocmd execute 'buffer' a:bufnr
-  noautocmd execute original_winnr 'wincmd w'
 endfunction

@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   enew
   let bufnr_1 = bufnr('%')
 
@@ -45,53 +45,34 @@ function s:test_gather_candidates() abort
     \     'luis_sort_priority': 0,
     \   },
     \ ], source.gather_candidates({ 'pattern': '' }))
-
-    call source.on_source_leave({})
   finally
     silent %bwipeout
   endtry
 endfunction
 
-function s:test_preview() abort
-  enew
-  let bufnr_1 = bufnr('%')
-  let winid_1 = win_getid(winnr())
+function! s:test_preview_candidate() abort
+  let source = luis#source#buffer#new()
 
-  new
-  let bufnr_2 = bufnr('%')
-  let winid_2 = win_getid(winnr())
+  let candidate = {
+  \  'word': '',
+  \  'user_data': { 'buffer_nr': 123  },
+  \ }
+  call assert_equal(
+  \   { 'type': 'buffer', 'bufnr': 123 },
+  \   source.preview_candidate(candidate, {})
+  \ )
 
-  call assert_equal(bufnr_1, winbufnr(winid_1))
-  call assert_equal(bufnr_2, winbufnr(winid_2))
-
-  try
-    let source = luis#source#buffer#new()
-
-    call source.on_source_enter({})
-
-    call source.on_select({
-    \  'word': '',
-    \  'user_data': { 'buffer_nr': bufnr_2  },
-    \ }, {})
-
-    call assert_equal(bufnr_2, winbufnr(winid_1))
-    call assert_equal(bufnr_2, winbufnr(winid_2))
-
-    call source.on_select({
-    \  'word': '',
-    \  'user_data': {},
-    \ }, {})
-
-    call assert_equal(bufnr_1, winbufnr(winid_1))
-    call assert_equal(bufnr_2, winbufnr(winid_2))
-
-    call source.on_source_leave({})
-  finally
-    silent %bwipeout
-  endtry
+  let candidate = {
+  \  'word': '',
+  \  'user_data': {},
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, {})
+  \ )
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_source_definition() abort
   let source = luis#source#buffer#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

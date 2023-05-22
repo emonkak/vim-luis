@@ -1,6 +1,6 @@
 #!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -E -s --cmd "source $0" <(IFS=$\'\n\'; echo "$*")'
 
-function s:run(package_dir) abort
+function! s:run(package_dir) abort
   set nohidden noswapfile
 
   let args = filter(getline(0, line('$')), 'v:val != ""')
@@ -64,65 +64,67 @@ function s:run(package_dir) abort
     let v:errors = []
     try
       let return_value = call(test_function, [])
-
-      if len(getbufinfo({ 'buflisted': 1 })) > 1
-      \  || line('$') > 1
-      \  || col('$') > 1
-      \  || winnr('$') > 1
-      \  || tabpagenr('$') > 1
-      \  || getchar(0) isnot 0
-        call add(errors, {
-        \   'script_name': script_name,
-        \   'test_name': test_name,
-        \   'messages': [
-        \     'CAUTION: Unclean buffers, windows, tabs, or typeahead buffer were found, therefore the execution of remaining tests has been aborted.'
-        \   ],
-        \ })
-        break
-      endif
-
-      if len(v:errors) > 0
-        let messages = map(
-        \   copy(v:errors),
-        \   { i, message -> substitute(
-        \       join(split(message, '\.\.'), "\n"),
-        \       '^\S\+\zs\s\zeline\s\d\+:',
-        \       "\n",
-        \       ''
-        \     )
-        \   }
-        \ )
-        let failed += 1
-        call add(errors, {
-        \   'script_name': script_name,
-        \   'test_name': test_name,
-        \   'messages': messages,
-        \ })
-        echon 'FAILED' "\n"
-      elseif type(return_value) == v:t_string
-        let ignored += 1
-        call add(errors, {
-        \   'script_name': script_name,
-        \   'test_name': test_name,
-        \   'messages': [return_value],
-        \ })
-        echon 'ignored' "\n"
-      else
-        let passed += 1
-        echon 'ok' "\n"
-      endif
     catch
+      let return_value = -1
       let message = join(split(v:throwpoint, '\.\.')[1:], "\n")
-      \             . "\n"
-      \             . v:exception
+      \           . "\n"
+      \           . v:exception
       call add(errors, {
       \   'script_name': script_name,
       \   'test_name': test_name,
       \   'messages': [message],
       \ })
+    endtry
+
+    if len(v:errors) > 0
+      let messages = map(
+      \   copy(v:errors),
+      \   { i, message -> substitute(
+      \       join(split(message, '\.\.'), "\n"),
+      \       '^\S\+\zs\s\zeline\s\d\+:',
+      \       "\n",
+      \       ''
+      \     )
+      \   }
+      \ )
+      call add(errors, {
+      \   'script_name': script_name,
+      \   'test_name': test_name,
+      \   'messages': messages,
+      \ })
+    endif
+
+    if type(return_value) == v:t_string
+      call add(errors, {
+      \   'script_name': script_name,
+      \   'test_name': test_name,
+      \   'messages': [return_value],
+      \ })
+      let ignored += 1
+      echon 'ignored' "\n"
+    elseif return_value == -1 || len(v:errors) > 0
       let failed += 1
       echon 'FAILED' "\n"
-    endtry
+    else
+      let passed += 1
+      echon 'ok' "\n"
+    endif
+
+    if len(getbufinfo({ 'buflisted': 1 })) > 1
+    \  || line('$') > 1
+    \  || col('$') > 1
+    \  || winnr('$') > 1
+    \  || tabpagenr('$') > 1
+    \  || getchar(0) isnot 0
+      call add(errors, {
+      \   'script_name': script_name,
+      \   'test_name': test_name,
+      \   'messages': [
+      \     'CAUTION: Unclean buffers, windows, tabs, or typeahead buffer were found, therefore the execution of remaining tests has been aborted.'
+      \   ],
+      \ })
+      break
+    endif
   endfor
 
   let elapsed_time = substitute(reltimestr(reltime(start_time)),

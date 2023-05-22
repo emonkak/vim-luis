@@ -106,8 +106,7 @@ function! s:do_test_delete(expected_result, expected_bufexists, expected_buflist
       endif
       call s:assert_buffer(a:expected_bufexists, a:expected_buflisted, a:expected_bufloaded, bufnr_2)
     finally
-      silent! execute bufnr_2 'bwipeout!'
-      silent! execute bufnr_1 'bwipeout!'
+      silent! execute 'bwipeout!' bufnr_1 bufnr_2
     endtry
   endfor
 endfunction
@@ -133,8 +132,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
         call assert_equal([4, 1], getpos('.')[1:2])
       endif
     finally
-      silent execute bufnr_2 'bwipeout!'
-      silent execute bufnr_1 'bwipeout!'
+      silent! execute 'bwipeout!' bufnr_1 bufnr_2
     endtry
   endfor
 endfunction

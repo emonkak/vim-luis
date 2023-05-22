@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   let original_oldfiles = v:oldfiles
 
   let cwd = getcwd()
@@ -36,10 +36,36 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_preview_candidate() abort
+  let source = luis#source#file#new()
+  let context = {
+  \   'preview_dimensions': { 'row': 0, 'col': 0, 'width': 80, 'height': 20 },
+  \ }
+
+  let candidate = {
+  \  'word': 'test/data/file1',
+  \  'kind': 'file',
+  \  'user_data': { 'file_path': getcwd() . '/test/data/files/file1'  },
+  \ }
+  call assert_equal(
+  \   { 'type': 'text', 'lines': ['file1'] },
+  \   source.preview_candidate(candidate, context)
+  \ )
+
+  let candidate = {
+  \  'word': 'test/data/file1',
+  \  'kind': 'file',
+  \  'user_data': {},
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, context)
+  \ )
+endfunction
+
+function! s:test_source_definition() abort
   let source = luis#source#oldfiles#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)
   call assert_equal('oldfiles', source.name)
 endfunction
-

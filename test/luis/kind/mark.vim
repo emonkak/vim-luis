@@ -19,7 +19,7 @@ function! s:test_action_delete() abort
     call assert_equal(0, _)
     call assert_equal('', execute('marks a', 'silent!'))
   finally
-    execute bufnr 'bwipeout!'
+    execute bufnr 'bwipeout!' 
   endtry
 endfunction
 

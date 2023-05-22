@@ -7,7 +7,7 @@ function! s:test_action_argdelete() abort
 
   try
     let Action = s:kind.action_table.argdelete
-    let _ = Action({ 'word': 'bar' }, {})
+    let _ = Action({ 'word': 'bar', 'user_data': { 'args_index': 1 } }, {})
     call assert_equal(0, _)
     call assert_equal(2, argc())
     call assert_equal(['foo', 'baz'], argv())
@@ -19,11 +19,65 @@ function! s:test_action_argdelete() abort
   endtry
 endfunction
 
-function! s:test_action_argdelete__invalid_arg() abort
+function! s:test_action_argdelete__no_argument_chosen() abort
   try
     let Action = s:kind.action_table.argdelete
-    let _ = Action({ 'word': 'XXX' }, {})
-    call assert_match('Vim(argdelete):E480:', _)
+    let _ = Action({ 'word': 'bar', 'user_data': {} }, {})
+    call assert_match('No argument chosen', _)
+  endtry
+endfunction
+
+function! s:test_action_open() abort
+  argadd foo bar baz
+  call assert_equal(3, argc())
+  call assert_equal(['foo', 'bar', 'baz'], argv())
+
+  let Action = s:kind.action_table.open
+
+  try
+    let candidate = {
+    \  'word': 'foo',
+    \  'user_data': { 'args_index': 0 },
+    \ }
+    silent call assert_equal(0, Action(candidate, {}))
+    call assert_equal('foo', bufname('%'))
+
+    let candidate = {
+    \  'word': 'bar',
+    \  'user_data': { 'args_index': 1 },
+    \ }
+    silent call assert_equal(0, Action(candidate, {}))
+    call assert_equal('bar', bufname('%'))
+
+    let candidate = {
+    \  'word': 'baz',
+    \  'user_data': { 'args_index': 2 },
+    \ }
+    silent call assert_equal(0, Action(candidate, {}))
+    call assert_equal('baz', bufname('%'))
+  finally
+    argdelete *
+    silent %bwipeout
+  endtry
+endfunction
+
+function! s:test_action_open__invalid_index() abort
+  argadd foo bar baz
+  call assert_equal(3, argc())
+  call assert_equal(['foo', 'bar', 'baz'], argv())
+
+
+  let Action = s:kind.action_table.open
+
+  try
+    let candidate = {
+    \  'word': 'foo',
+    \  'user_data': { 'args_index': 9 },
+    \ }
+    silent call assert_match('Vim(argument):E16:', Action(candidate, {}))
+  finally
+    argdelete *
+    silent %bwipeout
   endtry
 endfunction
 

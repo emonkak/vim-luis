@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   let source = luis#source#colorscheme#new()
 
   let original_runtimepath = &runtimepath
@@ -28,7 +28,7 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_source_definition() abort
   let source = luis#source#colorscheme#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

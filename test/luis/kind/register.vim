@@ -36,7 +36,7 @@ function! s:test_action_delete() abort
     call assert_equal('', getreg('a', 1))
     call assert_equal('', getregtype('a'))
   finally
-    execute bufnr 'bwipeout!'
+    execute bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -60,6 +60,6 @@ function! s:do_test_put(expected_content, action_name, reg_key, reg_value, reg_t
     silent let _ = Action(candidate, {})
     call assert_equal(a:expected_content, getline(1, line('$')))
   finally
-    execute bufnr 'bwipeout!'
+    execute bufnr 'bwipeout!' 
   endtry
 endfunction

@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   if !exists('*getmarklist')
     return 'getmarklist() function is required.'
   endif
@@ -79,7 +79,7 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_source_definition() abort
   let source = luis#source#mark#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

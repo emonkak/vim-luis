@@ -6,7 +6,7 @@ endfunction
 
 let s:Source = {
 \   'name': 'fold',
-\   'default_kind': luis#kind#fold#import(),
+\   'default_kind': luis#kind#buffer#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -24,6 +24,7 @@ function! s:Source.on_source_enter(context) abort dict
   " Duplite the original buffer.
   split
 
+  let bufnr = bufnr('%')
   let candidates = []
 
   try
@@ -44,7 +45,8 @@ function! s:Source.on_source_enter(context) abort dict
           \   'menu': num_lines . ' lines',
           \   'dup': 1,
           \   'user_data': {
-          \     'fold_lnum': lnum,
+          \     'buffer_nr': bufnr,
+          \     'buffer_pos': [lnum, 1],
           \   },
           \   'luis_sort_priority': lnum,
           \ })
@@ -59,4 +61,17 @@ function! s:Source.on_source_enter(context) abort dict
   endtry
 
   let self._cached_candidates = candidates
+endfunction
+
+function! s:Source.preview_candidate(candidate, context) abort
+  if has_key(a:candidate.user_data, 'buffer_nr')
+  \  && has_key(a:candidate.user_data, 'buffer_pos')
+    return {
+    \   'type': 'buffer',
+    \   'bufnr': a:candidate.user_data.buffer_nr,
+    \   'lnum': a:candidate.user_data.buffer_pos[0],
+    \ }
+  else
+    return { 'type': 'none' }
+  endif
 endfunction

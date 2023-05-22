@@ -179,7 +179,7 @@ function! s:test_gather_candidates__debounce_time() abort
   endtry
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_source_definition() abort
   let kind = luis#kind#file#import()
   let command = [
   \   'test/data/filter.sh',

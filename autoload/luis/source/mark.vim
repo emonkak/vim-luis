@@ -15,12 +15,12 @@ endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  let bufnr = winbufnr(winnr('#'))
-  let bufname = bufname(bufnr)
-  for mark in getmarklist(bufnr)  " buffer local marks
+  let original_bufnr = winbufnr(winnr('#'))
+  let original_bufname = bufname(original_bufnr)
+  for mark in getmarklist(original_bufnr)  " buffer local marks
     let mark_name = mark.mark[1:]
     call add(candidates, {
-    \   'word': bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
+    \   'word': original_bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
     \   'menu': 'mark ' . mark_name,
     \   'dup': 1,
     \   'user_data': {

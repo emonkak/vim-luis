@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   let original_cwd = getcwd()
   let new_cwd = original_cwd . '/test/data/files'
   cd `=new_cwd`
@@ -63,7 +63,7 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_gather_candidates__home_directory() abort
+function! s:test_gather_candidates__home_directory() abort
   let old_HOME = $HOME
   let new_HOME = getcwd() . '/test/data/files'
   let $HOME = new_HOME
@@ -105,7 +105,7 @@ function s:test_gather_candidates__home_directory() abort
   endtry
 endfunction
 
-function s:test_is_special_char() abort
+function! s:test_is_special_char() abort
   let source = luis#source#file#new()
   let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
 
@@ -113,7 +113,7 @@ function s:test_is_special_char() abort
   call assert_false(source.is_special_char('A'))
 endfunction
 
-function s:test_is_valid_for_acc() abort
+function! s:test_is_valid_for_acc() abort
   let source = luis#source#file#new()
 
   call assert_false(source.is_valid_for_acc({
@@ -130,7 +130,7 @@ function s:test_is_valid_for_acc() abort
   \ }))
 endfunction
 
-function s:test_on_action() abort
+function! s:test_on_action() abort
   let cwd = getcwd()
   let source = luis#source#file#new()
 
@@ -156,7 +156,34 @@ function s:test_on_action() abort
   \ }, candidate)
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_preview_candidate() abort
+  let source = luis#source#file#new()
+  let context = {
+  \   'preview_dimensions': { 'row': 0, 'col': 0, 'width': 80, 'height': 20 },
+  \ }
+
+  let candidate = {
+  \  'word': 'test/data/file1',
+  \  'kind': 'file',
+  \  'user_data': { 'file_path': getcwd() . '/test/data/files/file1'  },
+  \ }
+  call assert_equal(
+  \   { 'type': 'text', 'lines': ['file1'] },
+  \   source.preview_candidate(candidate, context)
+  \ )
+
+  let candidate = {
+  \  'word': 'test/data/file1',
+  \  'kind': 'file',
+  \  'user_data': {},
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, context)
+  \ )
+endfunction
+
+function! s:test_source_definition() abort
   let source = luis#source#file#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

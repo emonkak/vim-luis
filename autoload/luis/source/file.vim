@@ -1,4 +1,4 @@
-function luis#source#file#new()
+function! luis#source#file#new() abort
   let source = copy(s:Source)
   let source._cached_candidates = {}
   return source
@@ -81,6 +81,29 @@ function! s:Source.on_source_enter(context) abort dict
   let self._cached_candidates = {}
 endfunction
 
+function! s:Source.preview_candidate(candidate, context) abort
+  if has_key(a:candidate.user_data, 'file_path')
+  \  && a:candidate.kind ==# 'file'
+  \  && filereadable(a:candidate.user_data.file_path)
+    let dimensions = a:context.preview_dimensions
+    let lines = readfile(
+    \   a:candidate.user_data.file_path,
+    \   '',
+    \   dimensions.height
+    \ )
+    try
+      return {
+      \   'type': 'text',
+      \   'lines': lines,
+      \ }
+    catch /\<E484:/
+      return { 'type': 'text', 'lines': [v:exception] }
+    endtry
+  else
+    return { 'type': 'none' }
+  endif
+endfunction
+
 function! s:expand_path(path) abort
   let path = a:path
   let path = substitute(path, '\~/', '$HOME/', 'g')
@@ -106,6 +129,10 @@ function! s:parse_pattern(pattern, sep) abort
   endif
 endfunction
 
+function! s:path_separator() abort
+  return exists('+shellslash') && !&shellslash ? '\' : '/'
+endfunction
+
 function! s:readdir(dir) abort
   if exists('*readdir')
     try
@@ -121,8 +148,4 @@ function! s:readdir(dir) abort
     call filter(paths, { _, val -> val !~# '^\.\{1,2}$' })
     return paths
   endif
-endfunction
-
-function! s:path_separator() abort
-  return exists('+shellslash') && !&shellslash ? '\' : '/'
 endfunction

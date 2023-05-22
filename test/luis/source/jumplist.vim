@@ -1,4 +1,4 @@
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   if !exists('*settagstack')
     return 'settagstack() function is required.'
   endif
@@ -64,7 +64,38 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_preview_candidate() abort
+  let source = luis#source#jumplist#new()
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [1, 1]  },
+  \ }
+  call assert_equal(
+  \   { 'type': 'buffer', 'bufnr': 123, 'lnum': 1 },
+  \   source.preview_candidate(candidate, {})
+  \ )
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': { 'buffer_nr': 123 },
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, {})
+  \ )
+
+  let candidate = {
+  \  'word': '',
+  \  'user_data': {},
+  \ }
+  call assert_equal(
+  \   { 'type': 'none' },
+  \   source.preview_candidate(candidate, {})
+  \ )
+endfunction
+
+function! s:test_source_definition() abort
   let source = luis#source#jumplist#new()
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

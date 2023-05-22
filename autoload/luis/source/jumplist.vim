@@ -34,3 +34,16 @@ function! s:Source.on_source_enter(context) abort dict
   endfor
   let self._cached_candidates = candidates
 endfunction
+
+function! s:Source.preview_candidate(candidate, context) abort
+  if has_key(a:candidate.user_data, 'buffer_nr')
+  \  && has_key(a:candidate.user_data, 'buffer_pos')
+    return {
+    \   'type': 'buffer',
+    \   'bufnr': a:candidate.user_data.buffer_nr,
+    \   'lnum': a:candidate.user_data.buffer_pos[0],
+    \ }
+  else
+    return { 'type': 'none' }
+  endif
+endfunction

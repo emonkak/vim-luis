@@ -2,9 +2,20 @@ function! luis#kind#args#import() abort
   return s:Kind
 endfunction
 
+function! s:action_open(candidate, context) abort
+  return s:do_command('argument', a:candidate)
+endfunction
+
 function! s:action_argdelete(candidate, context) abort
+  return s:do_command('argdelete', a:candidate)
+endfunction
+
+function! s:do_command(command, candidate) abort
+  if !has_key(a:candidate.user_data, 'args_index')
+    return 'No argument chosen'
+  endif
   try
-    execute 'argdelete' fnameescape(a:candidate.word)
+    execute (a:candidate.user_data.args_index + 1) a:command
   catch
     return v:exception
   endtry
@@ -14,10 +25,11 @@ endfunction
 let s:Kind = {
 \   'name': 'args',
 \   'action_table': {
+\     'open': function('s:action_open'),
 \     'argdelete': function('s:action_argdelete'),
 \   },
 \   'key_table': {
-\     'R': 'argdelete',
+\     'd': 'argdelete',
 \   },
-\   'prototype': luis#kind#buffer#import(),
+\   'prototype': luis#kind#common#import(),
 \ }

@@ -1,5 +1,5 @@
 function! s:test_syntax() abort
-  syntax enable
+  silent syntax enable
 
   enew
   setfiletype luis-pmenu

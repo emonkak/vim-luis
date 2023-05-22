@@ -31,56 +31,56 @@ function! s:test_acc_text() abort
   \ ]
 
   " len(components) == 2
-  call assert_equal('usr', luis#_acc_text('/', cs1, source))
-  call assert_equal('usr', luis#_acc_text('u/', cs1, source))
-  call assert_equal('usr', luis#_acc_text('s/', cs1, source))
-  call assert_equal('usr/share', luis#_acc_text('sh/', cs1, source))
-  call assert_equal('usr/share/man', luis#_acc_text('m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#_acc_text('1/', cs1, source))
+  call assert_equal('usr', luis#acc_text('/', cs1, source))
+  call assert_equal('usr', luis#acc_text('u/', cs1, source))
+  call assert_equal('usr', luis#acc_text('s/', cs1, source))
+  call assert_equal('usr/share', luis#acc_text('sh/', cs1, source))
+  call assert_equal('usr/share/man', luis#acc_text('m/', cs1, source))
+  call assert_equal('usr/share/man/man1', luis#acc_text('1/', cs1, source))
 
-  call assert_equal('usr/share/w y 1', luis#_acc_text('w/', cs2, source))
-  call assert_equal('usr/share/ x z2', luis#_acc_text('x/', cs2, source))
-  call assert_equal('usr/share/w y 1', luis#_acc_text('y/', cs2, source))
-  call assert_equal('usr/share/ x z2', luis#_acc_text('z/', cs2, source))
+  call assert_equal('usr/share/w y 1', luis#acc_text('w/', cs2, source))
+  call assert_equal('usr/share/ x z2', luis#acc_text('x/', cs2, source))
+  call assert_equal('usr/share/w y 1', luis#acc_text('y/', cs2, source))
+  call assert_equal('usr/share/ x z2', luis#acc_text('z/', cs2, source))
 
-  call assert_equal('bin', luis#_acc_text('b/', cs3, source))
-  call assert_equal('etc', luis#_acc_text('e/', cs3, source))
-  call assert_equal('usr', luis#_acc_text('r/', cs3, source))
-  call assert_equal('usr', luis#_acc_text('u/', cs3, source))
-  call assert_equal('var', luis#_acc_text('v/', cs3, source))
+  call assert_equal('bin', luis#acc_text('b/', cs3, source))
+  call assert_equal('etc', luis#acc_text('e/', cs3, source))
+  call assert_equal('usr', luis#acc_text('r/', cs3, source))
+  call assert_equal('usr', luis#acc_text('u/', cs3, source))
+  call assert_equal('var', luis#acc_text('v/', cs3, source))
 
-  call assert_equal('3/X', luis#_acc_text('X/', cs4, source))
+  call assert_equal('3/X', luis#acc_text('X/', cs4, source))
 
   " len(components) >= 3
-  call assert_equal('usr/share', luis#_acc_text('usr//', cs1, source))
-  call assert_equal('usr/share', luis#_acc_text('usr/s/', cs1, source))
-  call assert_equal('usr/share', luis#_acc_text('usr/sh/', cs1, source))
-  call assert_equal('usr/share/man', luis#_acc_text('usr/m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#_acc_text('usr/1/', cs1, source))
-  call assert_equal('usr/share', luis#_acc_text('usr/share/', cs1, source))
+  call assert_equal('usr/share', luis#acc_text('usr//', cs1, source))
+  call assert_equal('usr/share', luis#acc_text('usr/s/', cs1, source))
+  call assert_equal('usr/share', luis#acc_text('usr/sh/', cs1, source))
+  call assert_equal('usr/share/man', luis#acc_text('usr/m/', cs1, source))
+  call assert_equal('usr/share/man/man1', luis#acc_text('usr/1/', cs1, source))
+  call assert_equal('usr/share', luis#acc_text('usr/share/', cs1, source))
 
-  call assert_equal('usr/share/man', luis#_acc_text('usr/share//', cs1, source))
-  call assert_equal('usr/share/man', luis#_acc_text('usr/share/m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#_acc_text('usr/share/1/', cs1, source))
+  call assert_equal('usr/share/man', luis#acc_text('usr/share//', cs1, source))
+  call assert_equal('usr/share/man', luis#acc_text('usr/share/m/', cs1, source))
+  call assert_equal('usr/share/man/man1', luis#acc_text('usr/share/1/', cs1, source))
 
-  call assert_equal('etc/2', luis#_acc_text('etc//', cs3, source))
-  call assert_equal('var/4', luis#_acc_text('var//', cs3, source))
+  call assert_equal('etc/2', luis#acc_text('etc//', cs3, source))
+  call assert_equal('var/4', luis#acc_text('var//', cs3, source))
 
   " No components
   let v:errmsg = ''
-  silent! call luis#_acc_text('', [], source)
+  silent! call luis#acc_text('', [], source)
   call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
 
   let v:errmsg = ''
-  silent! call assert_equal('', luis#_acc_text('', cs1, source))
+  silent! call assert_equal('', luis#acc_text('', cs1, source))
   call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
 
   " No proper candidate for a:pattern
-  call assert_equal('', luis#_acc_text('x/', [], source))
-  call assert_equal('', luis#_acc_text('x/', cs1, source))
-  call assert_equal('', luis#_acc_text('2/', cs1, source))
-  call assert_equal('', luis#_acc_text('u/s/m/', cs1, source))
-  call assert_equal('', luis#_acc_text('USR//', cs1, source))
+  call assert_equal('', luis#acc_text('x/', [], source))
+  call assert_equal('', luis#acc_text('x/', cs1, source))
+  call assert_equal('', luis#acc_text('2/', cs1, source))
+  call assert_equal('', luis#acc_text('u/s/m/', cs1, source))
+  call assert_equal('', luis#acc_text('USR//', cs1, source))
 endfunction
 
 function! s:test_do_action() abort
@@ -92,11 +92,11 @@ function! s:test_do_action() abort
   let source = s:create_mock_source(kind, matcher)
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -122,11 +122,11 @@ function! s:test_do_action__action_is_not_definied() abort
   let source = s:create_mock_source(kind, matcher)
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -153,11 +153,11 @@ function! s:test_quit() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -208,11 +208,11 @@ function! s:test_quit__session_is_not_active() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 0 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 0 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -256,11 +256,11 @@ function! s:test_restart() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 0 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 0 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -311,11 +311,11 @@ function! s:test_restart__session_is_already_active() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -356,11 +356,11 @@ function! s:test_restart__session_is_not_started_yet() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -383,11 +383,11 @@ function! s:test_start() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 0 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 0 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -438,11 +438,11 @@ function! s:test_start__session_is_already_active() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -484,11 +484,11 @@ function! s:test_start__session_is_invalid() abort
   let [hook, hook_spies] = SpyDict(s:create_mock_hook())
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -513,11 +513,11 @@ function! s:test_take_action__choose_action() abort
   let candidate = { 'word': 'VIM', 'user_data': {} }
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> candidate },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   let default_action_spy = Spy({ candidate, context -> 0 })
@@ -554,11 +554,11 @@ function! s:test_take_action__do_default_action() abort
   let candidate = { 'word': 'VIM', 'user_data': {} }
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> candidate },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   let default_action_spy = Spy({ candidate, context -> 0 })
@@ -593,11 +593,11 @@ function! s:test_take_action__session_is_not_active() abort
   let source = s:create_mock_source(kind, matcher)
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 0 },
   \   'guess_candidate': { -> {} },
+  \   'is_active': { -> 0 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try
@@ -624,11 +624,11 @@ function! s:test_take_action__with_kind() abort
   let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
   let [session, session_spies] = SpyDict({
   \   'source': source,
-  \   'start': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'is_active': { -> 1 },
   \   'guess_candidate': { -> candidate },
+  \   'is_active': { -> 1 },
+  \   'quit': { -> 0 },
   \   'reload_candidates': { -> {} },
+  \   'start': { -> 0 },
   \ })
 
   try

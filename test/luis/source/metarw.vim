@@ -1,7 +1,7 @@
 silent packadd vim-metarw
 silent packadd vim-metarw-dummy
 
-function s:test_gather_candidates() abort
+function! s:test_gather_candidates() abort
   let metarw_candidates = [
   \   'dummy:foo:',
   \   'dummy:foo:bar/',
@@ -50,7 +50,7 @@ function s:test_gather_candidates() abort
   endtry
 endfunction
 
-function s:test_on_action() abort
+function! s:test_on_action() abort
   let scheme = 'dummy'
   let source = luis#source#metarw#new(scheme)
   let candidate = {
@@ -68,7 +68,7 @@ function s:test_on_action() abort
   \ }, candidate)
 endfunction
 
-function s:test_is_special_char() abort
+function! s:test_is_special_char() abort
   let scheme = 'dummy'
   let source = luis#source#metarw#new(scheme)
   let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
@@ -78,7 +78,7 @@ function s:test_is_special_char() abort
   call assert_false(source.is_special_char('A'))
 endfunction
 
-function s:test_source_definition() abort
+function! s:test_source_definition() abort
   let source = luis#source#metarw#new('dummy')
   let errors = luis#_validate_source(source)
   call assert_equal([], errors)

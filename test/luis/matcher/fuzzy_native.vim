@@ -1,6 +1,6 @@
 let s:matcher = luis#matcher#fuzzy_native#import()
 
-function s:test_filter_candidates() abort
+function! s:test_filter_candidates() abort
   if !exists('*matchfuzzypos')
     return 'matchfuzzypos() function is required.'
   endif
@@ -53,11 +53,11 @@ function s:test_filter_candidates() abort
   \ ], s:matcher.filter_candidates(cs, { 'pattern': 'fbb' }))
 endfunction
 
-function s:test_matcher_definition() abort
+function! s:test_matcher_definition() abort
   call assert_equal([], luis#_validate_matcher(s:matcher))
 endfunction
 
-function s:test_normalize_candidate() abort
+function! s:test_normalize_candidate() abort
   let candidate = { 'word': 'foo' }
   let index = 0
   let context = { '_match_positions': [[0]], '_match_scores': [100] }
@@ -79,7 +79,7 @@ function s:test_normalize_candidate() abort
   \ }, s:matcher.normalize_candidate(copy(candidate), index, context))
 endfunction
 
-function s:test_sort_candidates() abort
+function! s:test_sort_candidates() abort
   let cs = [
   \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
   \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },

@@ -1,21 +1,22 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
+let s:LNUM_END = 3
 
 let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
-let s:BUFFER_NAME = has('win32') || has('win64')
-\                              ? '[luis-pmenu]'
-\                              : '*luis-pmenu*'
+let s:UI_BUFFER_NAME = has('win32') || has('win64')
+\                    ? '[luis-pmenu]'
+\                    : '*luis-pmenu*'
 
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 
 let s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS = has('patch-8.1.1123')
 
-if !exists('s:luis_bufnr')
-  let s:luis_bufnr = -1
+if !exists('s:ui_bufnr')
+  let s:ui_bufnr = -1
 endif
 
 function! luis#ui#pmenu#define_default_key_mappings() abort
@@ -48,8 +49,11 @@ function! luis#ui#pmenu#new_session(source, ...) abort
   let session.last_pattern_raw = ''
   let session.original_backspace = &backspace
   let session.original_completeopt = &completeopt
-  let session.original_winnr = 0
   let session.original_equalalways = &equalalways
+  let session.original_win = 0
+  let session.preview = get(options, 'preview', 0)
+  let session.preview_height = get(options, 'preview_height', &previewheight)
+  let session.preview_width = get(options, 'preview_width', 80)
   let session.selected_index = -1
   let session.source = a:source
   return session
@@ -102,7 +106,6 @@ function! s:Session.guess_candidate() abort dict
     return candidate
   endif
 
-  " The fallback for when v:completed_item is not available.
   let current_pattern_raw = getline(s:LNUM_PATTERN)
   if current_pattern_raw !=# self.last_pattern_raw
     " current_pattern_raw seems to be inserted by Vim's completion,
@@ -112,19 +115,12 @@ function! s:Session.guess_candidate() abort dict
         return candidate
       endif
     endfor
-
-    let errmsg = 'luis: No match found in self.last_candidates:' . "\n"
-    \          . '  current_pattern_raw: ' . string(current_pattern_raw) . "\n"
-    \          . '  last_pattern_raw: ' . string(self.last_pattern_raw) . "\n"
-    \          . '  last_candidates: ' . string(self.last_candidates)
-    echoerr errmsg
-    return 0
-  endif
-
-  if len(self.last_candidates) > 0
-    " There are 1 or more candidates -- user seems to want to take action on
-    " the first one.
-    return self.last_candidates[0]
+  else
+    if len(self.last_candidates) > 0
+      " There are 1 or more candidates -- user seems to want to take action on
+      " the first one.
+      return self.last_candidates[0]
+    endif
   endif
 
   " There is no candidate -- user seems to want to take action on
@@ -136,7 +132,7 @@ function! s:Session.guess_candidate() abort dict
 endfunction
 
 function! s:Session.is_active() abort dict
-  return bufexists(s:luis_bufnr) && bufwinnr(s:luis_bufnr) != -1
+  return bufexists(s:ui_bufnr) && bufwinnr(s:ui_bufnr) != -1
 endfunction
 
 function! s:Session.quit() abort dict
@@ -145,34 +141,44 @@ function! s:Session.quit() abort dict
   " :close'ing, because s:Session.quit() may be called recursively.
   let self.is_quitting = 1
 
+  if self.preview isnot 0
+    call self.preview.close()
+  endif
+
   close
 
   let &backspace = self.original_backspace
   let &equalalways = self.original_equalalways
   let &completeopt = self.original_completeopt
-  if self.original_winnr > 0
-    execute self.original_winnr 'wincmd w'
-    let self.original_winnr = 0
+
+  if self.original_win > 0
+    execute win_id2win(self.original_win) 'wincmd w'
   endif
 
   let self.is_quitting = 0
 endfunction
 
-function! s:Session.start() abort dict
-  let self.original_winnr = winnr()
+function! s:Session.reload_candidates() abort dict
+  if self.is_active() && mode() =~# 'i'
+    call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
+  endif
+endfunction
 
-  " Open or create the luis buffer.
-  if bufexists(s:luis_bufnr)
-    let is_loaded = bufloaded(s:luis_bufnr)
+function! s:Session.start() abort dict
+  let self.original_win = win_getid()
+
+  " Open or create the UI buffer.
+  if bufexists(s:ui_bufnr)
+    let is_loaded = bufloaded(s:ui_bufnr)
     topleft split
-    silent execute s:luis_bufnr 'buffer'
+    silent execute s:ui_bufnr 'buffer'
     if !is_loaded
-      call s:initialize_luis_buffer()
+      call s:initialize_ui_buffer()
     endif
   else
     topleft new
-    let s:luis_bufnr = bufnr('%')
-    call s:initialize_luis_buffer()
+    let s:ui_bufnr = bufnr('%')
+    call s:initialize_ui_buffer()
   endif
   2 wincmd _
 
@@ -216,12 +222,6 @@ function! s:Session.start() abort dict
   call feedkeys('A' . typeahead_buffer, 'n')
 endfunction
 
-function! s:Session.reload_candidates() abort dict
-  if self.is_active() && mode() =~# 'i'
-    call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
-  endif
-endfunction
-
 function! s:complete_the_prompt() abort
   call setline('.', s:PROMPT . getline('.'))
   return
@@ -245,13 +245,14 @@ function! s:contains_the_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
-function! s:initialize_luis_buffer() abort
+function! s:initialize_ui_buffer() abort
   setlocal bufhidden=hide
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
   setlocal omnifunc=luis#ui#pmenu#_omnifunc
-  silent file `=s:BUFFER_NAME`
+  setlocal undolevels=-1
+  silent file `=s:UI_BUFFER_NAME`
 
   augroup plugin-luis-pmenu
     autocmd!
@@ -262,7 +263,7 @@ function! s:initialize_luis_buffer() abort
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     if exists('#TextChangedP')
-      autocmd TextChangedP <buffer>  call s:on_TextChangedP()
+      autocmd TextChangedP <buffer> ++nested  call s:on_TextChangedP()
     endif
   augroup END
 
@@ -347,7 +348,7 @@ function! s:keys_to_complete() abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let pattern = s:remove_prompt(line)
-      let acc_text = luis#_acc_text(
+      let acc_text = luis#acc_text(
       \   pattern,
       \   session.last_candidates,
       \   session.source
@@ -444,13 +445,42 @@ function! s:on_TextChangedP() abort
   let session = b:luis_session
   let session.selected_index = complete_info.selected
 
-  if has_key(session.source, 'on_select')
+  if session.preview isnot 0 && has_key(session.source, 'preview_candidate')
     let candidate = session.guess_candidate()
-    if candidate isnot 0
-      let context = { 'session': session }
-      call session.source.on_select(candidate, context)
+    let [row, col] = s:preview_pos()
+    let dimensions = {
+    \   'row': row,
+    \   'col': col,
+    \   'width': session.preview_width,
+    \   'height': session.preview_height,
+    \ }
+    let context = {
+    \   'session': session,
+    \   'preview_dimensions': dimensions,
+    \ }
+    let preview = session.preview
+    let content = session.source.preview_candidate(candidate, context)
+    if content.type ==# 'text'
+      call preview.open_text(content.lines, dimensions)
+    elseif content.type ==# 'buffer'
+      let lnum = get(content, 'lnum', 0)
+      call preview.open_buffer(content.bufnr, lnum, dimensions)
+    else
+      call preview.close()
     endif
   endif
+endfunction
+
+function! s:preview_pos() abort
+  let pum_pos = pum_getpos()
+  if !empty(pum_pos)
+    let row = float2nr(pum_pos.row + pum_pos.height)
+    let col = float2nr(pum_pos.col)
+  else
+    let row = s:LNUM_END
+    let col = 0
+  endif
+  return [row, col]
 endfunction
 
 function! s:remove_prompt(s) abort

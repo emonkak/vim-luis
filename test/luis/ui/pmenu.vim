@@ -14,7 +14,7 @@ function! s:test_guess_candidate__from_completed_item() abort
     let v:completed_item = { 'word': 'VIM', 'user_data': '{"file_path": "/VIM"}' }
     call assert_equal(candidate, session.guess_candidate())
   catch 'Vim(let):E46:'
-    return 'v:completed_item is read-only.'
+    return 'v:completed_item must be writable.'
   endtry
 
   let v:completed_item = {}
@@ -30,10 +30,10 @@ function! s:test_guess_candidate__from_first_candidate() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -58,7 +58,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -72,10 +72,10 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -100,7 +100,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -114,10 +114,10 @@ function! s:test_guess_candidate__from_default_candidate() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -139,7 +139,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -165,10 +165,10 @@ function! s:test_omni_func() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -228,7 +228,7 @@ function! s:test_omni_func() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -249,13 +249,13 @@ function! s:test_omni_func__default_matcher() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   let original_default_matcher = luis#matcher#default#import()
   let g:luis_default_matcher = matcher
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -294,7 +294,7 @@ function! s:test_omni_func__default_matcher() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
     let g:luis_default_matcher = original_default_matcher
   endtry
 endfunction
@@ -310,10 +310,10 @@ function! s:test_reload_candidates() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -342,11 +342,11 @@ function! s:test_reload_candidates() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
-function! s:test_start() abort
+function! s:test_start__without_options() abort
   let kind = s:create_mock_kind()
   let matcher = s:create_mock_matcher()
   let source = s:create_mock_source(kind, matcher)
@@ -356,10 +356,10 @@ function! s:test_start() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
@@ -375,11 +375,12 @@ function! s:test_start() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
 
-    call session.start()
 
     " Reuse the existing luis buffer.
+    call session.start()
+
     call assert_equal('A', s:consume_keys())
-    call assert_equal(luis_bufnr, bufnr('%'))
+    call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
@@ -395,8 +396,10 @@ function! s:test_start() abort
     call assert_false(session.is_active())
 
     " Start after unload the existing luis buffer.
+    call session.start()
+
     call assert_equal('A', s:consume_keys())
-    call assert_equal(luis_bufnr, bufnr('%'))
+    call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
@@ -411,7 +414,7 @@ function! s:test_start() abort
     call assert_equal(1, winnr())
     call assert_false(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
@@ -427,10 +430,10 @@ function! s:test_start__with_options() abort
 
   let original_bufnr = bufnr('%')
   call session.start()
-  let luis_bufnr = bufnr('%')
+  let ui_bufnr = bufnr('%')
 
   try
-    call assert_notequal(original_bufnr, luis_bufnr)
+    call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
@@ -449,7 +452,7 @@ function! s:test_start__with_options() abort
     call session.start()
 
     " Reuse existing luis buffer.
-    call assert_equal(luis_bufnr, bufnr('%'))
+    call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-pmenu', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
@@ -457,7 +460,7 @@ function! s:test_start__with_options() abort
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
   finally
-    execute luis_bufnr 'bwipeout!'
+    execute ui_bufnr 'bwipeout!' 
   endtry
 endfunction
 
