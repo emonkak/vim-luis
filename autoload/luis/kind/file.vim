@@ -33,14 +33,14 @@ function! s:action_tcd(candidate, context) abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:open('edit', a:candidate)
+  return s:do_open('edit', a:candidate)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:open('edit!', a:candidate)
+  return s:do_open('edit!', a:candidate)
 endfunction
 
-function! s:open(command, candidate) abort
+function! s:do_open(command, candidate) abort
   let path = s:path_from_candidate(a:candidate)
   if path == ''
     return 'No file chosen'

@@ -3,14 +3,14 @@ function! luis#kind#quickfix#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:open('', a:candidate)
+  return s:do_open('cc', a:candidate)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:open('!', a:candidate)
+  return s:do_open('cc!', a:candidate)
 endfunction
 
-function! s:open(bang, candidate) abort
+function! s:do_open(command, candidate) abort
   if !has_key(a:candidate.user_data, 'quickfix_nr')
     return 'No error chosen'
   endif
@@ -18,7 +18,7 @@ function! s:open(bang, candidate) abort
   let original_switchbuf = &switchbuf
   let &switchbuf = ''
   try
-    execute ('cc' . a:bang) a:candidate.user_data.quickfix_nr
+    execute a:command a:candidate.user_data.quickfix_nr
   catch
     return v:exception
   finally
