@@ -377,7 +377,24 @@ function! s:test_start() abort
 
     call session.start()
 
-    " Reuse existing luis buffer.
+    " Reuse the existing luis buffer.
+    call assert_equal('A', s:consume_keys())
+    call assert_equal(luis_bufnr, bufnr('%'))
+    call assert_equal('luis-pmenu', &l:filetype)
+    call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
+    call assert_equal(2, winnr('$'))
+    call assert_equal(1, winnr())
+    call assert_true(session.is_active())
+
+    call session.quit()
+
+    call assert_notequal('luis-pmenu', &l:filetype)
+    call assert_equal(original_bufnr, bufnr('%'))
+    call assert_equal(1, winnr('$'))
+    call assert_equal(1, winnr())
+    call assert_false(session.is_active())
+
+    " Start after unload the existing luis buffer.
     call assert_equal('A', s:consume_keys())
     call assert_equal(luis_bufnr, bufnr('%'))
     call assert_equal('luis-pmenu', &l:filetype)

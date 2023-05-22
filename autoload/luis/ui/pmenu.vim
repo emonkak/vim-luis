@@ -163,11 +163,15 @@ function! s:Session.start() abort dict
 
   " Open or create the luis buffer.
   if bufexists(s:luis_bufnr)
+    let is_loaded = bufloaded(s:luis_bufnr)
     topleft split
     silent execute s:luis_bufnr 'buffer'
+    if !is_loaded
+      call s:initialize_luis_buffer()
+    endif
   else
     topleft new
-    let s:luis_bufnr = bufnr('')
+    let s:luis_bufnr = bufnr('%')
     call s:initialize_luis_buffer()
   endif
   2 wincmd _
@@ -250,11 +254,11 @@ function! s:initialize_luis_buffer() abort
   silent file `=s:BUFFER_NAME`
 
   augroup plugin-luis-pmenu
+    autocmd!
     autocmd BufLeave,WinLeave <buffer>
     \   if !b:luis_session.is_quitting
     \ |   call luis#quit()
     \ | endif
-    autocmd BufUnload <buffer>  let s:luis_bufnr = -1
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     if exists('#TextChangedP')
