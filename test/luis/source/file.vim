@@ -100,8 +100,6 @@ function s:test_gather_candidates__home_directory() abort
     \   { 'word': '$HOME/file1', 'abbr': '$HOME/file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/file1' } },
     \   { 'word': '$HOME/link1', 'abbr': '$HOME/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
     \ ], source.gather_candidates({ 'pattern': '$HOME/.' }))
-
-    call source.on_source_leave({})
   finally
     let $HOME = old_HOME
   endtry

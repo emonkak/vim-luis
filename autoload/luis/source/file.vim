@@ -81,9 +81,6 @@ function! s:Source.on_source_enter(context) abort dict
   let self._cached_candidates = {}
 endfunction
 
-function! s:Source.on_source_leave(context) abort dict
-endfunction
-
 function! s:expand_path(path) abort
   let path = a:path
   let path = substitute(path, '\~/', '$HOME/', 'g')
