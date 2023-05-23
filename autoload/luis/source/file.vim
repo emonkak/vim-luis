@@ -108,7 +108,11 @@ endfunction
 
 function! s:readdir(dir) abort
   if exists('*readdir')
-    return readdir(a:dir)
+    try
+      return readdir(a:dir)
+    catch /\<E484:/
+      return []
+    endtry
   else
     let paths = []
     call extend(paths, globpath(a:dir, '.*', 1, 1))
