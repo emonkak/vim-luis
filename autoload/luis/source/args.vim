@@ -1,6 +1,6 @@
 function! luis#source#args#new() abort
   let source = copy(s:Source)
-  let source._cached_candidates = []
+  let source.cached_candidates = []
   return source
 endfunction
 
@@ -10,11 +10,11 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self._cached_candidates
+  return self.cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
-  let self._cached_candidates = map(argv(), '{
+  let self.cached_candidates = map(argv(), '{
   \   "word": v:val,
   \   "user_data": { "args_index": v:key },
   \ }')

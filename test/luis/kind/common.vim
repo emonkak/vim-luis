@@ -517,7 +517,7 @@ endfunction
 
 function! s:do_test_tab(expected_tabpagenr, action_name) abort
   let original_bufnr = bufnr('%')
-  let original_winid = win_getid()
+  let original_window = win_getid()
 
   0tabnew
   $tabnew
@@ -540,7 +540,7 @@ function! s:do_test_tab(expected_tabpagenr, action_name) abort
 
     silent execute 'bwipeout' candidate.word
   finally
-    execute win_id2tabwin(original_winid)[0] 'tabnext'
+    execute win_id2tabwin(original_window)[0] 'tabnext'
     tabonly
 
     call assert_equal(original_bufnr, bufnr('%'))

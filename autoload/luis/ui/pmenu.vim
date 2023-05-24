@@ -50,7 +50,7 @@ function! luis#ui#pmenu#new_session(source, ...) abort
   let session.original_backspace = &backspace
   let session.original_completeopt = &completeopt
   let session.original_equalalways = &equalalways
-  let session.original_win = 0
+  let session.original_window = 0
   let session.preview = get(options, 'preview', 0)
   let session.preview_height = get(options, 'preview_height', &previewheight)
   let session.preview_width = get(options, 'preview_width', 80)
@@ -137,8 +137,8 @@ function! s:Session.quit() abort dict
   let &equalalways = self.original_equalalways
   let &completeopt = self.original_completeopt
 
-  if self.original_win > 0
-    execute win_id2win(self.original_win) 'wincmd w'
+  if self.original_window > 0
+    execute win_id2win(self.original_window) 'wincmd w'
   endif
 
   let self.is_quitting = 0
@@ -151,7 +151,7 @@ function! s:Session.reload_candidates() abort dict
 endfunction
 
 function! s:Session.start() abort dict
-  let self.original_win = win_getid()
+  let self.original_window = win_getid()
 
   " Open or create the UI buffer.
   if bufexists(s:ui_bufnr)

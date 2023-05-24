@@ -6,12 +6,12 @@ function! s:test_gather_candidates() abort
   let original_cwd = getcwd()
   cd $VIMRUNTIME/doc
 
-  let winnr = winnr()
+  let window = win_getid()
   let tag_bufnrs = []
 
   call assert_equal(
   \   { 'curidx': 1, 'items': [], 'length': 0 },
-  \   gettagstack(winnr)
+  \   gettagstack(window)
   \ )
 
   silent tag! usr_01.txt
@@ -23,10 +23,8 @@ function! s:test_gather_candidates() abort
   silent tag! usr_03.txt
   let bufnr_3 = bufnr('%')
 
-  new
-
   try
-    let source = luis#source#tagstack#new()
+    let source = luis#source#tagstack#new(window)
 
     call source.on_source_enter({})
 
@@ -67,19 +65,19 @@ function! s:test_gather_candidates() abort
     \   }
     \ ], candidates)
 
-    call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
+    call settagstack(window, { 'curidx': 1, 'items': [], 'length': 0 })
     call assert_equal(
     \   { 'curidx': 1, 'items': [], 'length': 0 },
-    \   gettagstack(winnr)
+    \   gettagstack(window)
     \ )
   finally
-    silent %bwipeout
+    silent execute 'bwipeout' bufnr_1 bufnr_2 bufnr_3
     cd `=original_cwd`
   endtry
 endfunction
 
 function! s:test_preview_candidate() abort
-  let source = luis#source#tagstack#new()
+  let source = luis#source#tagstack#new(win_getid())
 
   let candidate = {
   \  'word': '',
@@ -110,7 +108,7 @@ function! s:test_preview_candidate() abort
 endfunction
 
 function! s:test_source_definition() abort
-  let source = luis#source#tagstack#new()
+  let source = luis#source#tagstack#new(win_getid())
   call assert_equal(1, luis#validations#validate_source(source))
   call assert_equal('tagstack', source.name)
 endfunction

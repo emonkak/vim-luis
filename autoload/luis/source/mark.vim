@@ -1,6 +1,7 @@
-function! luis#source#mark#new() abort
+function! luis#source#mark#new(...) abort
   let source = copy(s:Source)
-  let source._cached_candidates = []
+  let source.bufnr = get(a:000, 0, -1)
+  let source.cached_candidates = []
   return source
 endfunction
 
@@ -10,36 +11,53 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self._cached_candidates
+  return self.cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  let original_bufnr = winbufnr(winnr('#'))
-  let original_bufname = bufname(original_bufnr)
-  for mark in getmarklist(original_bufnr)  " buffer local marks
-    let mark_name = mark.mark[1:]
-    call add(candidates, {
-    \   'word': original_bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
-    \   'menu': 'mark ' . mark_name,
-    \   'dup': 1,
-    \   'user_data': {
-    \     'mark_name': mark_name,
-    \   },
-    \   'luis_sort_priority': char2nr(mark_name),
-    \ })
-  endfor
-  for mark in getmarklist()  " global marks
-    let mark_name = mark.mark[1:]
-    call add(candidates, {
-    \   'word': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
-    \   'menu': 'mark ' . mark_name,
-    \   'dup': 1,
-    \   'user_data': {
-    \     'mark_name': mark_name,
-    \   },
-    \   'luis_sort_priority': char2nr(mark_name),
-    \ })
-  endfor
-  let self._cached_candidates = candidates
+  if self.bufnr >= 0
+    let bufname = bufname(self.bufnr)
+    for mark in getmarklist(self.bufnr)  " buffer local marks
+      let mark_name = mark.mark[1:]
+      call add(candidates, {
+      \   'word': bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
+      \   'menu': 'mark ' . mark_name,
+      \   'dup': 1,
+      \   'user_data': {
+      \     'mark_name': mark_name,
+      \     'mark_pos': mark.pos[1:2],
+      \   },
+      \   'luis_sort_priority': char2nr(mark_name),
+      \ })
+    endfor
+  else
+    for mark in getmarklist()  " global marks
+      let mark_name = mark.mark[1:]
+      call add(candidates, {
+      \   'word': mark.file . ':' . mark.pos[1] . ':' . mark.pos[2],
+      \   'menu': 'mark ' . mark_name,
+      \   'dup': 1,
+      \   'user_data': {
+      \     'mark_name': mark_name,
+      \     'mark_pos': mark.pos[1:2],
+      \   },
+      \   'luis_sort_priority': char2nr(mark_name),
+      \ })
+    endfor
+  endif
+  let self.cached_candidates = candidates
+endfunction
+
+function! s:Source.preview_candidate(candidate, context) abort
+  if self.bufnr >= 0
+  \  && has_key(a:candidate.user_data, 'mark_pos')
+    return {
+    \   'type': 'buffer',
+    \   'bufnr': self.bufnr,
+    \   'lnum': a:candidate.user_data.mark_pos[0],
+    \ }
+  else
+    return { 'type': 'none' }
+  endif
 endfunction

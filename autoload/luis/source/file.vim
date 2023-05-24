@@ -1,6 +1,6 @@
 function! luis#source#file#new() abort
   let source = copy(s:Source)
-  let source._cached_candidates = {}
+  let source.cached_candidates = {}
   return source
 endfunction
 
@@ -13,7 +13,7 @@ function! s:Source.gather_candidates(context) abort dict
   let separator = s:path_separator()
   let [dir, rest_pattern] = s:parse_pattern(a:context.pattern, separator)
 
-  if !has_key(self._cached_candidates, dir)
+  if !has_key(self.cached_candidates, dir)
     let normal_candidates = []
     let hidden_candidates = []
     let logical_dir = dir == './' ? '' : dir
@@ -35,13 +35,13 @@ function! s:Source.gather_candidates(context) abort dict
       \ })
     endfor
 
-    let self._cached_candidates[dir] = [
+    let self.cached_candidates[dir] = [
     \    normal_candidates,
     \    hidden_candidates
     \ ]
   endif
 
-  let [normal_candidates, hidden_candidates] = self._cached_candidates[dir]
+  let [normal_candidates, hidden_candidates] = self.cached_candidates[dir]
   let candidates = []
 
   if rest_pattern[0] == '.'
@@ -78,7 +78,7 @@ function! s:Source.on_action(candidate, context) abort dict
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
-  let self._cached_candidates = {}
+  let self.cached_candidates = {}
 endfunction
 
 function! s:Source.preview_candidate(candidate, context) abort

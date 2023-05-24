@@ -1,6 +1,6 @@
 function! luis#source#buffer#new() abort
   let source = copy(s:Source)
-  let source._cached_candidates = []
+  let source.cached_candidates = []
   return source
 endfunction
 
@@ -10,7 +10,7 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self._cached_candidates
+  return self.cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
@@ -40,7 +40,7 @@ function! s:Source.on_source_enter(context) abort dict
     \   'luis_sort_priority': sort_priority,
     \ })
   endfor
-  let self._cached_candidates = candidates
+  let self.cached_candidates = candidates
 endfunction
 
 function! s:Source.preview_candidate(candidate, context) abort

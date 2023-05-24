@@ -1,6 +1,7 @@
-function! luis#source#jumplist#new() abort
+function! luis#source#jumplist#new(window) abort
   let source = copy(s:Source)
-  let source._cached_candidates = []
+  let source.window = a:window
+  let source.cached_candidates = []
   return source
 endfunction
 
@@ -10,13 +11,12 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self._cached_candidates
+  return self.cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  let last_winnr = winnr('#')
-  let [locations, position] = getjumplist(last_winnr)
+  let [locations, position] = getjumplist(self.window)
   let l = len(locations)
   for i in range(l - 1, 0, -1)
     let location = locations[i]
@@ -32,7 +32,7 @@ function! s:Source.on_source_enter(context) abort dict
     \   'luis_sort_priority': l - i,
     \ })
   endfor
-  let self._cached_candidates = candidates
+  let self.cached_candidates = candidates
 endfunction
 
 function! s:Source.preview_candidate(candidate, context) abort

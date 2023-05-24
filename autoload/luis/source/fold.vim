@@ -1,6 +1,7 @@
-function! luis#source#fold#new() abort
+function! luis#source#fold#new(window) abort
   let source = copy(s:Source)
-  let source._cached_candidates = []
+  let source.window = a:window
+  let source.cached_candidates = []
   return source
 endfunction
 
@@ -10,17 +11,17 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self._cached_candidates
+  return self.cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
-  let original_winnr = winnr()
+  let original_window = win_getid()
   let original_lazyredraw = &lazyredraw
 
   " Suppress redraw during collecting folds.
   set lazyredraw
   " Back to the original buffer.
-  noautocmd wincmd p
+  noautocmd call win_gotoid(self.window)
   " Duplite the original buffer.
   split
 
@@ -56,11 +57,11 @@ function! s:Source.on_source_enter(context) abort dict
     endfor
   finally
     close
-    noautocmd execute original_winnr 'wincmd w'
+    noautocmd call win_gotoid(original_window)
     let &lazyredraw = original_lazyredraw
   endtry
 
-  let self._cached_candidates = candidates
+  let self.cached_candidates = candidates
 endfunction
 
 function! s:Source.preview_candidate(candidate, context) abort

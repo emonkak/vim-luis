@@ -1,5 +1,5 @@
 function! s:test_gather_candidates() abort
-  enew
+  new
   setlocal foldmethod=marker
   call setline(1, [
   \   '" Foo {{{1',
@@ -15,10 +15,10 @@ function! s:test_gather_candidates() abort
   \   '" }}}',
   \ ])
   let bufnr = bufnr('%')
-  new
+  let window = win_getid()
 
   try
-    let source = luis#source#fold#new()
+    let source = luis#source#fold#new(window)
 
     call source.on_source_enter({})
 
@@ -55,7 +55,7 @@ function! s:test_gather_candidates() abort
 endfunction
 
 function! s:test_preview_candidate() abort
-  let source = luis#source#fold#new()
+  let source = luis#source#fold#new(win_getid())
 
   let candidate = {
   \  'word': '',
@@ -86,7 +86,7 @@ function! s:test_preview_candidate() abort
 endfunction
 
 function! s:test_source_definition() abort
-  let source = luis#source#fold#new()
+  let source = luis#source#fold#new(win_getid())
   call assert_equal(1, luis#validations#validate_source(source))
   call assert_equal('fold', source.name)
 endfunction

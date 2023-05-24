@@ -6,18 +6,18 @@ function! luis#source#async#new(name, default_kind, command, ...) abort
   let source = copy(s:Source)
   let source.name = 'async/' . a:name
   let source.default_kind = a:default_kind
-  let source._command = a:command
-  let source._to_candidate = has_key(options, 'to_candidate')
-  \                        ? options.to_candidate
-  \                        : { line -> { 'word': line } }
-  let source._debounce_time = get(options, 'debounce_time', 0)
-  let source._job = s:INVALID_JOB
-  let source._timer = s:INVALID_TIMER
-  let source._sequence = 0
-  let source._last_line = 0
-  let source._last_pattern = 0
-  let source._current_candidates = []
-  let source._pending_candidates = []
+  let source.command = a:command
+  let source.to_candidate = has_key(options, 'to_candidate')
+  \                       ? options.to_candidate
+  \                       : { line -> { 'word': line } }
+  let source.debounce_time = get(options, 'debounce_time', 0)
+  let source.current_job = s:INVALID_JOB
+  let source.current_timer = s:INVALID_TIMER
+  let source.sequence = 0
+  let source.last_line = 0
+  let source.last_pattern = 0
+  let source.current_candidates = []
+  let source.pending_candidates = []
   return source
 endfunction
 
@@ -26,63 +26,63 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  if self._job isnot s:INVALID_JOB
-  \  && (self._last_pattern is 0 || a:context.pattern !=# self._last_pattern)
-    let self._last_pattern = a:context.pattern
-    if self._timer isnot s:INVALID_TIMER
-      call timer_stop(self._timer)
+  if self.current_job isnot s:INVALID_JOB
+  \  && (self.last_pattern is 0 || a:context.pattern !=# self.last_pattern)
+    let self.last_pattern = a:context.pattern
+    if self.current_timer isnot s:INVALID_TIMER
+      call timer_stop(self.current_timer)
     endif
-    if self._debounce_time > 0
+    if self.debounce_time > 0
       let Callback = function('s:on_timer', [self])
-      let self._timer = timer_start(self._debounce_time, Callback)
+      let self.current_timer = timer_start(self.debounce_time, Callback)
     else
       call s:send_pattern(self)
     endif
   endif
-  return self._current_candidates
+  return self.current_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   if has('nvim')
-    let self._job = jobstart(self._command, {
+    let self.current_job = jobstart(self.command, {
     \   'on_stdout': function('s:on_nvim_stdout', [self, a:context.session]),
     \   'on_exit': function('s:on_nvim_exit', [self]),
     \ })
   else
-    let self._job = job_start(self._command, {
+    let self.current_job = job_start(self.command, {
     \   'out_cb': function('s:on_vim_stdout', [self, a:context.session]),
     \   'exit_cb': function('s:on_vim_exit', [self]),
     \ })
-    let status = job_status(self._job)
+    let status = job_status(self.current_job)
     if status ==# 'fail'
-      let self._job = s:INVALID_JOB
+      let self.current_job = s:INVALID_JOB
     endif
   endif
-  let self._sequence = 0
-  let self._last_line = ''
+  let self.sequence = 0
+  let self.last_line = ''
 endfunction
 
 function! s:Source.on_source_leave(context) abort dict
-  if self._job isnot s:INVALID_JOB
+  if self.current_job isnot s:INVALID_JOB
     if has('nvim')
-      call jobclose(self._job)
+      call jobclose(self.current_job)
     else
-      call job_stop(self._job)
+      call job_stop(self.current_job)
     endif
-    let self._job = s:INVALID_JOB
+    let self.current_job = s:INVALID_JOB
   endif
 endfunction
 
 function! s:on_nvim_exit(source, job, exit_code, event) abort
-  if a:source._job == a:job
-    let a:source._job = s:INVALID_JOB
+  if a:source.current_job == a:job
+    let a:source.current_job = s:INVALID_JOB
   endif
 endfunction
 
 function! s:on_nvim_stdout(source, session, job, data, event) abort
   let is_eof = 0
 
-  let line = a:source._last_line . a:data[0]
+  let line = a:source.last_line . a:data[0]
   if line != ''
     if s:process_line(a:source, line)
       let is_eof = 1
@@ -95,7 +95,7 @@ function! s:on_nvim_stdout(source, session, job, data, event) abort
     endif
   endfor
 
-  let a:source._last_line = a:data[-1]
+  let a:source.last_line = a:data[-1]
 
   if is_eof
     call a:session.reload_candidates()
@@ -103,15 +103,15 @@ function! s:on_nvim_stdout(source, session, job, data, event) abort
 endfunction
 
 function! s:on_timer(source, timer) abort
-  if a:source._job isnot s:INVALID_JOB
+  if a:source.current_job isnot s:INVALID_JOB
     call s:send_pattern(a:source)
   endif
-  let a:source._timer = s:INVALID_TIMER
+  let a:source.current_timer = s:INVALID_TIMER
 endfunction
 
 function! s:on_vim_exit(source, job, status) abort
-  if a:source._job is a:job
-    let a:source._job = s:INVALID_JOB
+  if a:source.current_job is a:job
+    let a:source.current_job = s:INVALID_JOB
   endif
 endfunction
 
@@ -131,30 +131,30 @@ endfunction
 
 function! s:process_line(source, line) abort
   let components = split(a:line, '^[^ ]\+\zs ', 1)
-  if components[0] != a:source._sequence
+  if components[0] != a:source.sequence
     return 0
   endif
 
   if len(components) == 1  " EOF
-    let a:source._current_candidates = a:source._pending_candidates
+    let a:source.current_candidates = a:source.pending_candidates
     return 1
   else
     let rest = join(components[1:], ' ')
-    let candidate = a:source._to_candidate(rest)
+    let candidate = a:source.to_candidate(rest)
     if candidate isnot 0
-      call add(a:source._pending_candidates, candidate)
+      call add(a:source.pending_candidates, candidate)
     endif
     return 0
   endif
 endfunction
 
 function! s:send_pattern(source) abort
-  let a:source._pending_candidates = []
-  let a:source._sequence += 1
-  let payload = a:source._sequence . ' ' . a:source._last_pattern . "\n"
+  let a:source.pending_candidates = []
+  let a:source.sequence += 1
+  let payload = a:source.sequence . ' ' . a:source.last_pattern . "\n"
   if has('nvim')
-    call chansend(a:source._job, payload)
+    call chansend(a:source.current_job, payload)
   else
-    call ch_sendraw(a:source._job, payload)
+    call ch_sendraw(a:source.current_job, payload)
   endif
 endfunction

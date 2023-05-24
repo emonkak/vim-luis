@@ -4,8 +4,9 @@ function! s:test_gather_candidates() abort
   endif
 
   let bufname = tempname()
-  silent edit `=bufname`
+  silent split `=bufname`
   let bufnr = bufnr('%')
+  let window = win_getid()
 
   call setline(1, range(1, 100))
   clearjumps
@@ -14,10 +15,9 @@ function! s:test_gather_candidates() abort
   normal! 60gg
   normal! 80gg
   normal! 1gg
-  new
 
   try
-    let source = luis#source#jumplist#new()
+    let source = luis#source#jumplist#new(window)
 
     call source.on_source_enter({})
 
@@ -65,7 +65,7 @@ function! s:test_gather_candidates() abort
 endfunction
 
 function! s:test_preview_candidate() abort
-  let source = luis#source#jumplist#new()
+  let source = luis#source#jumplist#new(win_getid())
 
   let candidate = {
   \  'word': '',
@@ -96,7 +96,7 @@ function! s:test_preview_candidate() abort
 endfunction
 
 function! s:test_source_definition() abort
-  let source = luis#source#jumplist#new()
+  let source = luis#source#jumplist#new(win_getid())
   call assert_equal(1, luis#validations#validate_source(source))
   call assert_equal('jumplist', source.name)
 endfunction
