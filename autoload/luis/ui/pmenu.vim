@@ -64,33 +64,19 @@ function! luis#ui#pmenu#_omnifunc(findstart, base) abort
 
   if a:findstart
     let session.last_candidates = []
-
     " To determine whether the content of the current pattern is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
+  else
+    let pattern = s:remove_prompt(a:base)
+    let candidates = luis#matcher#collect_candidates(
+    \   session,
+    \   pattern,
+    \   function('s:normalize_candidate')
+    \ )
+    let session.last_candidates = candidates
+    return candidates
   endif
-
-  let pattern = s:remove_prompt(a:base)
-  let source = session.source
-  let matcher = has_key(source, 'matcher')
-  \           ? source.matcher
-  \           : luis#matcher#default#import()
-  let context = { 'pattern': pattern, 'matcher': matcher, 'session': session }
-
-  let candidates = source.gather_candidates(context)
-  let candidates = matcher.filter_candidates(candidates, context)
-  call map(
-  \   candidates,
-  \   'matcher.normalize_candidate(
-  \     s:normalize_candidate(v:val),
-  \     v:key,
-  \     context
-  \   )'
-  \ )
-  let candidates = matcher.sort_candidates(candidates, context)
-  let session.last_candidates = candidates
-
-  return candidates
 endfunction
 
 let s:Session = {}
@@ -141,8 +127,8 @@ function! s:Session.quit() abort dict
   " :close'ing, because s:Session.quit() may be called recursively.
   let self.is_quitting = 1
 
-  if self.preview isnot 0
-    call self.preview.close()
+  if luis#preview#is_enabled()
+    call luis#preview#close()
   endif
 
   close
@@ -348,7 +334,7 @@ function! s:keys_to_complete() abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let pattern = s:remove_prompt(line)
-      let acc_text = luis#acc_text(
+      let acc_text = luis#matcher#acc_text(
       \   pattern,
       \   session.last_candidates,
       \   session.source
@@ -409,7 +395,7 @@ function! s:keys_to_delete_backward_component() abort
   endif
 endfunction
 
-function! s:normalize_candidate(candidate) abort
+function! s:normalize_candidate(candidate, index, context) abort
   let a:candidate.equal = 1
   if !has_key(a:candidate, 'user_data')
     let a:candidate.user_data = {}
@@ -445,7 +431,7 @@ function! s:on_TextChangedP() abort
   let session = b:luis_session
   let session.selected_index = complete_info.selected
 
-  if session.preview isnot 0 && has_key(session.source, 'preview_candidate')
+  if has_key(session.source, 'preview_candidate') && luis#preview#is_enabled()
     let candidate = session.guess_candidate()
     let [row, col] = s:preview_pos()
     let dimensions = {
@@ -460,14 +446,7 @@ function! s:on_TextChangedP() abort
     \ }
     let preview = session.preview
     let content = session.source.preview_candidate(candidate, context)
-    if content.type ==# 'text'
-      call preview.open_text(content.lines, dimensions)
-    elseif content.type ==# 'buffer'
-      let lnum = get(content, 'lnum', 0)
-      call preview.open_buffer(content.bufnr, lnum, dimensions)
-    else
-      call preview.close()
-    endif
+    call luis#preview#open(content, dimensions)
   endif
 endfunction
 

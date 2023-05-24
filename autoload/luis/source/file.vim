@@ -145,7 +145,7 @@ function! s:readdir(dir) abort
     call extend(paths, globpath(a:dir, '.*', 1, 1))
     call extend(paths, globpath(a:dir, '*', 1, 1))
     call map(paths, 'fnamemodify(v:val, ":t")')
-    call filter(paths, { _, val -> val !~# '^\.\{1,2}$' })
+    call filter(paths, 'v:val !~# "^\\.\\{1,2}$"')
     return paths
   endif
 endfunction

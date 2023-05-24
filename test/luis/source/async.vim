@@ -1,3 +1,5 @@
+silent runtime! test/spy.vim
+
 function! s:test_gather_candidates() abort
   if !has('patch-8.0.0018')
     " When using ":sleep", channel input is not handled.
@@ -188,7 +190,6 @@ function! s:test_source_definition() abort
   \    'for n in {0..100}; do echo $n; done'
   \ ]
   let source = luis#source#async#new('files', kind, command)
-  let errors = luis#_validate_source(source)
-  call assert_equal([], errors)
+  call assert_equal(1, luis#validations#validate_source(source))
   call assert_equal('async/files', source.name)
 endfunction

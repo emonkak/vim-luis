@@ -1,103 +1,14 @@
-runtime! test/spy.vim
-
-function! s:test_acc_text() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let source = s:create_mock_source(kind, matcher)
-  let source.is_valid_for_acc = { candidate ->
-  \   get(candidate.user_data, 'valid_for_acc', 1)
-  \ }
-
-  let cs1 = [
-  \   { 'word': 'usr/share/man/man1', 'user_data': {} },
-  \ ]
-  let cs2 = [
-  \   { 'word': 'usr/share/w y 1', 'user_data': {} },
-  \   { 'word': 'usr/share/ x z2', 'user_data': {} },
-  \   { 'word': 'usr/share/w y 3', 'user_data': {} },
-  \   { 'word': 'usr/share/ x z4', 'user_data': {} },
-  \ ]
-  let cs3 = [
-  \   { 'word': 'bin/1/1', 'user_data': {} },
-  \   { 'word': 'etc/2/2', 'user_data': {} },
-  \   { 'word': 'usr/3/3', 'user_data': {} },
-  \   { 'word': 'var/4/4', 'user_data': {} },
-  \ ]
-  let cs4 = [
-  \   { 'word': '1/X', 'user_data': { 'valid_for_acc': 0 } },
-  \   { 'word': '2/X', 'user_data': { 'valid_for_acc': 0 } },
-  \   { 'word': '3/X', 'user_data': {} },
-  \   { 'word': '4/X', 'user_data': { 'valid_for_acc': 0 } },
-  \ ]
-
-  " len(components) == 2
-  call assert_equal('usr', luis#acc_text('/', cs1, source))
-  call assert_equal('usr', luis#acc_text('u/', cs1, source))
-  call assert_equal('usr', luis#acc_text('s/', cs1, source))
-  call assert_equal('usr/share', luis#acc_text('sh/', cs1, source))
-  call assert_equal('usr/share/man', luis#acc_text('m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#acc_text('1/', cs1, source))
-
-  call assert_equal('usr/share/w y 1', luis#acc_text('w/', cs2, source))
-  call assert_equal('usr/share/ x z2', luis#acc_text('x/', cs2, source))
-  call assert_equal('usr/share/w y 1', luis#acc_text('y/', cs2, source))
-  call assert_equal('usr/share/ x z2', luis#acc_text('z/', cs2, source))
-
-  call assert_equal('bin', luis#acc_text('b/', cs3, source))
-  call assert_equal('etc', luis#acc_text('e/', cs3, source))
-  call assert_equal('usr', luis#acc_text('r/', cs3, source))
-  call assert_equal('usr', luis#acc_text('u/', cs3, source))
-  call assert_equal('var', luis#acc_text('v/', cs3, source))
-
-  call assert_equal('3/X', luis#acc_text('X/', cs4, source))
-
-  " len(components) >= 3
-  call assert_equal('usr/share', luis#acc_text('usr//', cs1, source))
-  call assert_equal('usr/share', luis#acc_text('usr/s/', cs1, source))
-  call assert_equal('usr/share', luis#acc_text('usr/sh/', cs1, source))
-  call assert_equal('usr/share/man', luis#acc_text('usr/m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#acc_text('usr/1/', cs1, source))
-  call assert_equal('usr/share', luis#acc_text('usr/share/', cs1, source))
-
-  call assert_equal('usr/share/man', luis#acc_text('usr/share//', cs1, source))
-  call assert_equal('usr/share/man', luis#acc_text('usr/share/m/', cs1, source))
-  call assert_equal('usr/share/man/man1', luis#acc_text('usr/share/1/', cs1, source))
-
-  call assert_equal('etc/2', luis#acc_text('etc//', cs3, source))
-  call assert_equal('var/4', luis#acc_text('var//', cs3, source))
-
-  " No components
-  let v:errmsg = ''
-  silent! call luis#acc_text('', [], source)
-  call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
-
-  let v:errmsg = ''
-  silent! call assert_equal('', luis#acc_text('', cs1, source))
-  call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
-
-  " No proper candidate for a:pattern
-  call assert_equal('', luis#acc_text('x/', [], source))
-  call assert_equal('', luis#acc_text('x/', cs1, source))
-  call assert_equal('', luis#acc_text('2/', cs1, source))
-  call assert_equal('', luis#acc_text('u/s/m/', cs1, source))
-  call assert_equal('', luis#acc_text('USR//', cs1, source))
-endfunction
+silent runtime! test/spy.vim
+silent runtime! test/mocks.vim
 
 function! s:test_do_action() abort
   let default_action_spy = Spy({ candidate, context -> 0 })
 
-  let kind = s:create_mock_kind()
+  let kind = CreateMockKind()
   let kind.action_table.default  = default_action_spy.to_funcref()
-  let matcher = s:create_mock_matcher()
-  let source = s:create_mock_source(kind, matcher)
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let matcher = CreateMockMatcher()
+  let source = CreateMockSource(kind, matcher, [])
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     call assert_equal(1, luis#start(session))
@@ -112,22 +23,15 @@ function! s:test_do_action() abort
     call assert_equal([candidate, context], default_action_spy.last_args())
     call assert_equal(0, default_action_spy.last_return_value())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_do_action__action_is_not_definied() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let source = s:create_mock_source(kind, matcher)
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let source = CreateMockSource(kind, matcher, [])
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     call assert_equal(1, luis#start(session))
@@ -142,23 +46,16 @@ function! s:test_do_action__action_is_not_definied() abort
     \   luis#do_action(kind, 'XXX', candidate)
     \ )
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_quit() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     call assert_equal(1, luis#start(session, { 'hook': hook }))
@@ -197,23 +94,16 @@ function! s:test_quit() abort
     \ )
     call assert_equal(source, source_spies.on_source_leave.last_self())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_quit__session_is_not_active() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 0))
 
   try
     silent call assert_equal(0, luis#quit())
@@ -245,23 +135,16 @@ function! s:test_quit__session_is_not_active() abort
     call assert_equal(1, source_spies.on_source_enter.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_restart() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 0))
 
   try
     call assert_equal(1, luis#start(session, { 'hook': hook }))
@@ -300,23 +183,16 @@ function! s:test_restart() abort
     call assert_equal(source, source_spies.on_source_enter.last_self())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_restart__session_is_already_active() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     call assert_equal(1, luis#start(session, { 'hook': hook }))
@@ -345,23 +221,16 @@ function! s:test_restart__session_is_already_active() abort
     call assert_equal(1, source_spies.on_source_enter.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_restart__session_is_not_started_yet() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     silent call assert_equal(0, luis#restart())
@@ -372,23 +241,16 @@ function! s:test_restart__session_is_not_started_yet() abort
     call assert_equal(0, source_spies.on_source_enter.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_start() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 0))
 
   try
     call assert_equal(1, luis#start(session, { 'hook': hook }))
@@ -427,23 +289,16 @@ function! s:test_start() abort
     call assert_equal(source, source_spies.on_source_enter.last_self())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_start__session_is_already_active() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     call assert_equal(1, luis#start(session, { 'hook': hook }))
@@ -473,28 +328,21 @@ function! s:test_start__session_is_already_active() abort
     call assert_equal(1, source_spies.on_source_enter.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_start__session_is_invalid() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
-  let [hook, hook_spies] = SpyDict(s:create_mock_hook())
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 1))
 
   try
     let v:errmsg = ''
     silent! call luis#start({}, { 'hook': hook })
-    call assert_match('luis: Invalid session:', v:errmsg)
+    call assert_match('luis: Invalid Session:', v:errmsg)
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(0, session_spies.start.call_count())
     call assert_equal(0, hook_spies.on_source_enter.call_count())
@@ -502,23 +350,16 @@ function! s:test_start__session_is_invalid() abort
     call assert_equal(0, source_spies.on_source_enter.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_take_action__choose_action() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
   let candidate = { 'word': 'VIM', 'user_data': {} }
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> candidate },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let [session, session_spies] = SpyDict(CreateMockSession(source, candidate, 1))
 
   let default_action_spy = Spy({ candidate, context -> 0 })
   let kind = session.source.default_kind
@@ -543,23 +384,16 @@ function! s:test_take_action__choose_action() abort
     call assert_equal([candidate, context], default_action_spy.last_args())
     call assert_equal(0, default_action_spy.last_return_value())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_take_action__do_default_action() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let [source, source_spies] = SpyDict(s:create_mock_source(kind, matcher))
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, []))
   let candidate = { 'word': 'VIM', 'user_data': {} }
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> candidate },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let [session, session_spies] = SpyDict(CreateMockSession(source, candidate, 1))
 
   let default_action_spy = Spy({ candidate, context -> 0 })
   let kind = session.source.default_kind
@@ -583,22 +417,15 @@ function! s:test_take_action__do_default_action() abort
     call assert_equal([candidate, context], default_action_spy.last_args())
     call assert_equal(0, default_action_spy.last_return_value())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_take_action__session_is_not_active() abort
-  let kind = s:create_mock_kind()
-  let matcher = s:create_mock_matcher()
-  let source = s:create_mock_source(kind, matcher)
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> {} },
-  \   'is_active': { -> 0 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let kind = CreateMockKind()
+  let matcher = CreateMockMatcher()
+  let source = CreateMockSource(kind, matcher, [])
+  let [session, session_spies] = SpyDict(CreateMockSession(source, {}, 0))
 
   try
     silent call assert_equal(0, luis#take_action('default'))
@@ -610,26 +437,19 @@ function! s:test_take_action__session_is_not_active() abort
     silent call assert_equal(0, luis#take_action('default'))
     call assert_equal(1, session_spies.is_active.call_count())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
 endfunction
 
 function! s:test_take_action__with_kind() abort
   let default_action_spy = Spy({ candidate, context -> 0 })
 
-  let kind = s:create_mock_kind()
+  let kind = CreateMockKind()
   let kind.action_table.default  = default_action_spy.to_funcref()
-  let matcher = s:create_mock_matcher()
-  let source = s:create_mock_source(kind, matcher)
+  let matcher = CreateMockMatcher()
+  let source = CreateMockSource(kind, matcher, [])
   let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
-  let [session, session_spies] = SpyDict({
-  \   'source': source,
-  \   'guess_candidate': { -> candidate },
-  \   'is_active': { -> 1 },
-  \   'quit': { -> 0 },
-  \   'reload_candidates': { -> {} },
-  \   'start': { -> 0 },
-  \ })
+  let [session, session_spies] = SpyDict(CreateMockSession(source, candidate, 1))
 
   try
     call assert_equal(1, luis#start(session))
@@ -643,46 +463,6 @@ function! s:test_take_action__with_kind() abort
     call assert_equal([candidate, context], default_action_spy.last_args())
     call assert_equal(0, default_action_spy.last_return_value())
   finally
-    call luis#_reset_session()
+    call luis#_clear_session()
   endtry
-endfunction
-
-function! s:create_mock_kind() abort
-  return {
-  \   'name': 'mock_kind',
-  \   'action_table': {
-  \     'default': { candidate, context -> 0 },
-  \   },
-  \   'key_table': {
-  \     "\<CR>": 'default',
-  \   },
-  \ }
-endfunction
-
-function! s:create_mock_matcher() abort
-  return {
-  \   'filter_candidates': { candidates, context -> candidates },
-  \   'normalize_candidate': { candidate, index, context -> candidate },
-  \   'sort_candidates': { candidates, context -> candidates },
-  \ }
-endfunction
-
-function! s:create_mock_source(default_kind, matcher) abort
-  return {
-  \   'default_kind': a:default_kind,
-  \   'gather_candidates': { context -> [] },
-  \   'is_valid_for_acc': { context -> 1 },
-  \   'matcher': a:matcher,
-  \   'name': 'mock_source',
-  \   'on_action': { candidate, context -> 0 },
-  \   'on_source_enter': { context -> 0 },
-  \   'on_source_leave': { context -> 0 },
-  \ }
-endfunction
-
-function! s:create_mock_hook() abort
-  return {
-  \   'on_source_enter': { context -> 0 },
-  \   'on_source_leave': { context -> 0 },
-  \ }
 endfunction

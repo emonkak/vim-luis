@@ -29,7 +29,7 @@ endfunction
 let s:Spy = {}
 
 function! s:Spy.args() abort dict
-  return map(copy(self._calls), { _, call -> call.args })
+  return map(copy(self._calls), 'v:val.args')
 endfunction
 
 function! s:Spy.call(args, ...) abort dict
@@ -71,11 +71,11 @@ function! s:Spy.last_self() abort dict
 endfunction
 
 function! s:Spy.return_values() abort dict
-  return map(copy(self._calls), { _, call -> call.return_value })
+  return map(copy(self._calls), 'v:val.return_value')
 endfunction
 
 function! s:Spy.selves() abort dict
-  return map(copy(self._calls), { _, call -> call.self })
+  return map(copy(self._calls), 'v:val.self')
 endfunction
 
 function! s:Spy.to_funcref() abort dict

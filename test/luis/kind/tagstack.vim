@@ -23,7 +23,7 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#_validate_kind(s:kind))
+  call assert_equal(1, luis#validations#validate_kind(s:kind))
   call assert_equal('tagstack', s:kind.name)
 endfunction
 

@@ -87,7 +87,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#fold#new()
-  let errors = luis#_validate_source(source)
-  call assert_equal([], errors)
+  call assert_equal(1, luis#validations#validate_source(source))
   call assert_equal('fold', source.name)
 endfunction

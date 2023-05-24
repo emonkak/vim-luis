@@ -54,7 +54,7 @@ function! s:test_filter_candidates() abort
 endfunction
 
 function! s:test_matcher_definition() abort
-  call assert_equal([], luis#_validate_matcher(s:matcher))
+  call assert_equal(1, luis#validations#validate_matcher(s:matcher))
 endfunction
 
 function! s:test_normalize_candidate() abort

@@ -68,6 +68,6 @@ function! s:test_action_open__no_mark() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#_validate_kind(s:kind))
+  call assert_equal(1, luis#validations#validate_kind(s:kind))
   call assert_equal('mark', s:kind.name)
 endfunction

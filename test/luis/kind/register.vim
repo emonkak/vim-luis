@@ -41,7 +41,7 @@ function! s:test_action_delete() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal([], luis#_validate_kind(s:kind))
+  call assert_equal(1, luis#validations#validate_kind(s:kind))
   call assert_equal('register', s:kind.name)
 endfunction
 

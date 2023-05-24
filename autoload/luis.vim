@@ -1,211 +1,10 @@
-let s:SCHEMA_KIND = {
-\   'type': 'struct',
-\   'properties': {
-\     'name': {
-\       'type': v:t_string,
-\     },
-\     'action_table': {
-\       'type': 'dict',
-\       'item': {
-\         'type': v:t_func,
-\       },
-\     },
-\     'key_table': {
-\       'type': 'dict',
-\       'item': {
-\         'type': v:t_string,
-\       },
-\     },
-\   },
-\ }
+if !exists('s:session')
+  let s:session = {}
+endif
 
-let s:SCHEMA_KIND.properties.prototype = {
-\   'type': 'struct',
-\   'properties': s:SCHEMA_KIND.properties,
-\   'optional': 1,
-\ }
-
-let s:SCHEMA_MATCHER = {
-\   'type': 'struct',
-\   'properties': {
-\      'filter_candidates': {
-\        'type': v:t_func,
-\      },
-\      'normalize_candidate': {
-\        'type': v:t_func,
-\      },
-\      'sort_candidates': {
-\        'type': v:t_func,
-\      },
-\    },
-\ }
-
-let s:SCHEMA_SOURCE = {
-\   'type': 'struct',
-\   'properties': {
-\     'name': {
-\       'type': v:t_string,
-\     },
-\     'default_kind': s:SCHEMA_KIND,
-\     'matcher': extend({ 'optional': 1 }, s:SCHEMA_MATCHER, 'keep'),
-\     'gather_candidates': {
-\       'type': v:t_func,
-\     },
-\     'on_action': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_source_enter': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'on_source_leave': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'is_special_char': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'is_valid_for_acc': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\     'preview_candidate': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
-\   },
-\ }
-
-let s:SCHEMA_SESSION = {
-\   'type': 'struct',
-\   'properties': {
-\     'is_active': {
-\       'type': v:t_func,
-\     },
-\     'quit': {
-\       'type': v:t_func,
-\     },
-\     'reload_candidates': {
-\       'type': v:t_func,
-\     },
-\     'source': s:SCHEMA_SOURCE,
-\     'start': {
-\       'type': v:t_func,
-\     },
-\   },
-\ }
-
-let s:session = {}
-
-let s:hook = {}
-
-function! luis#acc_text(pattern, candidates, source) abort
-  " ACC = Automatic Component Completion
-  let sep = a:pattern[-1:]
-  let components = split(a:pattern, sep, 1)
-
-  if len(components) < 2
-    echoerr 'luis: Assumption on ACC is failed: ' . string(components)
-    return ''
-  endif
-
-  " Find a candidate which has the same components but the last 2 ones of
-  " components. Because components[-1] is always empty and
-  " components[-2] is almost imperfect name of a component.
-  "
-  " Example:
-  "
-  " (a) a:pattern ==# 'usr/share/m/',
-  "     components ==# ['usr', 'share', 'm', '']
-  "
-  "     The 1st candidate prefixed with 'usr/share/' will be used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completed text will be 'usr/share/man'.
-  "
-  " (b) a:pattern ==# 'u/'
-  "     components ==# ['u', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr'.
-  "
-  " (c) a:pattern ==# 'm/'
-  "     components ==# ['m', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr/share/man'.
-  "     Because user seems to want to complete till the component which
-  "     matches to 'm'.
-  for candidate in a:candidates
-    let candidate_components = split(candidate.word, '\V' . sep, 1)
-
-    if len(components) == 2
-      " OK - the case (b) or (c)
-    elseif len(components) - 2 <= len(candidate_components)
-      for i in range(len(components) - 2)
-        if components[i] != candidate_components[i]
-          break
-        endif
-      endfor
-      if components[i] != candidate_components[i]
-        continue
-      endif
-      " OK - the case (a)
-    else
-      continue
-    endif
-
-    if has_key(a:source, 'is_valid_for_acc')
-    \  && !a:source.is_valid_for_acc(candidate)
-      continue
-    endif
-
-    " Find the index of the last component to be completed.
-    "
-    " For example, with candidate ==# 'usr/share/man/man1':
-    "   If components ==# ['u', '']:
-    "     c == 2 - 2
-    "     i == 0
-    "     t ==# 'usr/share/man/man1'
-    "            ^
-    "   If components ==# ['m', '']:
-    "     c == 2 - 2
-    "     i == 10
-    "     t ==# 'usr/share/man/man1'
-    "                      ^
-    "   If components ==# ['usr', 'share', 'm', '']:
-    "     c == 4 - 2
-    "     i == 0
-    "     t ==# 'man/man1'
-    "            ^
-    " Prefix components are all of components but the last two ones.
-    let count_of_prefix = len(components) - 2
-    " Tail of candidate.word without 'prefix' component in components.
-    let tail = join(candidate_components[count_of_prefix:], sep)
-    " Pattern for the partially typed component = components[-2].
-    let pattern = '\c' . s:make_skip_regexp(components[-2])
-
-    let i = matchend(tail, pattern)
-    if i < 0
-      continue  " Try next one
-    endif
-
-    let j = stridx(tail, sep, i)
-    if j >= 0
-      " Several candidate_components are matched for ACC.
-      let tail_index = -(len(tail) - j + 1)
-      return candidate.word[:tail_index]
-    else
-      " All of candidate_components are matched for ACC.
-      return candidate.word
-    endif
-  endfor
-
-  return ''
-endfunction
+if !exists('s:hook')
+  let s:hook = {}
+endif
 
 function! luis#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
@@ -257,10 +56,7 @@ function! luis#start(new_session, ...) abort
     return 0
   endif
 
-  let errors = luis#_validate_session(a:new_session)
-  if !empty(errors)
-    let errmsg = 'luis: Invalid session:' . "\n" . join(errors, "\n")
-    echoerr errmsg
+  if !luis#validations#validate_session(a:new_session)
     return 0
   endif
 
@@ -318,25 +114,10 @@ function! luis#take_action(...) abort
   return 1
 endfunction
 
-function! luis#_reset_session() abort
+function! luis#_clear_session() abort
+  " For test-only
   let s:session = {}
   let s:hook = {}
-endfunction
-
-function! luis#_validate_kind(kind) abort
-  return luis#schema#validate(s:SCHEMA_KIND, a:kind)
-endfunction
-
-function! luis#_validate_matcher(matcher) abort
-  return luis#schema#validate(s:SCHEMA_MATCHER, a:matcher)
-endfunction
-
-function! luis#_validate_session(source) abort
-  return luis#schema#validate(s:SCHEMA_SESSION, a:source)
-endfunction
-
-function! luis#_validate_source(source) abort
-  return luis#schema#validate(s:SCHEMA_SOURCE, a:source)
 endfunction
 
 function! s:choose_action(kind, candidate) abort
@@ -512,16 +293,6 @@ function! s:list_key_bindings(key_table) abort
       echon repeat(' ', max_label_width - len(_))
     endfor
   endfor
-endfunction
-
-function! s:make_skip_regexp(s) abort
-  " 'abc' ==> '\Va*b*c'
-  " '\!/' ==> '\V\\*!*/'
-  " Here '*' means '\.\{-}'
-  let [init, last] = [a:s[:-2], a:s[-1:]]
-  return '\V'
-  \    . substitute(escape(init, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
-  \    . escape(last, '\')
 endfunction
 
 function! s:quit_session(session, hook) abort
