@@ -24,18 +24,28 @@ function! luis#ui#pmenu#define_default_key_mappings() abort
   nmap <buffer> <C-i>  <Plug>(luis-choose-action)
   nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
   nmap <buffer> <CR>  <Plug>(luis-do-default-action)
+  nmap <buffer> <Esc>  <Plug>(luis-quit-session)
   nmap <buffer> <Tab>  <Plug>(luis-choose-action)
 
   imap <buffer> <C-c>  <Plug>(luis-quit-session)
   imap <buffer> <C-i>  <Plug>(luis-choose-action)
   imap <buffer> <C-m>  <Plug>(luis-do-default-action)
   imap <buffer> <CR>  <Plug>(luis-do-default-action)
+  imap <buffer> <Esc>  <Plug>(luis-quit-session)
   imap <buffer> <Tab>  <Plug>(luis-choose-action)
 
-  imap <buffer> <BS>  <Plug>(luis-delete-backward-char)
-  imap <buffer> <C-h>  <Plug>(luis-delete-backward-char)
-  imap <buffer> <C-u>  <Plug>(luis-delete-backward-line)
-  imap <buffer> <C-w>  <Plug>(luis-delete-backward-component)
+  imap <buffer> <expr> <BS>  <SID>pattern_is_empty()
+                           \ ? '<Plug>(luis-quit-session)'
+                           \ : '<Plug>(luis-delete-backward-char)'
+  imap <buffer> <expr> <C-h>  <SID>pattern_is_empty()
+                            \ ? '<Plug>(luis-quit-session)'
+                            \ : '<Plug>(luis-delete-backward-char)'
+  imap <buffer> <expr> <C-u>  <SID>pattern_is_empty()
+                            \ ? '<Plug>(luis-quit-session)'
+                            \ : '<Plug>(luis-delete-backward-line)'
+  imap <buffer> <expr> <C-w>  <SID>pattern_is_empty()
+                            \ ? '<Plug>(luis-quit-session)'
+                            \ : '<Plug>(luis-delete-backward-component)'
 endfunction
 
 function! luis#ui#pmenu#new_session(source, ...) abort
@@ -448,6 +458,10 @@ function! s:on_TextChangedP() abort
     let content = session.source.preview_candidate(candidate, context)
     call luis#preview#open(content, dimensions)
   endif
+endfunction
+
+function! s:pattern_is_empty() abort
+  return getline(s:LNUM_PATTERN) ==# s:PROMPT
 endfunction
 
 function! s:preview_pos() abort
