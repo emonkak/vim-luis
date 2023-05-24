@@ -165,7 +165,7 @@ function! s:test_preview_candidate__local() abort
   \  'user_data': { 'mark_name': 'a', 'mark_pos': [2, 1]  },
   \ }
   call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123, 'lnum': 2 },
+  \   { 'type': 'buffer', 'bufnr': 123, 'pos': [2, 1] },
   \   source.preview_candidate(candidate, {})
   \ )
 

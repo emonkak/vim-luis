@@ -158,28 +158,25 @@ endfunction
 
 function! s:test_preview_candidate() abort
   let source = luis#source#file#new()
-  let context = {
-  \   'preview_dimensions': { 'row': 0, 'col': 0, 'width': 80, 'height': 20 },
-  \ }
 
   let candidate = {
-  \  'word': 'test/data/file1',
+  \  'word': 'test/data/hello.vim',
   \  'kind': 'file',
-  \  'user_data': { 'file_path': getcwd() . '/test/data/files/file1'  },
+  \  'user_data': { 'file_path': 'test/data/hello.vim'  },
   \ }
   call assert_equal(
-  \   { 'type': 'text', 'lines': ['file1'] },
-  \   source.preview_candidate(candidate, context)
+  \   { 'type': 'file', 'path': 'test/data/hello.vim' },
+  \   source.preview_candidate(candidate, {})
   \ )
 
   let candidate = {
-  \  'word': 'test/data/file1',
+  \  'word': '/test/data/hello.vim',
   \  'kind': 'file',
   \  'user_data': {},
   \ }
   call assert_equal(
   \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, context)
+  \   source.preview_candidate(candidate, {})
   \ )
 endfunction
 

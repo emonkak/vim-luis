@@ -41,7 +41,7 @@ function! s:Source.preview_candidate(candidate, context) abort
     return {
     \   'type': 'buffer',
     \   'bufnr': a:candidate.user_data.buffer_nr,
-    \   'lnum': a:candidate.user_data.buffer_pos[0],
+    \   'pos': a:candidate.user_data.buffer_pos,
     \ }
   else
     return { 'type': 'none' }

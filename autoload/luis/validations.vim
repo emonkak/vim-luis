@@ -97,19 +97,19 @@ let s:SCHEMA_SESSION = {
 \   },
 \ }
 
-let s:SCHEMA_PREVIEW = {
+let s:SCHEMA_PREVIEW_WINDOW = {
 \   'type': 'struct',
 \   'properties': {
-\     'close': {
+\     'quit_preview': {
 \       'type': v:t_func,
 \     },
 \     'is_active': {
 \       'type': v:t_func,
 \     },
-\     'open_buffer': {
+\     'preview_buffer': {
 \       'type': v:t_func,
 \     },
-\     'open_text': {
+\     'preview_text': {
 \       'type': v:t_func,
 \     },
 \   },
@@ -145,8 +145,8 @@ function! luis#validations#validate_source(source) abort
   return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
 endfunction
 
-function! luis#validations#validate_preview(preview) abort
-  return s:do_validate(s:SCHEMA_PREVIEW, a:preview, 'Preview')
+function! luis#validations#validate_preview_window(window) abort
+  return s:do_validate(s:SCHEMA_PREVIEW_WINDOW, a:window, 'Preview')
 endfunction
 
 function! s:do_validate(schema, value, name) abort

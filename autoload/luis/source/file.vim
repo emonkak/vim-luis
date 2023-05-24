@@ -81,29 +81,6 @@ function! s:Source.on_source_enter(context) abort dict
   let self.cached_candidates = {}
 endfunction
 
-function! s:Source.preview_candidate(candidate, context) abort
-  if has_key(a:candidate.user_data, 'file_path')
-  \  && a:candidate.kind ==# 'file'
-  \  && filereadable(a:candidate.user_data.file_path)
-    let dimensions = a:context.preview_dimensions
-    let lines = readfile(
-    \   a:candidate.user_data.file_path,
-    \   '',
-    \   dimensions.height
-    \ )
-    try
-      return {
-      \   'type': 'text',
-      \   'lines': lines,
-      \ }
-    catch /\<E484:/
-      return { 'type': 'text', 'lines': [v:exception] }
-    endtry
-  else
-    return { 'type': 'none' }
-  endif
-endfunction
-
 function! s:expand_path(path) abort
   let path = a:path
   let path = substitute(path, '\~/', '$HOME/', 'g')

@@ -149,8 +149,8 @@ endfunction
 function! s:test_reload_candidates() abort
   let kind = CreateMockKind()
   let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [{ 'word': 'VIM' }])
-  let session = luis#ui#pmenu#new_session(source, {})
+  let source = CreateMockSource(kind, matcher, [])
+  let [session, session_spies] = SpyDict(luis#ui#pmenu#new_session(source, {}))
 
   call assert_false(session.is_active())
 
@@ -167,18 +167,17 @@ function! s:test_reload_candidates() abort
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
 
-    let callback = {}
-    function! callback.call() abort closure
+    function! s:on_CompleteDone() abort closure
       call session.reload_candidates()
       call assert_equal("\<C-x>", nr2char(getchar(0)))
       call assert_equal("\<C-o>", nr2char(getchar(0)))
-      call assert_equal("\<Esc>", nr2char(getchar(0)))
-      return ''
     endfunction
-    let [callback, callback_spies] = SpyDict(callback)
 
-    silent call feedkeys("i\<C-r>=callback.call()\<CR>", 'nx')
-    call assert_equal(1, callback_spies.call.call_count())
+    autocmd! CompleteDone <buffer>  call s:on_CompleteDone()
+
+    normal! A
+
+    call assert_equal(1, session_spies.reload_candidates.call_count())
 
     call session.quit()
 
@@ -305,6 +304,14 @@ function! s:test_start__with_options() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(session.is_active())
+
+    call session.quit()
+
+    call assert_notequal('luis-pmenu', &l:filetype)
+    call assert_equal(original_bufnr, bufnr('%'))
+    call assert_equal(1, winnr('$'))
+    call assert_equal(1, winnr())
+    call assert_false(session.is_active())
   finally
     execute ui_bufnr 'bwipeout!' 
   endtry

@@ -138,7 +138,7 @@ function! s:Session.quit() abort dict
   let self.is_quitting = 1
 
   if luis#preview#is_enabled()
-    call luis#preview#close()
+    call luis#preview#quit()
   endif
 
   close
@@ -456,7 +456,7 @@ function! s:on_TextChangedP() abort
     \ }
     let preview = session.preview
     let content = session.source.preview_candidate(candidate, context)
-    call luis#preview#open(content, dimensions)
+    call luis#preview#start(content, dimensions)
   endif
 endfunction
 

@@ -69,10 +69,10 @@ function! s:test_preview_candidate() abort
 
   let candidate = {
   \  'word': '',
-  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [1, 1]  },
+  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [2, 1]  },
   \ }
   call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123, 'lnum': 1 },
+  \   { 'type': 'buffer', 'bufnr': 123, 'pos': [2, 1] },
   \   source.preview_candidate(candidate, {})
   \ )
 

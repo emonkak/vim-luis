@@ -25,12 +25,12 @@ function! CreateMockMatcher() abort
   \ }
 endfunction
 
-function! CreateMockPreview(is_active) abort
+function! CreateMockPreviewWindow(is_active) abort
   return {
-  \   'close': { -> 0 },
   \   'is_active': { -> a:is_active },
-  \   'open_buffer': { bufnr, lnum, dimensions -> 0 },
-  \   'open_text': { lines, dimensions -> 0 },
+  \   'preview_buffer': { bufnr, dimensions, options -> 0 },
+  \   'preview_text': { lines, dimensions, options -> 0 },
+  \   'quit_preview': { -> 0 },
   \ }
 endfunction
 

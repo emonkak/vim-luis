@@ -1,9 +1,10 @@
-#!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -E -s --cmd "source $0" <(IFS=$\'\n\'; echo "$*")'
+#!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -E -s -S "$0" <(IFS=$\'\n\'; echo "$*")'
 
 function! s:run(package_dir) abort
   set nohidden noswapfile
 
   let args = filter(getline(0, line('$')), 'v:val != ""')
+
   %argdelete
   %bwipeout!
 
@@ -168,4 +169,4 @@ endfunction
 
 verbose echo matchstr(execute('version'), '^\n*\zs[^\n]\+') "\n"
 
-autocmd VimEnter *  verbose call s:run(expand('<sfile>:p:h'))
+verbose call s:run(expand('<sfile>:p:h'))
