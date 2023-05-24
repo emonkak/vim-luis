@@ -10,7 +10,7 @@ function! s:run(package_dir) abort
   let &runtimepath .= ',' . a:package_dir
   let &packpath .= ',' . a:package_dir
 
-  for test_file in globpath(a:package_dir, 'test/**/*.vim', 0, 1)
+  for test_file in globpath(a:package_dir, 'test/**/*_test.vim', 0, 1)
     source `=test_file`
   endfor
 
