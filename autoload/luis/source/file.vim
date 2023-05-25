@@ -22,16 +22,18 @@ function! s:Source.gather_candidates(context) abort dict
     for filename in s:readdir(physical_dir)
       let logical_path = logical_dir . filename
       let physical_path = fnamemodify(physical_dir . filename, ':p')
-      let type = getftype(physical_path)
+      let user_data = { 'file_path': physical_path }
+      let type = getftype(resolve(physical_path))
+      if type ==# 'file'
+        let user_data.preview_path = physical_path
+      endif
       let is_hidden = filename[0] == '.'
-      let candidates = is_hidden ? hidden_candidates : normal_candidates
-      call add(candidates, {
+      let target_candidates = is_hidden ? hidden_candidates : normal_candidates
+      call add(target_candidates, {
       \   'word': logical_path,
       \   'abbr': logical_path . (type ==# 'dir' ? separator : ''),
       \   'kind': type,
-      \   'user_data': {
-      \     'file_path': physical_path,
-      \   },
+      \   'user_data': user_data,
       \ })
     endfor
 

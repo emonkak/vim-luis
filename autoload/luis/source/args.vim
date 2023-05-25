@@ -16,15 +16,6 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   let self.cached_candidates = map(argv(), '{
   \   "word": v:val,
-  \   "user_data": { "args_index": v:key },
+  \   "user_data": { "args_index": v:key, "preview_bufnr": bufnr(v:val) },
   \ }')
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  let bufnr = bufnr(a:candidate.word)
-  if bufnr >= 0
-    return { 'type': 'buffer', 'bufnr': bufnr }
-  else
-    return { 'type': 'none' }
-  endif
 endfunction

@@ -36,19 +36,12 @@ function! s:Source.on_source_enter(context) abort dict
     \   'dup': dup,
     \   'user_data': {
     \     'buffer_nr': bufinfo.bufnr,
+    \     'preview_bufnr': bufinfo.bufnr,
     \   },
     \   'luis_sort_priority': sort_priority,
     \ })
   endfor
   let self.cached_candidates = candidates
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  if has_key(a:candidate.user_data, 'buffer_nr')
-    return { 'type': 'buffer', 'bufnr': a:candidate.user_data.buffer_nr }
-  else
-    return { 'type': 'none' }
-  endif
 endfunction
 
 function! s:buffer_indicator(bufinfo) abort

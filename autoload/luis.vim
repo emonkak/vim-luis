@@ -2,14 +2,10 @@ if !exists('s:session')
   let s:session = {}
 endif
 
-if !exists('s:hook')
-  let s:hook = {}
-endif
-
 function! luis#do_action(kind, action_name, candidate) abort
   let Action = s:find_action(a:kind, a:action_name)
   if Action is 0
-    return 'luis: Action ' . string(a:action_name) . ' is not defined'
+    return 'luis: Action ' . string(a:action_name) . ' not defined'
   endif
   let context = { 'kind': a:kind, 'session': s:session }
   return Action(a:candidate, context)
@@ -18,12 +14,12 @@ endfunction
 function! luis#quit() abort
   if empty(s:session) || !s:session.is_active()
     echohl ErrorMsg
-    echo 'luis: Not active'
+    echo 'luis: Session not active'
     echohl NONE
     return 0
   endif
 
-  call s:quit_session(s:session, s:hook)
+  call s:quit_session(s:session)
 
   return 1
 endfunction
@@ -31,27 +27,27 @@ endfunction
 function! luis#restart() abort
   if empty(s:session)
     echohl ErrorMsg
-    echo 'luis: Not started yet'
+    echo 'luis: Session not started yet'
     echohl NONE
     return 0
   endif
 
   if s:session.is_active()
     echohl ErrorMsg
-    echo 'luis: Already active'
+    echo 'luis: Session already active'
     echohl NONE
     return 0
   endif
 
-  call s:start_session(s:session, s:hook)
+  call s:start_session(s:session)
 
   return 1
 endfunction
 
-function! luis#start(new_session, ...) abort
+function! luis#start(new_session) abort
   if !empty(s:session) && s:session.is_active()
     echohl ErrorMsg
-    echo 'luis: Already active'
+    echo 'luis: Session already active'
     echohl NONE
     return 0
   endif
@@ -60,13 +56,9 @@ function! luis#start(new_session, ...) abort
     return 0
   endif
 
-  let options = get(a:000, 0, {})
-  let hook = get(options, 'hook', {})
-
-  call s:start_session(a:new_session, hook)
+  call s:start_session(a:new_session)
 
   let s:session = a:new_session
-  let s:hook = hook
 
   return 1
 endfunction
@@ -74,7 +66,7 @@ endfunction
 function! luis#take_action(...) abort
   if empty(s:session) || !s:session.is_active()
     echohl ErrorMsg
-    echo 'luis: Not active'
+    echo 'luis: Session not active'
     echohl NONE
     return 0
   endif
@@ -84,11 +76,17 @@ function! luis#take_action(...) abort
   let action_name = a:0 > 0 ? a:1 : s:choose_action(kind, candidate)
 
   if action_name isnot 0
+    let context = {
+    \   'kind': kind,
+    \   'session': s:session,
+    \ }
+
     if has_key(s:session.source, 'on_action')
-      call s:session.source.on_action(candidate, {
-      \   'kind': kind,
-      \   'session': s:session,
-      \ })
+      call s:session.source.on_action(candidate, context)
+    endif
+
+    if has_key(s:session.hook, 'on_action')
+      call s:session.hook.on_action(candidate, context)
     endif
   endif
 
@@ -96,7 +94,7 @@ function! luis#take_action(...) abort
   " current buffer/window and user expects that such actions do something on
   " the buffer/window which was the current one until the luis buffer became
   " active.
-  call s:quit_session(s:session, s:hook)
+  call s:quit_session(s:session)
 
   if action_name is 0
     " In these cases, error messages are already noticed by other functions.
@@ -117,7 +115,6 @@ endfunction
 function! luis#_clear_session() abort
   " For test-only
   let s:session = {}
-  let s:hook = {}
 endfunction
 
 function! s:choose_action(kind, candidate) abort
@@ -295,27 +292,27 @@ function! s:list_key_bindings(key_table) abort
   endfor
 endfunction
 
-function! s:quit_session(session, hook) abort
+function! s:quit_session(session) abort
   let context = { 'session': a:session }
 
   if has_key(a:session.source, 'on_source_leave')
     call a:session.source.on_source_leave(context)
   endif
 
-  if has_key(a:hook, 'on_source_leave')
-    call a:hook.on_source_leave(context)
+  if has_key(a:session.hook, 'on_source_leave')
+    call a:session.hook.on_source_leave(context)
   endif
 
   call a:session.quit()
 endfunction
 
-function! s:start_session(session, hook) abort
+function! s:start_session(session) abort
   call a:session.start()
 
   let context = { 'session': a:session }
 
-  if has_key(a:hook, 'on_source_enter')
-    call a:hook.on_source_enter(context)
+  if has_key(a:session.hook, 'on_source_enter')
+    call a:session.hook.on_source_enter(context)
   endif
 
   if has_key(a:session.source, 'on_source_enter')

@@ -5,14 +5,14 @@ endfunction
 let s:Matcher = {}
 
 function! s:Matcher.filter_candidates(candidates, context) abort dict
-  let candidates = a:candidates
   if a:context.pattern != ''
-    let candidates = filter(
-    \   copy(candidates),
+    return filter(
+    \   copy(a:candidates),
     \   'stridx(v:val.word, a:context.pattern) >= 0'
     \ )
+  else
+    return a:candidates
   endif
-  return candidates
 endfunction
 
 function! s:Matcher.normalize_candidate(candidate, index, context) abort dict

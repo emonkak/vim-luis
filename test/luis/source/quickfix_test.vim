@@ -1,10 +1,10 @@
 function! s:test_gather_candidates() abort
   cgetexpr ['A:12:foo', 'B:24:bar', 'B:36:bar', 'D:baz']
-  call assert_equal([1, 1, 1, 0], map(getqflist(), 'v:val.valid'))
 
   let bufnr_A = bufnr('A')
   let bufnr_B = bufnr('B')
 
+  call assert_equal([1, 1, 1, 0], map(getqflist(), 'v:val.valid'))
   call assert_equal([bufnr_A, bufnr_B, bufnr_B, 0], map(getqflist(), 'v:val.bufnr'))
 
   try
@@ -22,19 +22,32 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'A',
     \     'menu': '1 errors',
-    \     'user_data': { 'buffer_nr': bufnr_A, 'buffer_pos': [12, 0], 'quickfix_nr': 1 },
+    \     'user_data': {
+    \       'buffer_nr': bufnr_A,
+    \       'buffer_pos': [12, 0],
+    \       'preview_bufnr': bufnr_A,
+    \       'preview_pos': [12, 0],
+    \       'quickfix_nr': 1,
+    \     },
     \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'B',
     \     'menu': '2 errors',
-    \     'user_data': { 'buffer_nr': bufnr_B, 'buffer_pos': [24, 0], 'quickfix_nr': 2 },
+    \     'user_data': {
+    \       'buffer_nr': bufnr_B,
+    \       'buffer_pos': [24, 0],
+    \       'preview_bufnr': bufnr_B,
+    \       'preview_pos': [24, 0],
+    \       'quickfix_nr': 2,
+    \     },
     \     'luis_sort_priority': 1,
     \   },
     \ ], candidates)
   finally
-    cgetexpr []
     silent execute 'bwipeout' bufnr_A bufnr_B
+    call setqflist([])
+    call assert_equal([], getqflist())
   endtry
 endfunction
 

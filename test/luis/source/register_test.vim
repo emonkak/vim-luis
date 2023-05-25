@@ -20,7 +20,10 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'foo',
     \     'menu': '"a',
-    \     'user_data': { 'register_name': 'a' },
+    \     'user_data': {
+    \       'register_name': 'a',
+    \       'preview_lines': ['foo'],
+    \     },
     \     'kind': 'c',
     \     'dup': 1,
     \     'luis_sort_priority': 97,
@@ -28,7 +31,10 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'bar',
     \     'menu': '"b',
-    \     'user_data': { 'register_name': 'b' },
+    \     'user_data': {
+    \       'register_name': 'b',
+    \       'preview_lines': ['bar', 'foo'],
+    \     },
     \     'kind': 'l',
     \     'dup': 1,
     \     'luis_sort_priority': 98,
@@ -36,7 +42,10 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'baz',
     \     'menu': '"c',
-    \     'user_data': { 'register_name': 'c' },
+    \     'user_data': {
+    \       'register_name': 'c',
+    \       'preview_lines': ['baz', 'bar', 'foo'],
+    \     },
     \     'kind': 'b',
     \     'dup': 1,
     \     'luis_sort_priority': 99,
@@ -45,47 +54,6 @@ function! s:test_gather_candidates() abort
   finally
     call s:restore_registers(saved_registers)
     bwipeout!
-  endtry
-endfunction
-
-function! s:test_preview_candidates() abort
-  0verbose let saved_registers = s:clean_registers('abc')
-
-  call setreg('a', ['foo'], "v")
-  call setreg('b', ['bar', 'foo'], 'V')
-  call setreg('c', ['baz', 'bar', 'foo'], '\<C-v>')
-
-  try
-    let source = luis#source#register#new()
-
-    let candidate = {
-    \   'word': 'foo',
-    \   'user_data': { 'register_name': 'a' },
-    \ }
-    call assert_equal(
-    \   { 'type': 'text', 'lines': ['foo'] },
-    \   source.preview_candidate(candidate, {})
-    \ )
-
-    let candidate = {
-    \   'word': 'bar',
-    \   'user_data': { 'register_name': 'b' },
-    \ }
-    call assert_equal(
-    \   { 'type': 'text', 'lines': ['bar', 'foo'] },
-    \   source.preview_candidate(candidate, {})
-    \ )
-
-    let candidate = {
-    \   'word': 'baz',
-    \   'user_data': { 'register_name': 'c' },
-    \ }
-    call assert_equal(
-    \   { 'type': 'text', 'lines': ['baz', 'bar', 'foo'] },
-    \   source.preview_candidate(candidate, {})
-    \ )
-  finally
-    0verbose call s:restore_registers(saved_registers)
   endtry
 endfunction
 

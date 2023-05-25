@@ -8,9 +8,17 @@ function! s:test_gather_candidates__empty_list() abort
 endfunction
 
 function! s:test_gather_candidates__filled_list() abort
-  argadd foo bar baz
+  argadd A B C
   call assert_equal(3, argc())
-  call assert_equal(['foo', 'bar', 'baz'], argv())
+  call assert_equal(['A', 'B', 'C'], argv())
+
+  let bufnr_A = bufnr('A')
+  let bufnr_B = bufnr('B')
+  let bufnr_C = bufnr('C')
+  call assert_notequal(0, bufnr_A)
+  call assert_notequal(0, bufnr_B)
+  call assert_notequal(0, bufnr_C)
+  call assert_equal(3, len(uniq([bufnr_A, bufnr_B, bufnr_C])))
 
   try
     let source = luis#source#args#new()
@@ -18,71 +26,34 @@ function! s:test_gather_candidates__filled_list() abort
     call source.on_source_enter({})
 
     let candidates = source.gather_candidates({})
-    let expected_candidates = map(argv(), '{
-    \   "word": v:val,
-    \   "user_data": { "args_index": v:key },
-    \ }')
-    call assert_equal(expected_candidates, candidates)
+    call assert_equal([
+    \   {
+    \     'word': 'A',
+    \     'user_data': {
+    \       'args_index': 0,
+    \       'preview_bufnr': bufnr_A,
+    \     },
+    \   },
+    \   {
+    \     'word': 'B',
+    \     'user_data': {
+    \       'args_index': 1,
+    \       'preview_bufnr': bufnr_B,
+    \     },
+    \   },
+    \   {
+    \     'word': 'C',
+    \     'user_data': {
+    \       'args_index': 2,
+    \       'preview_bufnr': bufnr_C,
+    \     },
+    \   },
+    \ ], candidates)
   finally
     argdelete *
-    silent %bwipeout
+    silent execute 'bwipeout' bufnr_A bufnr_B bufnr_C
     call assert_equal(0, argc())
     call assert_equal([], argv())
-  endtry
-endfunction
-
-function! s:test_preview_candidate() abort
-  argadd foo bar baz
-  call assert_equal(3, argc())
-  call assert_equal(['foo', 'bar', 'baz'], argv())
-
-  let bufnr_foo = bufnr('foo')
-  let bufnr_bar = bufnr('bar')
-  let bufnr_baz = bufnr('baz')
-
-  call assert_equal(3, len(uniq([bufnr_foo, bufnr_bar, bufnr_baz])))
-  call assert_notequal(0, bufnr_foo)
-  call assert_notequal(0, bufnr_bar)
-  call assert_notequal(0, bufnr_baz)
-
-  try
-    let source = luis#source#args#new()
-
-    let candidate = {
-    \  'word': 'foo',
-    \ }
-    silent call assert_equal(
-    \   { 'type': 'buffer', 'bufnr': bufnr_foo },
-    \   source.preview_candidate(candidate, {})
-    \ )
-
-    let candidate = {
-    \  'word': 'bar',
-    \ }
-    silent call assert_equal(
-    \   { 'type': 'buffer', 'bufnr': bufnr_bar },
-    \   source.preview_candidate(candidate, {})
-    \ )
-
-    let candidate = {
-    \  'word': 'baz',
-    \ }
-    silent call assert_equal(
-    \   { 'type': 'buffer', 'bufnr': bufnr_baz },
-    \   source.preview_candidate(candidate, {})
-    \ )
-
-    let candidate = {
-    \  'word': 'XXX',
-    \  'user_data': {},
-    \ }
-    silent call assert_equal(
-    \   { 'type': 'none' },
-    \   source.preview_candidate(candidate, {})
-    \ )
-  finally
-    argdelete *
-    silent %bwipeout
   endtry
 endfunction
 

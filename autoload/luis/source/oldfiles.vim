@@ -24,16 +24,10 @@ function! s:Source.on_source_enter(context) abort dict
     \   'word': fnamemodify(path, ':~:.'),
     \   'user_data': {
     \     'file_path': path,
+    \     'preview_path': path,
     \   },
     \   'luis_sort_priority': i,
     \ })
   endfor
   let self.cached_candidates = candidates
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  return {
-  \   'type': 'file',
-  \   'path': a:candidate.word,
-  \ }
 endfunction

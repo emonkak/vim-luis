@@ -28,6 +28,8 @@ function! s:Source.on_source_enter(context) abort dict
     \     'tagstack_index': index,
     \     'buffer_nr': item.bufnr,
     \     'buffer_pos': item.from[1:2],
+    \     'preview_bufnr': item.bufnr,
+    \     'preview_pos': item.from[1:2],
     \   },
     \   'luis_sort_priority': index,
     \ })
@@ -35,17 +37,4 @@ function! s:Source.on_source_enter(context) abort dict
   endfor
 
   let self.cached_candidates = candidates
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  if has_key(a:candidate.user_data, 'buffer_nr')
-  \  && has_key(a:candidate.user_data, 'buffer_pos')
-    return {
-    \   'type': 'buffer',
-    \   'bufnr': a:candidate.user_data.buffer_nr,
-    \   'pos': a:candidate.user_data.buffer_pos,
-    \ }
-  else
-    return { 'type': 'none' }
-  endif
 endfunction

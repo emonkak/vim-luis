@@ -8,54 +8,274 @@ function! s:test_gather_candidates() abort
     let source = luis#source#file#new()
 
     call assert_equal([
-    \   { 'word': 'dir1', 'abbr': 'dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/' } },
-    \   { 'word': 'file1', 'abbr': 'file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/file1' } },
-    \   { 'word': 'link1', 'abbr': 'link1', 'kind': 'link', 'user_data': { 'file_path': new_cwd . '/link1' } },
+    \   {
+    \     'word': 'dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/',
+    \   },
+    \   {
+    \     'word': 'file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/file1',
+    \       'preview_path': new_cwd . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'file1',
+    \   },
+    \   {
+    \     'word': 'link1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/link1',
+    \       'preview_path': new_cwd . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '' }))
 
     call assert_equal([
-    \   { 'word': 'dir1', 'abbr': 'dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/' } },
-    \   { 'word': 'file1', 'abbr': 'file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/file1' } },
-    \   { 'word': 'link1', 'abbr': 'link1', 'kind': 'link', 'user_data': { 'file_path': new_cwd . '/link1' } },
-    \   { 'word': 'dir1', 'kind': '*new*', 'user_data': {}, 'luis_sort_priority': 1 },
+    \   {
+    \     'word': 'dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/',
+    \   },
+    \   {
+    \     'word': 'file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/file1',
+    \       'preview_path': new_cwd . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'file1',
+    \   },
+    \   {
+    \     'word': 'link1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/link1',
+    \       'preview_path': new_cwd . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'link1',
+    \   },
+    \   {
+    \     'word': 'dir1',
+    \     'user_data': {},
+    \     'kind': '*new*',
+    \     'luis_sort_priority': 1
+    \   },
     \ ], source.gather_candidates({ 'pattern': 'dir1' }))
 
     call assert_equal([
-    \   {  'word': 'dir1/dir2', 'abbr': 'dir1/dir2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/dir2/' } },
-    \   { 'word': 'dir1/file2', 'abbr': 'dir1/file2', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/dir1/file2' } },
-    \   { 'word': 'dir1/link2', 'abbr': 'dir1/link2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/link2/' } },
+    \   {
+    \     'word': 'dir1/dir2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/dir2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/dir2/',
+    \   },
+    \   {
+    \     'word': 'dir1/file2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/file2',
+    \       'preview_path': new_cwd . '/dir1/file2',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'dir1/file2',
+    \   },
+    \   {
+    \     'word': 'dir1/link2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/link2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/link2/',
+    \   },
     \ ], source.gather_candidates({ 'pattern': 'dir1/' }))
 
     call assert_equal([
-    \   { 'word': '.dir1', 'abbr': '.dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/' } },
-    \   { 'word': '.file1', 'abbr': '.file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/.file1' } },
-    \   { 'word': 'dir1', 'abbr': 'dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/' } },
-    \   { 'word': 'file1', 'abbr': 'file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/file1' } },
-    \   { 'word': 'link1', 'abbr': 'link1', 'kind': 'link', 'user_data': { 'file_path': new_cwd . '/link1' } },
+    \   {
+    \     'word': '.dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/',
+    \   },
+    \   {
+    \     'word': '.file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.file1',
+    \       'preview_path': new_cwd . '/.file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '.file1',
+    \   },
+    \   {
+    \     'word': 'dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/',
+    \   },
+    \   {
+    \     'word': 'file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/file1',
+    \       'preview_path': new_cwd . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'file1',
+    \   },
+    \   {
+    \     'word': 'link1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/link1',
+    \       'preview_path': new_cwd . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '.' }))
 
     call assert_equal([
-    \   { 'word': '.dir1', 'abbr': '.dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/' } },
-    \   { 'word': '.file1', 'abbr': '.file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/.file1' } },
-    \   { 'word': 'dir1', 'abbr': 'dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/dir1/' } },
-    \   { 'word': 'file1', 'abbr': 'file1', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/file1' } },
-    \   { 'word': 'link1', 'abbr': 'link1', 'kind': 'link', 'user_data': { 'file_path': new_cwd . '/link1' } },
-    \   { 'word': '.dir1', 'kind': '*new*', 'user_data': {}, 'luis_sort_priority': 1 },
+    \   {
+    \     'word': '.dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/',
+    \   },
+    \   {
+    \     'word': '.file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.file1',
+    \       'preview_path': new_cwd . '/.file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '.file1',
+    \   },
+    \   {
+    \     'word': 'dir1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': 'dir1/',
+    \   },
+    \   {
+    \     'word': 'file1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/file1',
+    \       'preview_path': new_cwd . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'file1',
+    \   },
+    \   {
+    \     'word': 'link1',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/link1',
+    \       'preview_path': new_cwd . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': 'link1',
+    \   },
+    \   {
+    \     'word': '.dir1',
+    \     'user_data': {},
+    \     'kind': '*new*',
+    \     'luis_sort_priority': 1
+    \   },
     \ ], source.gather_candidates({ 'pattern': '.dir1' }))
 
     call assert_equal([
-    \   { 'word': '.dir1/dir2', 'abbr': '.dir1/dir2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/dir2/' } },
-    \   { 'word': '.dir1/file2', 'abbr': '.dir1/file2', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/.dir1/file2' } },
-    \   { 'word': '.dir1/link2', 'abbr': '.dir1/link2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/link2/' } },
+    \   {
+    \     'word': '.dir1/dir2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/dir2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/dir2/',
+    \   },
+    \   {
+    \     'word': '.dir1/file2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/file2',
+    \       'preview_path': new_cwd . '/.dir1/file2',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '.dir1/file2',
+    \   },
+    \   {
+    \     'word': '.dir1/link2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/link2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/link2/',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '.dir1/' }))
 
     call assert_equal([
-    \   { 'word': '.dir1/.dir2', 'abbr': '.dir1/.dir2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/.dir2/' } },
-    \   { 'word': '.dir1/.file2', 'abbr': '.dir1/.file2', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/.dir1/.file2' } },
-    \   { 'word': '.dir1/.link2', 'abbr': '.dir1/.link2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/.link2/' } },
-    \   { 'word': '.dir1/dir2', 'abbr': '.dir1/dir2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/dir2/' } },
-    \   { 'word': '.dir1/file2', 'abbr': '.dir1/file2', 'kind': 'file', 'user_data': { 'file_path': new_cwd . '/.dir1/file2' } },
-    \   { 'word': '.dir1/link2', 'abbr': '.dir1/link2/', 'kind': 'dir', 'user_data': { 'file_path': new_cwd . '/.dir1/link2/' } },
+    \   {
+    \     'word': '.dir1/.dir2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/.dir2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/.dir2/',
+    \   },
+    \   {
+    \     'word': '.dir1/.file2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/.file2',
+    \       'preview_path': new_cwd . '/.dir1/.file2',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '.dir1/.file2',
+    \   },
+    \   {
+    \     'word': '.dir1/.link2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/.link2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/.link2/',
+    \   },
+    \   {
+    \     'word': '.dir1/dir2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/dir2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/dir2/',
+    \   },
+    \   {
+    \     'word': '.dir1/file2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/file2',
+    \       'preview_path': new_cwd . '/.dir1/file2',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '.dir1/file2',
+    \   },
+    \   {
+    \     'word': '.dir1/link2',
+    \     'user_data': {
+    \       'file_path': new_cwd . '/.dir1/link2/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '.dir1/link2/',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '.dir1/.' }))
   finally
     cd `=original_cwd`
@@ -74,31 +294,153 @@ function! s:test_gather_candidates__home_directory() abort
     call source.on_source_enter({})
 
     call assert_equal([
-    \   { 'word': '~/dir1', 'abbr': '~/dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/dir1/' } },
-    \   { 'word': '~/file1', 'abbr': '~/file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/file1' } },
-    \   { 'word': '~/link1', 'abbr': '~/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
+    \   {
+    \     'word': '~/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/dir1/',
+    \   },
+    \   {
+    \     'word': '~/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/file1',
+    \   },
+    \   {
+    \     'word': '~/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '~/' }))
 
     call assert_equal([
-    \   { 'word': '$HOME/dir1', 'abbr': '$HOME/dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/dir1/' } },
-    \   { 'word': '$HOME/file1', 'abbr': '$HOME/file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/file1' } },
-    \   { 'word': '$HOME/link1', 'abbr': '$HOME/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
+    \   {
+    \     'word': '$HOME/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '$HOME/dir1/',
+    \   },
+    \   {
+    \     'word': '$HOME/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '$HOME/file1',
+    \   },
+    \   {
+    \     'word': '$HOME/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '$HOME/link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '$HOME/' }))
 
     call assert_equal([
-    \   { 'word': '~/.dir1', 'abbr': '~/.dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/.dir1/' } },
-    \   { 'word': '~/.file1', 'abbr': '~/.file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/.file1' } },
-    \   { 'word': '~/dir1', 'abbr': '~/dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/dir1/' } },
-    \   { 'word': '~/file1', 'abbr': '~/file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/file1' } },
-    \   { 'word': '~/link1', 'abbr': '~/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
+    \   {
+    \     'word': '~/.dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/.dir1/',
+    \   },
+    \   {
+    \     'word': '~/.file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.file1',
+    \       'preview_path': new_HOME . '/.file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/.file1',
+    \   },
+    \   {
+    \     'word': '~/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/dir1/',
+    \   },
+    \   {
+    \     'word': '~/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/file1',
+    \   },
+    \   {
+    \     'word': '~/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '~/.' }))
 
     call assert_equal([
-    \   { 'word': '$HOME/.dir1', 'abbr': '$HOME/.dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/.dir1/' } },
-    \   { 'word': '$HOME/.file1', 'abbr': '$HOME/.file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/.file1' } },
-    \   { 'word': '$HOME/dir1', 'abbr': '$HOME/dir1/', 'kind': 'dir', 'user_data': { 'file_path': new_HOME . '/dir1/' } },
-    \   { 'word': '$HOME/file1', 'abbr': '$HOME/file1', 'kind': 'file', 'user_data': { 'file_path': new_HOME . '/file1' } },
-    \   { 'word': '$HOME/link1', 'abbr': '$HOME/link1', 'kind': 'link', 'user_data': { 'file_path': new_HOME . '/link1' } },
+    \   {
+    \     'word': '$HOME/.dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '$HOME/.dir1/',
+    \   },
+    \   {
+    \     'word': '$HOME/.file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.file1',
+    \       'preview_path': new_HOME . '/.file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '$HOME/.file1',
+    \   },
+    \   {
+    \     'word': '$HOME/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '$HOME/dir1/',
+    \   },
+    \   {
+    \     'word': '$HOME/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '$HOME/file1',
+    \   },
+    \   {
+    \     'word': '$HOME/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '$HOME/link1',
+    \   },
     \ ], source.gather_candidates({ 'pattern': '$HOME/.' }))
   finally
     let $HOME = old_HOME
@@ -126,7 +468,7 @@ function! s:test_is_valid_for_acc() abort
   \ }))
   call assert_false(source.is_valid_for_acc({
   \   'word': '',
-  \   'kind': 'link',
+  \   'kind': 'file',
   \ }))
 endfunction
 
@@ -154,30 +496,6 @@ function! s:test_on_action() abort
   \   'word': '$HOME/.vimrc',
   \   'user_data': { 'file_path': $HOME . '/.vimrc' },
   \ }, candidate)
-endfunction
-
-function! s:test_preview_candidate() abort
-  let source = luis#source#file#new()
-
-  let candidate = {
-  \  'word': 'test/data/hello.vim',
-  \  'kind': 'file',
-  \  'user_data': { 'file_path': 'test/data/hello.vim'  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'file', 'path': 'test/data/hello.vim' },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '/test/data/hello.vim',
-  \  'kind': 'file',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
 endfunction
 
 function! s:test_source_definition() abort

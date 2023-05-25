@@ -1,9 +1,7 @@
 silent runtime! test/mocks.vim
 
 function! s:test_acc_text() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
 
   let cs1 = [
   \   { 'word': 'usr/share/man/man1' },
@@ -80,19 +78,139 @@ function! s:test_acc_text() abort
   call assert_equal('', luis#matcher#acc_text('USR//', cs1, source))
 endfunction
 
-function! s:test_collect_candidates__default_matcher() abort
-endfunction
-
-function! s:test_collect_candidates__source_matcher() abort
+function! s:test_collect_candidates__with_default_matcher() abort
   let candidates = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-  let kind = CreateMockKind()
   let [matcher, matcher_spies] = SpyDict(CreateMockMatcher())
-  let [source, source_spies] = SpyDict(CreateMockSource(kind, matcher, candidates))
-  let session = CreateMockSession(source, {}, 1)
+  let [source, source_spies] = SpyDict(CreateMockSource({
+  \   'candidates': candidates,
+  \ }))
+  let session = CreateMockSession(source, {}, {}, 1)
+  let normalize_spy = Spy({ candidate -> candidate })
+
+  let pattern = 'foo'
+  let expected_context = {
+  \   'pattern': pattern,
+  \   'matcher': matcher,
+  \   'session': session,
+  \ }
+
+  let original_matcher = luis#matcher#set_default(matcher)
+
+  call assert_equal(
+  \   candidates,
+  \   luis#matcher#collect_candidates(
+  \     session,
+  \     pattern,
+  \     normalize_spy.to_funcref()
+  \   )
+  \ )
+  call assert_equal(1, source_spies.gather_candidates.call_count())
+  call assert_equal(
+  \   [expected_context],
+  \   source_spies.gather_candidates.last_args()
+  \ )
+  call assert_equal(1, matcher_spies.filter_candidates.call_count())
+  call assert_equal(
+  \   [candidates, expected_context],
+  \   matcher_spies.filter_candidates.last_args()
+  \ )
+  call assert_equal([
+  \   [candidates[0], 0, expected_context],
+  \   [candidates[1], 1, expected_context],
+  \   [candidates[2], 2, expected_context],
+  \ ], matcher_spies.normalize_candidate.args())
+  call assert_equal([
+  \   [candidates[0], 0, expected_context],
+  \   [candidates[1], 1, expected_context],
+  \   [candidates[2], 2, expected_context],
+  \ ], normalize_spy.args())
+  call assert_equal(1, matcher_spies.sort_candidates.call_count())
+  call assert_equal(
+  \   [candidates, expected_context],
+  \   matcher_spies.sort_candidates.last_args()
+  \ )
+
+  call luis#matcher#set_default(original_matcher)
+endfunction
+
+function! s:test_collect_candidates__with_hook() abort
+  let candidates = [
+  \   { 'word': 'foo' },
+  \   { 'word': 'foobar' },
+  \   { 'word': 'foobarbaz' },
+  \ ]
+  let [matcher, matcher_spies] = SpyDict(CreateMockMatcher())
+  let [source, source_spies] = SpyDict(CreateMockSource({
+  \   'matcher': matcher,
+  \   'candidates': candidates,
+  \ }))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let session = CreateMockSession(source, hook, {}, 1)
+  let normalize_spy = Spy({ candidate -> candidate })
+
+  let pattern = 'foo'
+  let expected_context = {
+  \   'pattern': pattern,
+  \   'matcher': matcher,
+  \   'session': session,
+  \ }
+
+  call assert_equal(
+  \   candidates,
+  \   luis#matcher#collect_candidates(
+  \     session,
+  \     pattern,
+  \     normalize_spy.to_funcref()
+  \   )
+  \ )
+  call assert_equal(1, source_spies.gather_candidates.call_count())
+  call assert_equal(
+  \   [expected_context],
+  \   source_spies.gather_candidates.last_args()
+  \ )
+  call assert_equal(1, matcher_spies.filter_candidates.call_count())
+  call assert_equal(
+  \   [candidates, expected_context],
+  \   matcher_spies.filter_candidates.last_args()
+  \ )
+  call assert_equal([
+  \   [candidates[0], 0, expected_context],
+  \   [candidates[1], 1, expected_context],
+  \   [candidates[2], 2, expected_context],
+  \ ], hook_spies.format_candidate.args())
+  call assert_equal([
+  \   [candidates[0], 0, expected_context],
+  \   [candidates[1], 1, expected_context],
+  \   [candidates[2], 2, expected_context],
+  \ ], matcher_spies.normalize_candidate.args())
+  call assert_equal([
+  \   [candidates[0], 0, expected_context],
+  \   [candidates[1], 1, expected_context],
+  \   [candidates[2], 2, expected_context],
+  \ ], normalize_spy.args())
+  call assert_equal(1, matcher_spies.sort_candidates.call_count())
+  call assert_equal(
+  \   [candidates, expected_context],
+  \   matcher_spies.sort_candidates.last_args()
+  \ )
+endfunction
+
+function! s:test_collect_candidates__with_source_matcher() abort
+  let candidates = [
+  \   { 'word': 'foo' },
+  \   { 'word': 'foobar' },
+  \   { 'word': 'foobarbaz' },
+  \ ]
+  let [matcher, matcher_spies] = SpyDict(CreateMockMatcher())
+  let [source, source_spies] = SpyDict(CreateMockSource({
+  \   'matcher': matcher,
+  \   'candidates': candidates,
+  \ }))
+  let session = CreateMockSession(source, {}, {}, 1)
   let normalize_spy = Spy({ candidate -> candidate })
 
   let pattern = 'foo'
@@ -137,22 +255,22 @@ function! s:test_collect_candidates__source_matcher() abort
   \ )
 endfunction
 
-function! s:test_get_default() abort
-  let initial_matcher = luis#matcher#get_default()
-  call assert_equal(1, luis#validations#validate_matcher(initial_matcher))
+function! s:test_set_default() abort
+  let original_matcher = luis#matcher#default()
+  call assert_equal(1, luis#validations#validate_matcher(original_matcher))
 
   let new_matcher = CreateMockMatcher()
   let old_matcher = luis#matcher#set_default(new_matcher)
-  call assert_true(old_matcher is initial_matcher)
+  call assert_true(old_matcher is original_matcher)
 
-  let matcher = luis#matcher#get_default()
+  let matcher = luis#matcher#default()
   call assert_true(matcher is new_matcher)
 
-  let old_matcher = luis#matcher#set_default(initial_matcher)
+  let old_matcher = luis#matcher#set_default(original_matcher)
   call assert_true(old_matcher is new_matcher)
 
-  let matcher = luis#matcher#get_default()
-  call assert_true(matcher is initial_matcher)
+  let matcher = luis#matcher#default()
+  call assert_true(matcher is original_matcher)
 endfunction
 
 function! s:test_set_default__invalid_matcher() abort

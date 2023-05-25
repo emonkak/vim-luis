@@ -26,35 +26,60 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':80:0',
     \     'menu': 'jump 1',
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [80, 0] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [80, 0],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [80, 0],
+    \     },
     \     'dup': 1,
     \     'luis_sort_priority': 1
     \   },
     \   {
     \     'word': bufname . ':60:0',
     \     'menu': 'jump 2',
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [60, 0] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [60, 0],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [60, 0],
+    \     },
     \     'dup': 1,
     \     'luis_sort_priority': 2
     \   },
     \   {
     \     'word': bufname . ':40:0',
     \     'menu': 'jump 3',
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [40, 0] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [40, 0],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [40, 0],
+    \     },
     \     'dup': 1,
     \     'luis_sort_priority': 3
     \   },
     \   {
     \     'word': bufname . ':20:0',
     \     'menu': 'jump 4',
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [20, 0] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [20, 0],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [20, 0],
+    \     },
     \     'dup': 1,
     \     'luis_sort_priority': 4
     \   },
     \   {
     \     'word': bufname . ':1:0',
     \     'menu': 'jump 5',
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [1, 0] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [1, 0],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [1, 0],
+    \     },
     \     'dup': 1,
     \     'luis_sort_priority': 5
     \   },
@@ -62,37 +87,6 @@ function! s:test_gather_candidates() abort
   finally
     execute bufnr 'bwipeout!'
   endtry
-endfunction
-
-function! s:test_preview_candidate() abort
-  let source = luis#source#jumplist#new(win_getid())
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [2, 1]  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123, 'pos': [2, 1] },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': { 'buffer_nr': 123 },
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
 endfunction
 
 function! s:test_source_definition() abort

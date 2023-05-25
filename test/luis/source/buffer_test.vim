@@ -21,6 +21,7 @@ function! s:test_gather_candidates() abort
     \     'dup': 1,
     \     'user_data': {
     \       'buffer_nr': bufnr_1,
+    \       'preview_bufnr': bufnr_1,
     \     },
     \     'luis_sort_priority': 3,
     \   },
@@ -31,6 +32,7 @@ function! s:test_gather_candidates() abort
     \     'dup': 0,
     \     'user_data': {
     \       'buffer_nr': bufnr_2,
+    \       'preview_bufnr': bufnr_2,
     \     },
     \     'luis_sort_priority': 1,
     \   },
@@ -41,6 +43,7 @@ function! s:test_gather_candidates() abort
     \     'dup': 0,
     \     'user_data': {
     \       'buffer_nr': bufnr_3,
+    \       'preview_bufnr': bufnr_3,
     \     },
     \     'luis_sort_priority': 0,
     \   },
@@ -48,28 +51,6 @@ function! s:test_gather_candidates() abort
   finally
     silent %bwipeout
   endtry
-endfunction
-
-function! s:test_preview_candidate() abort
-  let source = luis#source#buffer#new()
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': { 'buffer_nr': 123  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123 },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
 endfunction
 
 function! s:test_source_definition() abort

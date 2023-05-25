@@ -55,6 +55,10 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
+\     'on_preview': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
 \     'on_source_enter': {
 \       'type': v:t_func,
 \       'optional': 1,
@@ -71,7 +75,29 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'preview_candidate': {
+\   },
+\ }
+
+let s:SCHEMA_HOOK = {
+\   'type': 'struct',
+\   'properties': {
+\     'format_candidate': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'format_preview_content': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_action': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_source_enter': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'on_source_leave': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
@@ -81,6 +107,7 @@ let s:SCHEMA_SOURCE = {
 let s:SCHEMA_SESSION = {
 \   'type': 'struct',
 \   'properties': {
+\     'hook': s:SCHEMA_HOOK,
 \     'is_active': {
 \       'type': v:t_func,
 \     },
@@ -109,7 +136,7 @@ let s:SCHEMA_PREVIEW_WINDOW = {
 \     'preview_buffer': {
 \       'type': v:t_func,
 \     },
-\     'preview_text': {
+\     'preview_lines': {
 \       'type': v:t_func,
 \     },
 \   },
@@ -152,8 +179,7 @@ endfunction
 function! s:do_validate(schema, value, name) abort
   let errors = luis#schema#validate(a:schema, a:value)
   if !empty(errors)
-    echoerr 'luis: Invalid ' . a:name . ':' . "\n" . join(errors, "\n")
-    return 0
+    echoerr 'luis: Invalid ' . a:name . ': ' . join(errors, ', ')
   else
     return 1
   endif

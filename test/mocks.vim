@@ -1,5 +1,8 @@
 function! CreateMockHook() abort
   return {
+  \   'format_candidate': { candidate, index, context -> candidate },
+  \   'on_action': { candidate, context -> 0 },
+  \   'on_preview': { candidate, context -> 0 },
   \   'on_source_enter': { context -> 0 },
   \   'on_source_leave': { context -> 0 },
   \ }
@@ -29,35 +32,40 @@ function! CreateMockPreviewWindow(is_active) abort
   return {
   \   'is_active': { -> a:is_active },
   \   'preview_buffer': { bufnr, dimensions, options -> 0 },
-  \   'preview_text': { lines, dimensions, options -> 0 },
+  \   'preview_lines': { lines, dimensions, options -> 0 },
   \   'quit_preview': { -> 0 },
   \ }
 endfunction
 
-function! CreateMockSession(source, candidate, is_active) abort
+function! CreateMockSession(source, hook, candidate, is_active) abort
   return {
-  \   'source': a:source,
   \   'guess_candidate': { -> a:candidate },
+  \   'hook': a:hook,
   \   'is_active': { -> a:is_active },
   \   'quit': { -> 0 },
   \   'reload_candidates': { -> 0 },
+  \   'source': a:source,
   \   'start': { -> 0 },
   \ }
 endfunction
 
-function! CreateMockSource(default_kind, matcher, candidates) abort
+function! CreateMockSource(...) abort
+  let options = get(a:000, 0, {})
+  let candidates = get(options, 'candidates', [])
   let source = {
-  \   'default_kind': a:default_kind,
-  \   'gather_candidates': { context -> a:candidates },
+  \   'gather_candidates': { context -> candidates },
   \   'is_valid_for_acc': { candidate -> get(candidate, 'is_valid_for_acc', 1) },
-  \   'matcher': a:matcher,
   \   'name': 'mock_source',
   \   'on_action': { candidate, context -> 0 },
+  \   'on_preview': { candidate, context -> 0 },
   \   'on_source_enter': { context -> 0 },
   \   'on_source_leave': { context -> 0 },
   \ }
-  if a:matcher isnot 0
-    let source.matcher = a:matcher
+  let source.default_kind = has_key(options, 'default_kind')
+  \                       ? options.default_kind
+  \                       : CreateMockKind()
+  if has_key(options, 'matcher')
+    let source.matcher = options.matcher
   endif
   return source
 endfunction

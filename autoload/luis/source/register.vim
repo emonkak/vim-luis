@@ -36,17 +36,10 @@ function! s:Source.on_source_enter(context) abort dict
     \   'dup': 1,
     \   'user_data': {
     \     'register_name': name,
+    \     'preview_lines': contents,
     \   },
     \   'luis_sort_priority': char2nr(name),
     \ })
   endfor
   let self.cached_candidates = candidates
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  if has_key(a:candidate.user_data, 'register_name')
-    let lines = getreg(a:candidate.user_data.register_name, 1, 1)
-    return { 'type': 'text', 'lines': lines }
-  endif
-  return { 'type': 'none' }
 endfunction

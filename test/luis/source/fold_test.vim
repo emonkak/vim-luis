@@ -29,7 +29,12 @@ function! s:test_gather_candidates() abort
     \     'abbr': '" Foo',
     \     'menu': '4 lines',
     \     'dup': 1,
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [1, 1] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [1, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [1, 1],
+    \     },
     \     'luis_sort_priority': 1,
     \   },
     \   {
@@ -37,7 +42,12 @@ function! s:test_gather_candidates() abort
     \     'abbr': '" Bar',
     \     'menu': '7 lines',
     \     'dup': 1,
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [5, 1] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [5, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [5, 1],
+    \     },
     \     'luis_sort_priority': 5,
     \   },
     \   {
@@ -45,44 +55,18 @@ function! s:test_gather_candidates() abort
     \     'abbr': '  " Baz',
     \     'menu': '3 lines',
     \     'dup': 1,
-    \     'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [9, 1] },
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_pos': [9, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [9, 1],
+    \     },
     \     'luis_sort_priority': 9,
     \   },
     \ ], candidates)
   finally
     execute bufnr 'bwipeout!'
   endtry
-endfunction
-
-function! s:test_preview_candidate() abort
-  let source = luis#source#fold#new(win_getid())
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': { 'buffer_nr': 123, 'buffer_pos': [2, 1]  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123, 'pos': [2, 1] },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': { 'buffer_nr': 123 },
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': '',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
 endfunction
 
 function! s:test_source_definition() abort

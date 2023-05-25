@@ -48,6 +48,8 @@ function! s:Source.on_source_enter(context) abort dict
           \   'user_data': {
           \     'buffer_nr': bufnr,
           \     'buffer_pos': [lnum, 1],
+          \     'preview_bufnr': bufnr,
+          \     'preview_pos': [lnum, 1],
           \   },
           \   'luis_sort_priority': lnum,
           \ })
@@ -62,17 +64,4 @@ function! s:Source.on_source_enter(context) abort dict
   endtry
 
   let self.cached_candidates = candidates
-endfunction
-
-function! s:Source.preview_candidate(candidate, context) abort
-  if has_key(a:candidate.user_data, 'buffer_nr')
-  \  && has_key(a:candidate.user_data, 'buffer_pos')
-    return {
-    \   'type': 'buffer',
-    \   'bufnr': a:candidate.user_data.buffer_nr,
-    \   'pos': a:candidate.user_data.buffer_pos,
-    \ }
-  else
-    return { 'type': 'none' }
-  endif
 endfunction

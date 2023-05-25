@@ -51,37 +51,48 @@ function! luis#preview#is_enabled() abort
 endfunction
 
 function! luis#preview#quit() abort
-  if s:current_preview_win isnot 0
-    call s:current_preview_win.quit_preview()
+  if s:current_preview_win is 0
+    echoerr 'luis: Preview not available'
+    return 0
   endif
+  call s:current_preview_win.quit_preview()
+  return 1
 endfunction
 
-function! luis#preview#start(content, dimensions) abort
+function! luis#preview#start(session, dimensions) abort
   if s:current_preview_win is 0
-    return
+    echoerr 'luis: Preview not available'
+    return 0
   endif
 
-  if a:content.type ==# 'text'
-    let hints = {}
-    if has_key(a:content, 'filetype')
-      let hints.filetype = a:content.filetype
-    endif
-    call s:current_preview_win.preview_text(
-    \   a:content.lines,
+  let candidate = a:session.guess_candidate()
+  let context = {
+  \   'preview_win': s:current_preview_win,
+  \   'session': a:session,
+  \ }
+
+  if has_key(a:session.source, 'on_preview')
+    call a:session.source.on_preview(candidate, context)
+  endif
+
+  if has_key(a:session.hook, 'on_preview')
+    call a:session.hook.on_preview(candidate, context)
+  endif
+
+  if has_key(candidate.user_data, 'preview_lines')
+    let hints = s:hints_from_candidate(candidate)
+    call s:current_preview_win.preview_lines(
+    \   candidate.user_data.preview_lines,
     \   a:dimensions,
     \   hints
     \ )
-  elseif a:content.type ==# 'file'
-    if filereadable(a:content.path)
+  elseif has_key(candidate.user_data, 'preview_path')
+    let path = candidate.user_data.preview_path
+    if filereadable(path)
       try
-        let hints = {}
-        let lines = readfile(a:content.path, '', a:dimensions.height)
-        if has_key(a:content, 'filetype')
-          let hints.filetype = a:content.filetype
-        else
-          let hints.filetype = luis#preview#detect_filetype(a:content.path)
-        endif
-        call s:current_preview_win.preview_text(
+        let lines = readfile(path, '', a:dimensions.height)
+        let hints = s:hints_from_candidate(candidate)
+        call s:current_preview_win.preview_lines(
         \   lines,
         \   a:dimensions,
         \   hints
@@ -92,17 +103,47 @@ function! luis#preview#start(content, dimensions) abort
     else
       call s:current_preview_win.quit_preview()
     endif
-  elseif a:content.type ==# 'buffer'
-    let hints = {}
-    if has_key(a:content, 'pos')
-      let hints.pos = a:content.pos
+  elseif has_key(candidate.user_data, 'preview_bufnr')
+    let bufnr = candidate.user_data.preview_bufnr
+    if bufloaded(bufnr)
+      let hints = s:hints_from_candidate(candidate)
+      call s:current_preview_win.preview_buffer(
+      \   bufnr,
+      \   a:dimensions,
+      \   hints
+      \ )
+    else
+      call s:current_preview_win.quit_preview()
     endif
-    call s:current_preview_win.preview_buffer(
-    \   a:content.bufnr,
-    \   a:dimensions,
-    \   hints
-    \ )
   else
     call s:current_preview_win.quit_preview()
   endif
+  
+  return 1
+endfunction
+
+function! s:hints_from_candidate(candidate) abort
+  let hints = {}
+
+  if has_key(a:candidate.user_data, 'preview_title')
+    let hints.title = a:candidate.user_data.preview_title
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_pos')
+    let hints.pos = a:candidate.user_data.preview_pos
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_filetype')
+    let hints.filetype = a:candidate.user_data.preview_filetype
+  else
+    if has_key(a:candidate.user_data, 'preview_path')
+      let path = a:candidate.user_data.preview_path
+      let filetype = luis#preview#detect_filetype(path)
+      if filetype != ''
+        let hints.filetype = filetype
+      endif
+    endif
+  endif
+
+  return hints
 endfunction

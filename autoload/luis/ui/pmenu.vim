@@ -51,6 +51,7 @@ endfunction
 function! luis#ui#pmenu#new_session(source, ...) abort
   let options = get(a:000, 0, {})
   let session = copy(s:Session)
+  let session.hook = get(options, 'hook', {})
   let session.initial_pattern = get(options, 'initial_pattern', '')
   let session.is_inserted_by_acc = 0
   let session.is_quitting = 0
@@ -93,8 +94,6 @@ let s:Session = {}
 
 function! s:Session.guess_candidate() abort dict
   if s:is_valid_completed_item(v:completed_item)
-    " v:completed_item is a locked dictionary, so it is copied to make it
-    " mutable.
     let candidate = copy(v:completed_item)
     if type(candidate.user_data) is v:t_string
       let candidate.user_data = json_decode(candidate.user_data)
@@ -115,7 +114,7 @@ function! s:Session.guess_candidate() abort dict
     if len(self.last_candidates) > 0
       " There are 1 or more candidates -- user seems to want to take action on
       " the first one.
-      return self.last_candidates[0]
+      return copy(self.last_candidates[0])
     endif
   endif
 
@@ -441,8 +440,7 @@ function! s:on_TextChangedP() abort
   let session = b:luis_session
   let session.selected_index = complete_info.selected
 
-  if has_key(session.source, 'preview_candidate') && luis#preview#is_enabled()
-    let candidate = session.guess_candidate()
+  if luis#preview#is_enabled()
     let [row, col] = s:preview_pos()
     let dimensions = {
     \   'row': row,
@@ -450,13 +448,7 @@ function! s:on_TextChangedP() abort
     \   'width': session.preview_width,
     \   'height': session.preview_height,
     \ }
-    let context = {
-    \   'session': session,
-    \   'preview_dimensions': dimensions,
-    \ }
-    let preview = session.preview
-    let content = session.source.preview_candidate(candidate, context)
-    call luis#preview#start(content, dimensions)
+    call luis#preview#start(session, dimensions)
   endif
 endfunction
 

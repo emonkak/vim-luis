@@ -58,7 +58,7 @@ function! s:test_preview_buffer__preview_twice() abort
   endtry
 endfunction
 
-function! s:test_preview_text__after_preview_buffer() abort
+function! s:test_preview_lines__after_preview_buffer() abort
   if !exists('*popup_create')
     return 'popup_create() function is required.'
   endif
@@ -91,7 +91,7 @@ function! s:test_preview_text__after_preview_buffer() abort
 
     let lines = ['foo', 'bar', 'baz']
     let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-    call preview_win.preview_text(lines, dimensions, {})
+    call preview_win.preview_lines(lines, dimensions, {})
 
     let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
     call assert_false(empty(wininfo_2))
@@ -120,7 +120,7 @@ function! s:test_preview_text__after_preview_buffer() abort
   endtry
 endfunction
 
-function! s:test_preview_text__delete_preview_buffer() abort
+function! s:test_preview_lines__delete_preview_buffer() abort
   if !exists('*popup_create')
     return 'popup_create() function is required.'
   endif
@@ -131,7 +131,7 @@ function! s:test_preview_text__delete_preview_buffer() abort
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview_win.preview_text(lines, dimensions, {})
+  call preview_win.preview_lines(lines, dimensions, {})
 
   let wininfo_1 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_1))
@@ -153,7 +153,7 @@ function! s:test_preview_text__delete_preview_buffer() abort
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview_win.preview_text(lines, dimensions, {})
+  call preview_win.preview_lines(lines, dimensions, {})
 
   let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_2))
@@ -178,7 +178,7 @@ function! s:test_preview_text__delete_preview_buffer() abort
   execute wininfo_2.bufnr 'bwipeout'
 endfunction
 
-function! s:test_preview_text__preview_twice() abort
+function! s:test_preview_lines__preview_twice() abort
   if !exists('*popup_create')
     return 'popup_create() function is required.'
   endif
@@ -189,7 +189,7 @@ function! s:test_preview_text__preview_twice() abort
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview_win.preview_text(lines, dimensions, {})
+  call preview_win.preview_lines(lines, dimensions, {})
 
   let wininfo_1 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_1))
@@ -209,7 +209,7 @@ function! s:test_preview_text__preview_twice() abort
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview_win.preview_text(lines, dimensions, {})
+  call preview_win.preview_lines(lines, dimensions, {})
 
   let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_2))

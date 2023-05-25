@@ -34,8 +34,8 @@ function! s:test_attach_window__valid_window() abort
 endfunction
 
 function! s:test_detect_filetype() abort
-  if !exists('*bufadd')
-    return 'bufadd() function is required.'
+  if !has('nvim') && !exists('*popup_create')
+    return 'popup_create() function is required.'
   endif
 
   filetype on
@@ -50,14 +50,14 @@ function! s:test_detect_filetype() abort
   endtry
 endfunction
 
-function! s:test_quit() abort
+function! s:test_quit__enabled() abort
   let [preview_win, preview_win_spies] = SpyDict(CreateMockPreviewWindow(1))
 
   call assert_equal(0, luis#preview#attach_window(preview_win))
   call assert_true(luis#preview#is_enabled())
 
   try
-    call luis#preview#quit()
+    call assert_equal(1, luis#preview#quit())
     call assert_equal(1, preview_win_spies.quit_preview.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
@@ -65,42 +65,103 @@ function! s:test_quit() abort
   endtry
 endfunction
 
-function! s:test_start__buffer() abort
+function! s:test_quit__not_enabled() abort
+  let v:errmsg = ''
+  silent! call luis#preview#quit()
+  call assert_equal('luis: Preview not available', v:errmsg)
+endfunction
+
+function! s:test_start__not_enabled() abort
+  let source = SpyDict(CreateMockSource())
+  let hook = SpyDict(CreateMockHook())
+  let session = CreateMockSession(source, hook, {}, 1)
+  let dimensions = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
+
+  let v:errmsg = ''
+  silent! call luis#preview#start(session, dimensions)
+  call assert_equal('luis: Preview not available', v:errmsg)
+endfunction
+
+function! s:test_start__with_buffer_preview() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
   let [preview_win, preview_win_spies] = SpyDict(CreateMockPreviewWindow(1))
-  let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
 
   call assert_equal(0, luis#preview#attach_window(preview_win))
   call assert_true(luis#preview#is_enabled())
 
   try
-    let content = { 'type': 'buffer', 'bufnr': 12, 'pos': [34, 56] }
-    call luis#preview#start(content, dimensions)
+    " With existent buffer
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': {
+    \     'preview_bufnr': bufnr('%'),
+    \     'preview_pos': [10, 1],
+    \   }
+    \ }
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(1, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(1, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
     call assert_equal(1, preview_win_spies.preview_buffer.call_count())
     call assert_equal(
-    \   [content.bufnr, dimensions, { 'pos': [34, 56] }],
+    \   [
+    \     candidate.user_data.preview_bufnr,
+    \     dimensions,
+    \     { 'pos': candidate.user_data.preview_pos }
+    \   ],
     \   preview_win_spies.preview_buffer.last_args()
     \ )
+    call assert_equal(0, preview_win_spies.quit_preview.call_count())
 
-    let content = { 'type': 'buffer', 'bufnr': 12 }
-    call luis#preview#start(content, dimensions)
+    " With non-existent buffer
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': {
+    \     'preview_bufnr': bufnr('$') + 1,
+    \   }
+    \ }
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
-    call assert_equal(2, preview_win_spies.preview_buffer.call_count())
-    call assert_equal(
-    \   [content.bufnr, dimensions, {}],
-    \   preview_win_spies.preview_buffer.last_args()
-    \ )
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(2, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(2, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
+    call assert_equal(1, preview_win_spies.preview_buffer.call_count())
+    call assert_equal(1, preview_win_spies.quit_preview.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
   endtry
 endfunction
 
-function! s:test_start__file() abort
-  if !exists('*bufadd')
-    return 'bufadd() function is required.'
+function! s:test_start__with_file_preview() abort
+  if !has('nvim') && !exists('*popup_create')
+    return 'popup_create() function is required.'
   endif
 
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
   let [preview_win, preview_win_spies] = SpyDict(CreateMockPreviewWindow(1))
 
   filetype on
@@ -109,37 +170,97 @@ function! s:test_start__file() abort
   call assert_true(luis#preview#is_enabled())
 
   try
-    let content = { 'type': 'file', 'path': 'test/data/hello.vim' }
-    let dimensions = { 'row': 1, 'col': 1, 'width': 80, 'height': 3 }
-    call luis#preview#start(content, dimensions)
+    " With filetype
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': {
+    \     'preview_path': 'test/data/seq.txt',
+    \     'preview_filetype': 'help',
+    \   }
+    \ }
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-    call assert_equal(1, preview_win_spies.preview_text.call_count())
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(1, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(1, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
+    call assert_equal(1, preview_win_spies.preview_lines.call_count())
     call assert_equal(
     \   [
-    \     ['echo 1', 'echo 2', 'echo 3'],
+    \     ['1', '2', '3', '4'],
+    \     dimensions,
+    \     { 'filetype': 'help' },
+    \   ],
+    \   preview_win_spies.preview_lines.last_args()
+    \ )
+    call assert_equal(0, preview_win_spies.quit_preview.call_count())
+
+    " Without filetype (Auto detection)
+    let candidate = {
+    \   'word': 'hello_world.vim',
+    \   'user_data': {
+    \     'preview_path': 'test/data/hello_world.vim',
+    \   }
+    \ }
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
+
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(2, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(2, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
+    call assert_equal(2, preview_win_spies.preview_lines.call_count())
+    call assert_equal(
+    \   [
+    \     ["echo 'hello, world!'"],
     \     dimensions,
     \     { 'filetype': 'vim' },
     \   ],
-    \   preview_win_spies.preview_text.last_args()
+    \   preview_win_spies.preview_lines.last_args()
     \ )
+    call assert_equal(0, preview_win_spies.quit_preview.call_count())
 
-    let content = {
-    \   'type': 'file',
-    \   'path': 'test/data/hello.vim',
-    \   'filetype': '',
+    " With non-existent file
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': {
+    \     'preview_path': tempname(),
+    \   }
     \ }
-    let dimensions = { 'row': 1, 'col': 1, 'width': 80, 'height': 2 }
-    call luis#preview#start(content, dimensions)
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 3, 'col': 4, 'width': 5, 'height': 6 }
 
-    call assert_equal(2, preview_win_spies.preview_text.call_count())
-    call assert_equal(
-    \   [
-    \     ['echo 1', 'echo 2'],
-    \     dimensions,
-    \     { 'filetype': '' },
-    \   ],
-    \   preview_win_spies.preview_text.last_args()
-    \ )
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(3, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(3, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
+    call assert_equal(2, preview_win_spies.preview_lines.call_count())
+    call assert_equal(1, preview_win_spies.quit_preview.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
@@ -147,17 +268,31 @@ function! s:test_start__file() abort
   endtry
 endfunction
 
-function! s:test_start__none() abort
+function! s:test_start__with_no_preview() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
   let [preview_win, preview_win_spies] = SpyDict(CreateMockPreviewWindow(1))
-  let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
 
   call assert_equal(0, luis#preview#attach_window(preview_win))
   call assert_true(luis#preview#is_enabled())
 
   try
-    let content = { 'type': 'none' }
-    call luis#preview#start(content, dimensions)
+    let candidate = { 'word': '', 'user_data': {} }
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(1, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(1, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
     call assert_equal(1, preview_win_spies.quit_preview.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
@@ -165,38 +300,47 @@ function! s:test_start__none() abort
   endtry
 endfunction
 
-function! s:test_start__text() abort
+function! s:test_start__with_text_preview() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
   let [preview_win, preview_win_spies] = SpyDict(CreateMockPreviewWindow(1))
-  let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
 
   call assert_equal(0, luis#preview#attach_window(preview_win))
   call assert_true(luis#preview#is_enabled())
 
   try
-    let content = {
-    \   'type': 'text',
-    \   'lines': ['foo', 'bar', 'baz'],
+    let candidate = {
+    \   'word': 'foo',
+    \   'user_data': {
+    \     'preview_title': 'title',
+    \     'preview_lines': ['foo', 'bar', 'baz'],
+    \   }
     \ }
-    call luis#preview#start(content, dimensions)
+    let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
+    let dimensions = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-    call assert_equal(1, preview_win_spies.preview_text.call_count())
+    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(1, session_spies.guess_candidate.call_count())
+    call assert_equal(1, source_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], source_spies.on_preview.last_args())
+    call assert_equal(1, hook_spies.on_preview.call_count())
+    call assert_equal([
+    \   candidate,
+    \   { 'session': session, 'preview_win': preview_win },
+    \ ], hook_spies.on_preview.last_args())
+    call assert_equal(1, preview_win_spies.preview_lines.call_count())
     call assert_equal(
-    \   [content.lines, dimensions, {}],
-    \   preview_win_spies.preview_text.last_args()
+    \   [
+    \     candidate.user_data.preview_lines,
+    \     dimensions,
+    \     { 'title': candidate.user_data.preview_title }
+    \   ],
+    \   preview_win_spies.preview_lines.last_args()
     \ )
-
-    let content = {
-    \   'type': 'text',
-    \   'lines': ['foo', 'bar', 'baz'],
-    \   'filetype': 'vim',
-    \ }
-    call luis#preview#start(content, dimensions)
-
-    call assert_equal(2, preview_win_spies.preview_text.call_count())
-    call assert_equal(
-    \   [content.lines, dimensions, { 'filetype': 'vim' }],
-    \   preview_win_spies.preview_text.last_args()
-    \ )
+    call assert_equal(0, preview_win_spies.quit_preview.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())

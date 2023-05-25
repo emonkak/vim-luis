@@ -112,7 +112,8 @@ function! luis#matcher#collect_candidates(session, pattern, Normalize) abort
   let source = a:session.source
   let matcher = has_key(source, 'matcher')
   \           ? source.matcher
-  \           : luis#matcher#get_default()
+  \           : luis#matcher#default()
+  let hook = a:session.hook
   let context = {
   \   'pattern': a:pattern,
   \   'matcher': matcher,
@@ -121,20 +122,35 @@ function! luis#matcher#collect_candidates(session, pattern, Normalize) abort
 
   let candidates = source.gather_candidates(context)
   let candidates = matcher.filter_candidates(candidates, context)
-  call map(
-  \   candidates,
-  \   'matcher.normalize_candidate(
-  \     a:Normalize(v:val, v:key, context),
-  \     v:key,
-  \     context
-  \   )'
-  \ )
+  if has_key(hook, 'format_candidate')
+    call map(
+    \   candidates,
+    \   'a:Normalize(
+    \     matcher.normalize_candidate(
+    \       hook.format_candidate(v:val, v:key, context),
+    \       v:key,
+    \       context
+    \     ),
+    \     v:key,
+    \     context
+    \   )'
+    \ )
+  else
+    call map(
+    \   candidates,
+    \   'a:Normalize(
+    \     matcher.normalize_candidate(v:val, v:key, context),
+    \     v:key,
+    \     context
+    \   )'
+    \ )
+  endif
   let candidates = matcher.sort_candidates(candidates, context)
 
   return candidates
 endfunction
 
-function! luis#matcher#get_default() abort
+function! luis#matcher#default() abort
   if s:default_matcher is 0
     let s:default_matcher = exists('*matchfuzzypos')
     \                     ? luis#matcher#fuzzy_native#import()
@@ -144,7 +160,7 @@ function! luis#matcher#get_default() abort
 endfunction
 
 function! luis#matcher#set_default(new_matcher) abort
-  if !luis#validations#validate_matcher(a:new_matcher)
+  if a:new_matcher isnot 0 && !luis#validations#validate_matcher(a:new_matcher)
     return 0
   endif
   let old_default = s:default_matcher

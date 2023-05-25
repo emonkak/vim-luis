@@ -63,7 +63,7 @@ function! s:Spy.last_args() abort dict
 endfunction
 
 function! s:Spy.last_return_value() abort dict
-  return len(self._calls) > 0 ? self._calls[-1].return_value : 0
+  return len(self._calls) > 0 ? self._calls[-1].return_value : v:null
 endfunction
 
 function! s:Spy.last_self() abort dict
@@ -100,7 +100,7 @@ function! s:test_Spy() abort
   call assert_equal([], spy.args())
   call assert_equal(0, spy.last_args())
   call assert_equal([], spy.return_values())
-  call assert_equal(0, spy.last_return_value())
+  call assert_equal(v:null, spy.last_return_value())
 
   call assert_equal('Hello Vim!', spy.call(['Vim']))
   call assert_true(spy.called())
@@ -133,7 +133,7 @@ function! s:test_Spy__with_dict() abort
   call assert_equal([], spy.args())
   call assert_equal(0, spy.last_args())
   call assert_equal([], spy.return_values())
-  call assert_equal(0, spy.last_return_value())
+  call assert_equal(v:null, spy.last_return_value())
 
   let self1 = { 'name': 'Vim' }
   call assert_equal('Hello Vim!', spy.call([], self1))

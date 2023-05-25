@@ -85,6 +85,8 @@ function! s:test_gather_candidates__local() abort
     \     'user_data': { 
     \       'mark_name': 'a',
     \       'mark_pos': [1, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [1, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': char2nr('a'),
@@ -95,6 +97,8 @@ function! s:test_gather_candidates__local() abort
     \     'user_data': { 
     \       'mark_name': 'b',
     \       'mark_pos': [20, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [20, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': char2nr('b'),
@@ -105,6 +109,8 @@ function! s:test_gather_candidates__local() abort
     \     'user_data': { 
     \       'mark_name': 'c',
     \       'mark_pos': [40, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [40, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': char2nr('c'),
@@ -115,6 +121,8 @@ function! s:test_gather_candidates__local() abort
     \     'user_data': { 
     \       'mark_name': "'",
     \       'mark_pos': [20, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [20, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': char2nr("'"),
@@ -125,6 +133,8 @@ function! s:test_gather_candidates__local() abort
     \     'user_data': { 
     \       'mark_name': '"',
     \       'mark_pos': [1, 1],
+    \       'preview_bufnr': bufnr,
+    \       'preview_pos': [1, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': char2nr('"'),
@@ -133,50 +143,6 @@ function! s:test_gather_candidates__local() abort
   finally
     execute bufnr 'bwipeout!'
   endtry
-endfunction
-
-function! s:test_preview_candidate__global() abort
-  let source = luis#source#mark#new()
-
-  let candidate = {
-  \  'word': 'foo:2:4',
-  \  'user_data': { 'mark_name': 'a', 'mark_pos': [1, 1]  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': 'foo:2:4',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
-endfunction
-
-function! s:test_preview_candidate__local() abort
-  let source = luis#source#mark#new(123)
-
-  let candidate = {
-  \  'word': 'foo:2:4',
-  \  'user_data': { 'mark_name': 'a', 'mark_pos': [2, 1]  },
-  \ }
-  call assert_equal(
-  \   { 'type': 'buffer', 'bufnr': 123, 'pos': [2, 1] },
-  \   source.preview_candidate(candidate, {})
-  \ )
-
-  let candidate = {
-  \  'word': 'foo:2:4',
-  \  'user_data': {},
-  \ }
-  call assert_equal(
-  \   { 'type': 'none' },
-  \   source.preview_candidate(candidate, {})
-  \ )
 endfunction
 
 function! s:test_source_definition() abort

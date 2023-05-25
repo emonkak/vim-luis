@@ -34,6 +34,7 @@ function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
   let self.window = s:open_window(
   \   a:bufnr,
   \   a:dimensions,
+  \   a:hints,
   \   self.popup_config
   \ )
 
@@ -47,7 +48,7 @@ function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.preview_text(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.preview_lines(lines, dimensions, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = bufadd('')
     call s:initialize_preview_buffer(s:preview_bufnr)
@@ -64,6 +65,7 @@ function! s:PreviewWindow.preview_text(lines, dimensions, hints) abort dict
       let self.window = s:open_window(
       \   s:preview_bufnr,
       \   a:dimensions,
+      \   a:hints,
       \   self.popup_config
       \ )
     endif
@@ -71,6 +73,7 @@ function! s:PreviewWindow.preview_text(lines, dimensions, hints) abort dict
     let self.window = s:open_window(
     \   s:preview_bufnr,
     \   a:dimensions,
+    \   a:hints,
     \   self.popup_config
     \ )
   endif
@@ -95,7 +98,7 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && win_gettype(a:win) !=# 'unknown'
 endfunction
 
-function! s:open_window(bufnr, dimensions, override_config) abort
+function! s:open_window(bufnr, dimensions, hints, override_config) abort
   let config = {
   \   'border': [],
   \   'borderchars': &ambiwidth ==# 'double'
@@ -106,6 +109,10 @@ function! s:open_window(bufnr, dimensions, override_config) abort
   \ }
 
   call extend(config, a:override_config, 'force')
+
+  if has_key(a:hints, 'title')
+    let config.title = a:hints.title
+  endif
 
   let config.line = a:dimensions.row + 1  " 1 = {border_width}
   let config.col = max([1, a:dimensions.col])

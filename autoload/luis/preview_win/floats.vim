@@ -17,12 +17,13 @@ endfunction
 
 function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
   if s:is_valid_window(self.window)
-    call nvim_win_set_buf(self.window, a:bufnr)
+    noautocmd call nvim_win_set_buf(self.window, a:bufnr)
     call s:set_dimensions(self.window, a:dimensions)
   else
     let self.window = s:open_window(
     \   a:bufnr,
     \   a:dimensions,
+    \   a:hints,
     \   self.float_config
     \ )
   endif
@@ -37,7 +38,7 @@ function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.preview_text(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.preview_lines(lines, dimensions, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = nvim_create_buf(v:false, v:true)
     call s:initialize_preview_buffer(s:preview_bufnr)
@@ -46,12 +47,13 @@ function! s:PreviewWindow.preview_text(lines, dimensions, hints) abort dict
   endif
 
   if s:is_valid_window(self.window)
-    call nvim_win_set_buf(self.window, s:preview_bufnr)
+    noautocmd call nvim_win_set_buf(self.window, s:preview_bufnr)
     call s:set_dimensions(self.window, a:dimensions)
   else
     let self.window = s:open_window(
     \   s:preview_bufnr,
     \   a:dimensions,
+    \   a:hints,
     \   self.float_config
     \ )
   endif
@@ -81,14 +83,19 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && nvim_win_is_valid(a:win)
 endfunction
 
-function! s:open_window(bufnr, dimensions, override_config) abort
+function! s:open_window(bufnr, dimensions, hints, override_config) abort
   let config = {
-  \    'style': 'minimal',
   \    'border': 'single',
   \    'focusable': 0,
+  \    'style': 'minimal',
   \ }
 
   call extend(config, a:override_config, 'force')
+
+  if has_key(a:hints, 'title')
+    let config.title = a:hints.title
+    let config.title_pos = 'center'
+  endif
 
   let config.relative = 'editor'
   let config.row = a:dimensions.row

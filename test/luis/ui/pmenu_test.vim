@@ -2,9 +2,7 @@ silent runtime! test/mocks.vim
 silent runtime! test/spy.vim
 
 function! s:test_guess_candidate__from_completed_item() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source, {})
 
   try
@@ -24,9 +22,7 @@ function! s:test_guess_candidate__from_completed_item() abort
 endfunction
 
 function! s:test_guess_candidate__from_first_candidate() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source, {})
 
   call assert_false(session.is_active())
@@ -66,9 +62,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_selected_candidate() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source, {})
 
   call assert_false(session.is_active())
@@ -108,9 +102,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_default_candidate() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source, {})
 
   call assert_false(session.is_active())
@@ -147,9 +139,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
 endfunction
 
 function! s:test_reload_candidates() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let [session, session_spies] = SpyDict(luis#ui#pmenu#new_session(source, {}))
 
   call assert_false(session.is_active())
@@ -192,9 +182,7 @@ function! s:test_reload_candidates() abort
 endfunction
 
 function! s:test_start__without_options() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source)
 
   call assert_false(session.is_active())
@@ -264,9 +252,7 @@ function! s:test_start__without_options() abort
 endfunction
 
 function! s:test_start__with_options() abort
-  let kind = CreateMockKind()
-  let matcher = CreateMockMatcher()
-  let source = CreateMockSource(kind, matcher, [])
+  let source = CreateMockSource()
   let session = luis#ui#pmenu#new_session(source, {
   \   'initial_pattern': 'VIM',
   \ })

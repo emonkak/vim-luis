@@ -17,6 +17,7 @@ function! s:do_open(command, candidate) abort
 
   let original_switchbuf = &switchbuf
   let &switchbuf = ''
+
   try
     execute a:command a:candidate.user_data.quickfix_nr
   catch
