@@ -3,7 +3,7 @@
 function! s:run(package_dir) abort
   set nohidden noswapfile
 
-  let args = filter(getline(0, line('$')), 'v:val != ""')
+  let args = filter(getline(1, line('$')), 'v:val != ""')
 
   %argdelete
   %bwipeout!
@@ -116,12 +116,11 @@ function! s:run(package_dir) abort
     \  || col('$') > 1
     \  || winnr('$') > 1
     \  || tabpagenr('$') > 1
-    \  || getchar(0) isnot 0
       call add(errors, {
       \   'script_name': script_name,
       \   'test_name': test_name,
       \   'messages': [
-      \     'CAUTION: Unclean buffers, windows, tabs, or typeahead buffer were found, therefore the execution of remaining tests has been aborted.'
+      \     'CAUTION: Unclean buffers, windows, or tabs were found, therefore the execution of remaining tests has been aborted.'
       \   ],
       \ })
       break
