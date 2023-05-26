@@ -23,13 +23,17 @@ function! luis#preview#detach_window() abort
   return old_preview_window
 endfunction
 
-function! luis#preview#detect_filetype(path) abort
+function! luis#preview#detect_filetype(path, lines) abort
   if has('nvim')
-    return luaeval(
-    \   'vim.filetype.match({ filename = vim.api.nvim_eval("a:path") }) or ""'
-    \ )
+    let _ =<< trim END
+    vim.filetype.match({
+      filename = vim.api.nvim_eval('a:path'),
+      contents = vim.api.nvim_eval('a:lines'),
+    }) or ''
+END
+    return luaeval(join(_, ''))
   else
-    let temp_win = popup_create('', { 'hidden': 1 })
+    let temp_win = popup_create(a:lines, { 'hidden': 1 })
     let temp_bufnr = winbufnr(temp_win)
     try
       let command = 'doautocmd filetypedetect BufNewFile '
@@ -92,6 +96,12 @@ function! luis#preview#start(session, dimensions) abort
       try
         let lines = readfile(path, '', a:dimensions.height)
         let hints = s:hints_from_candidate(candidate)
+        if !has_key(hints, 'filetype')
+          let filetype = luis#preview#detect_filetype(path, lines)
+          if filetype != ''
+            let hints.filetype = filetype
+          endif
+        endif
         call s:current_preview_window.open_text(
         \   lines,
         \   a:dimensions,
@@ -135,14 +145,6 @@ function! s:hints_from_candidate(candidate) abort
 
   if has_key(a:candidate.user_data, 'preview_filetype')
     let hints.filetype = a:candidate.user_data.preview_filetype
-  else
-    if has_key(a:candidate.user_data, 'preview_path')
-      let path = a:candidate.user_data.preview_path
-      let filetype = luis#preview#detect_filetype(path)
-      if filetype != ''
-        let hints.filetype = filetype
-      endif
-    endif
   endif
 
   return hints
