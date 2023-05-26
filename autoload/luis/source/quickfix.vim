@@ -38,9 +38,9 @@ function! s:Source.on_source_enter(context) abort dict
     \   'menu': len(errors) . ' errors',
     \   'user_data': {
     \     'buffer_nr': entry.bufnr,
-    \     'buffer_pos': [entry.lnum, entry.col],
+    \     'buffer_cursor': [entry.lnum, entry.col],
     \     'preview_bufnr': entry.bufnr,
-    \     'preview_pos': [entry.lnum, entry.col],
+    \     'preview_cursor': [entry.lnum, entry.col],
     \     'quickfix_nr': first_error + 1,
     \   },
     \   'luis_sort_priority': first_error,

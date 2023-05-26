@@ -28,7 +28,7 @@ function! s:Source.on_source_enter(context) abort dict
       \     'mark_name': mark_name,
       \     'mark_pos': mark.pos[1:2],
       \     'preview_bufnr': self.bufnr,
-      \     'preview_pos': mark.pos[1:2],
+      \     'preview_cursor': mark.pos[1:2],
       \   },
       \   'luis_sort_priority': char2nr(mark_name),
       \ })

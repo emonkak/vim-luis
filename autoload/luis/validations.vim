@@ -127,16 +127,16 @@ let s:SCHEMA_SESSION = {
 let s:SCHEMA_PREVIEW_WINDOW = {
 \   'type': 'struct',
 \   'properties': {
-\     'quit_preview': {
+\     'close': {
 \       'type': v:t_func,
 \     },
 \     'is_active': {
 \       'type': v:t_func,
 \     },
-\     'preview_buffer': {
+\     'open_buffer': {
 \       'type': v:t_func,
 \     },
-\     'preview_lines': {
+\     'open_text': {
 \       'type': v:t_func,
 \     },
 \   },

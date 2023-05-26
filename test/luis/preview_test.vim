@@ -15,21 +15,21 @@ function! s:test_attach_window__valid_window() abort
   call assert_equal(0, luis#preview#attach_window(preview_win_1))
   call assert_true(luis#preview#is_enabled())
   call assert_true(luis#preview#is_active())
-  call assert_equal(0, preview_win_1_spies.quit_preview.call_count())
-  call assert_equal(0, preview_win_2_spies.quit_preview.call_count())
+  call assert_equal(0, preview_win_1_spies.close.call_count())
+  call assert_equal(0, preview_win_2_spies.close.call_count())
 
   try
     call assert_true(luis#preview#attach_window(preview_win_2) is preview_win_1)
     call assert_true(luis#preview#is_enabled())
     call assert_false(luis#preview#is_active())
-    call assert_equal(1, preview_win_1_spies.quit_preview.call_count())
-    call assert_equal(0, preview_win_2_spies.quit_preview.call_count())
+    call assert_equal(1, preview_win_1_spies.close.call_count())
+    call assert_equal(0, preview_win_2_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win_2)
     call assert_false(luis#preview#is_enabled())
     call assert_false(luis#preview#is_active())
-    call assert_equal(1, preview_win_1_spies.quit_preview.call_count())
-    call assert_equal(1, preview_win_2_spies.quit_preview.call_count())
+    call assert_equal(1, preview_win_1_spies.close.call_count())
+    call assert_equal(1, preview_win_2_spies.close.call_count())
   endtry
 endfunction
 
@@ -58,7 +58,7 @@ function! s:test_quit__enabled() abort
 
   try
     call assert_equal(1, luis#preview#quit())
-    call assert_equal(1, preview_win_spies.quit_preview.call_count())
+    call assert_equal(1, preview_win_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
@@ -96,7 +96,7 @@ function! s:test_start__with_buffer_preview() abort
     \   'word': 'foo',
     \   'user_data': {
     \     'preview_bufnr': bufnr('%'),
-    \     'preview_pos': [10, 1],
+    \     'preview_cursor': [10, 1],
     \   }
     \ }
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
@@ -114,16 +114,16 @@ function! s:test_start__with_buffer_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_win_spies.preview_buffer.call_count())
+    call assert_equal(1, preview_win_spies.open_buffer.call_count())
     call assert_equal(
     \   [
     \     candidate.user_data.preview_bufnr,
     \     dimensions,
-    \     { 'pos': candidate.user_data.preview_pos }
+    \     { 'cursor': candidate.user_data.preview_cursor }
     \   ],
-    \   preview_win_spies.preview_buffer.last_args()
+    \   preview_win_spies.open_buffer.last_args()
     \ )
-    call assert_equal(0, preview_win_spies.quit_preview.call_count())
+    call assert_equal(0, preview_win_spies.close.call_count())
 
     " With non-existent buffer
     let candidate = {
@@ -147,8 +147,8 @@ function! s:test_start__with_buffer_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_win_spies.preview_buffer.call_count())
-    call assert_equal(1, preview_win_spies.quit_preview.call_count())
+    call assert_equal(1, preview_win_spies.open_buffer.call_count())
+    call assert_equal(1, preview_win_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
@@ -193,16 +193,16 @@ function! s:test_start__with_file_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_win_spies.preview_lines.call_count())
+    call assert_equal(1, preview_win_spies.open_text.call_count())
     call assert_equal(
     \   [
     \     ['1', '2', '3', '4'],
     \     dimensions,
     \     { 'filetype': 'help' },
     \   ],
-    \   preview_win_spies.preview_lines.last_args()
+    \   preview_win_spies.open_text.last_args()
     \ )
-    call assert_equal(0, preview_win_spies.quit_preview.call_count())
+    call assert_equal(0, preview_win_spies.close.call_count())
 
     " Without filetype (Auto detection)
     let candidate = {
@@ -226,16 +226,16 @@ function! s:test_start__with_file_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, preview_win_spies.preview_lines.call_count())
+    call assert_equal(2, preview_win_spies.open_text.call_count())
     call assert_equal(
     \   [
     \     ["echo 'hello, world!'"],
     \     dimensions,
     \     { 'filetype': 'vim' },
     \   ],
-    \   preview_win_spies.preview_lines.last_args()
+    \   preview_win_spies.open_text.last_args()
     \ )
-    call assert_equal(0, preview_win_spies.quit_preview.call_count())
+    call assert_equal(0, preview_win_spies.close.call_count())
 
     " With non-existent file
     let candidate = {
@@ -259,8 +259,8 @@ function! s:test_start__with_file_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, preview_win_spies.preview_lines.call_count())
-    call assert_equal(1, preview_win_spies.quit_preview.call_count())
+    call assert_equal(2, preview_win_spies.open_text.call_count())
+    call assert_equal(1, preview_win_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
@@ -293,7 +293,7 @@ function! s:test_start__with_no_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_win_spies.quit_preview.call_count())
+    call assert_equal(1, preview_win_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())
@@ -331,16 +331,16 @@ function! s:test_start__with_text_preview() abort
     \   candidate,
     \   { 'session': session, 'preview_win': preview_win },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_win_spies.preview_lines.call_count())
+    call assert_equal(1, preview_win_spies.open_text.call_count())
     call assert_equal(
     \   [
     \     candidate.user_data.preview_lines,
     \     dimensions,
     \     { 'title': candidate.user_data.preview_title }
     \   ],
-    \   preview_win_spies.preview_lines.last_args()
+    \   preview_win_spies.open_text.last_args()
     \ )
-    call assert_equal(0, preview_win_spies.quit_preview.call_count())
+    call assert_equal(0, preview_win_spies.close.call_count())
   finally
     call assert_true(luis#preview#detach_window() is preview_win)
     call assert_false(luis#preview#is_enabled())

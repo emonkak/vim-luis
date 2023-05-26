@@ -24,9 +24,9 @@ function! s:test_gather_candidates() abort
     \     'menu': '1 errors',
     \     'user_data': {
     \       'buffer_nr': bufnr_A,
-    \       'buffer_pos': [12, 0],
+    \       'buffer_cursor': [12, 0],
     \       'preview_bufnr': bufnr_A,
-    \       'preview_pos': [12, 0],
+    \       'preview_cursor': [12, 0],
     \       'quickfix_nr': 1,
     \     },
     \     'luis_sort_priority': 0,
@@ -36,9 +36,9 @@ function! s:test_gather_candidates() abort
     \     'menu': '2 errors',
     \     'user_data': {
     \       'buffer_nr': bufnr_B,
-    \       'buffer_pos': [24, 0],
+    \       'buffer_cursor': [24, 0],
     \       'preview_bufnr': bufnr_B,
-    \       'preview_pos': [24, 0],
+    \       'preview_cursor': [24, 0],
     \       'quickfix_nr': 2,
     \     },
     \     'luis_sort_priority': 1,

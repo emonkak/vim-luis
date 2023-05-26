@@ -113,8 +113,8 @@ endfunction
 
 function! s:do_test_open(expected_result, action_name, buf_options) abort
   for MakeCandidate in [
-  \   { bufnr -> { 'word': bufname(bufnr), 'user_data': { 'buffer_pos': [4, 1] } } },
-  \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr, 'buffer_pos': [4, 1] } } }
+  \   { bufnr -> { 'word': bufname(bufnr), 'user_data': { 'buffer_cursor': [4, 1] } } },
+  \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr, 'buffer_cursor': [4, 1] } } }
   \ ]
     let bufnr_1 = s:new_buffer({ '&bufhidden': 'hide' })
     call setline(1, range(1, 10))

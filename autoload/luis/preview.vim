@@ -9,7 +9,7 @@ function! luis#preview#attach_window(new_preview_win) abort
   let old_preview_win = s:current_preview_win
   let s:current_preview_win = a:new_preview_win
   if old_preview_win isnot 0
-    call old_preview_win.quit_preview()
+    call old_preview_win.close()
   endif
   return old_preview_win
 endfunction
@@ -18,7 +18,7 @@ function! luis#preview#detach_window() abort
   let old_preview_win = s:current_preview_win
   let s:current_preview_win = 0
   if old_preview_win isnot 0
-    call old_preview_win.quit_preview()
+    call old_preview_win.close()
   endif
   return old_preview_win
 endfunction
@@ -55,7 +55,7 @@ function! luis#preview#quit() abort
     echoerr 'luis: Preview not available'
     return 0
   endif
-  call s:current_preview_win.quit_preview()
+  call s:current_preview_win.close()
   return 1
 endfunction
 
@@ -81,7 +81,7 @@ function! luis#preview#start(session, dimensions) abort
 
   if has_key(candidate.user_data, 'preview_lines')
     let hints = s:hints_from_candidate(candidate)
-    call s:current_preview_win.preview_lines(
+    call s:current_preview_win.open_text(
     \   candidate.user_data.preview_lines,
     \   a:dimensions,
     \   hints
@@ -92,31 +92,31 @@ function! luis#preview#start(session, dimensions) abort
       try
         let lines = readfile(path, '', a:dimensions.height)
         let hints = s:hints_from_candidate(candidate)
-        call s:current_preview_win.preview_lines(
+        call s:current_preview_win.open_text(
         \   lines,
         \   a:dimensions,
         \   hints
         \ )
       catch /\<E484:/
-        call s:current_preview_win.quit_preview()
+        call s:current_preview_win.close()
       endtry
     else
-      call s:current_preview_win.quit_preview()
+      call s:current_preview_win.close()
     endif
   elseif has_key(candidate.user_data, 'preview_bufnr')
     let bufnr = candidate.user_data.preview_bufnr
     if bufloaded(bufnr)
       let hints = s:hints_from_candidate(candidate)
-      call s:current_preview_win.preview_buffer(
+      call s:current_preview_win.open_buffer(
       \   bufnr,
       \   a:dimensions,
       \   hints
       \ )
     else
-      call s:current_preview_win.quit_preview()
+      call s:current_preview_win.close()
     endif
   else
-    call s:current_preview_win.quit_preview()
+    call s:current_preview_win.close()
   endif
   
   return 1
@@ -129,8 +129,8 @@ function! s:hints_from_candidate(candidate) abort
     let hints.title = a:candidate.user_data.preview_title
   endif
 
-  if has_key(a:candidate.user_data, 'preview_pos')
-    let hints.pos = a:candidate.user_data.preview_pos
+  if has_key(a:candidate.user_data, 'preview_cursor')
+    let hints.cursor = a:candidate.user_data.preview_cursor
   endif
 
   if has_key(a:candidate.user_data, 'preview_filetype')

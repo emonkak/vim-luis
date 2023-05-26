@@ -44,8 +44,8 @@ function! s:do_command(command, candidate) abort
   endif
   try
     execute bufnr a:command
-    if has_key(a:candidate.user_data, 'buffer_pos')
-      call cursor(a:candidate.user_data.buffer_pos)
+    if has_key(a:candidate.user_data, 'buffer_cursor')
+      call cursor(a:candidate.user_data.buffer_cursor)
       normal! zvzt
     endif
   catch

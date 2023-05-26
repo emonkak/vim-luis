@@ -15,7 +15,7 @@ endfunction
 
 let s:PreviewWindow = {}
 
-function! s:PreviewWindow.quit_preview() abort dict
+function! s:PreviewWindow.close() abort dict
   if s:is_valid_window(self.window)
     call popup_close(self.window)
     let self.window = -1
@@ -26,7 +26,7 @@ function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
+function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
   if s:is_valid_window(self.window)
     call popup_close(self.window)
   endif
@@ -38,17 +38,17 @@ function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
   \   self.popup_config
   \ )
 
-  if has_key(a:hints, 'pos')
+  if has_key(a:hints, 'cursor')
     let command = printf(
     \   'call cursor(%d, %d) | normal! zt',
-    \   a:hints.pos[0],
-    \   a:hints.pos[1]
+    \   a:hints.cursor[0],
+    \   a:hints.cursor[1]
     \ )
     call win_execute(self.window, command)
   endif
 endfunction
 
-function! s:PreviewWindow.preview_lines(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = bufadd('')
     call s:initialize_preview_buffer(s:preview_bufnr)

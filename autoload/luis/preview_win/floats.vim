@@ -15,7 +15,7 @@ function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
+function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
   if s:is_valid_window(self.window)
     noautocmd call nvim_win_set_buf(self.window, a:bufnr)
     call s:set_dimensions(self.window, a:dimensions)
@@ -28,17 +28,17 @@ function! s:PreviewWindow.preview_buffer(bufnr, dimensions, hints) abort dict
     \ )
   endif
 
-  if has_key(a:hints, 'pos')
+  if has_key(a:hints, 'cursor')
     let command = printf(
     \   'call cursor(%d, %d) | normal! zt',
-    \   a:hints.pos[0],
-    \   a:hints.pos[1]
+    \   a:hints.cursor[0],
+    \   a:hints.cursor[1]
     \ )
     call win_execute(self.window, command)
   endif
 endfunction
 
-function! s:PreviewWindow.preview_lines(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = nvim_create_buf(v:false, v:true)
     call s:initialize_preview_buffer(s:preview_bufnr)
@@ -64,7 +64,7 @@ function! s:PreviewWindow.preview_lines(lines, dimensions, hints) abort dict
   call nvim_buf_set_option(s:preview_bufnr, 'filetype', filetype)
 endfunction
 
-function! s:PreviewWindow.quit_preview() abort dict
+function! s:PreviewWindow.close() abort dict
   if s:is_valid_window(self.window)
     call nvim_win_close(self.window, v:true)
     let self.window = -1

@@ -47,8 +47,8 @@ function! s:do_open(command, candidate) abort
   endif
   try
     execute a:command '`=fnamemodify(path, ":.")`'
-    if has_key(a:candidate.user_data, 'file_pos')
-      call cursor(a:candidate.user_data.file_pos)
+    if has_key(a:candidate.user_data, 'file_cursor')
+      call cursor(a:candidate.user_data.file_cursor)
       normal! zvzt
     endif
   catch

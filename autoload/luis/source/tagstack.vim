@@ -27,9 +27,9 @@ function! s:Source.on_source_enter(context) abort dict
     \   'user_data': {
     \     'tagstack_index': index,
     \     'buffer_nr': item.bufnr,
-    \     'buffer_pos': item.from[1:2],
+    \     'buffer_cursor': item.from[1:2],
     \     'preview_bufnr': item.bufnr,
-    \     'preview_pos': item.from[1:2],
+    \     'preview_cursor': item.from[1:2],
     \   },
     \   'luis_sort_priority': index,
     \ })

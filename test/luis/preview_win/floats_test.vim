@@ -16,7 +16,7 @@ function! s:test_preview_buffer__preview_twice() abort
     call assert_false(preview_win.is_active())
 
     let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-    call preview_win.preview_buffer(bufnr_1, dimensions, {})
+    call preview_win.open_buffer(bufnr_1, dimensions, {})
 
     let wininfo_1 = get(getwininfo(preview_win.window), 0, {})
     call assert_false(empty(wininfo_1))
@@ -33,7 +33,7 @@ function! s:test_preview_buffer__preview_twice() abort
     call assert_equal(dimensions.height, wininfo_1.height)
 
     let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-    call preview_win.preview_buffer(bufnr_2, dimensions, { 'pos': [10, 1] })
+    call preview_win.open_buffer(bufnr_2, dimensions, { 'cursor': [10, 1] })
 
     let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
     call assert_false(empty(wininfo_2))
@@ -50,7 +50,7 @@ function! s:test_preview_buffer__preview_twice() abort
     call assert_equal(dimensions.height, wininfo_2.height)
     call assert_equal(10, wininfo_2.topline)
 
-    call preview_win.quit_preview()
+    call preview_win.close()
 
     call assert_false(preview_win.is_active())
   finally
@@ -58,7 +58,7 @@ function! s:test_preview_buffer__preview_twice() abort
   endtry
 endfunction
 
-function! s:test_preview_lines__preview_twice() abort
+function! s:test_open_text__open_twice() abort
   if !exists('*nvim_open_win')
     return 'nvim_open_win() function is required.'
   endif
@@ -69,7 +69,7 @@ function! s:test_preview_lines__preview_twice() abort
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview_win.preview_lines(lines, dimensions, {})
+  call preview_win.open_text(lines, dimensions, {})
 
   let wininfo_1 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_1))
@@ -90,7 +90,7 @@ function! s:test_preview_lines__preview_twice() abort
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview_win.preview_lines(lines, dimensions, { 'filetype': 'vim' })
+  call preview_win.open_text(lines, dimensions, { 'filetype': 'vim' })
 
   let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_2))
@@ -109,14 +109,14 @@ function! s:test_preview_lines__preview_twice() abort
   call assert_equal(1, wininfo_2.topline)
   call assert_equal('vim', getbufvar(wininfo_2.bufnr, '&filetype'))
 
-  call preview_win.quit_preview()
+  call preview_win.close()
 
   call assert_false(preview_win.is_active())
 
   execute wininfo_1.bufnr 'bwipeout'
 endfunction
 
-function! s:test_preview_lines__unload_preview_buffer() abort
+function! s:test_open_text__after_unload_open_buffer() abort
   if !exists('*nvim_open_win')
     return 'nvim_open_win() function is required.'
   endif
@@ -127,7 +127,7 @@ function! s:test_preview_lines__unload_preview_buffer() abort
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview_win.preview_lines(lines, dimensions, {})
+  call preview_win.open_text(lines, dimensions, {})
 
   let wininfo_1 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_1))
@@ -149,7 +149,7 @@ function! s:test_preview_lines__unload_preview_buffer() abort
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview_win.preview_lines(lines, dimensions, {})
+  call preview_win.open_text(lines, dimensions, {})
 
   let wininfo_2 = get(getwininfo(preview_win.window), 0, {})
   call assert_false(empty(wininfo_2))
@@ -167,7 +167,7 @@ function! s:test_preview_lines__unload_preview_buffer() abort
   call assert_equal(dimensions.height, wininfo_2.height)
   call assert_equal(1, wininfo_2.topline)
 
-  call preview_win.quit_preview()
+  call preview_win.close()
 
   call assert_false(preview_win.is_active())
 

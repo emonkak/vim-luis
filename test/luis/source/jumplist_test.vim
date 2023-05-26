@@ -28,9 +28,9 @@ function! s:test_gather_candidates() abort
     \     'menu': 'jump 1',
     \     'user_data': {
     \       'buffer_nr': bufnr,
-    \       'buffer_pos': [80, 0],
+    \       'buffer_cursor': [80, 0],
     \       'preview_bufnr': bufnr,
-    \       'preview_pos': [80, 0],
+    \       'preview_cursor': [80, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 1
@@ -40,9 +40,9 @@ function! s:test_gather_candidates() abort
     \     'menu': 'jump 2',
     \     'user_data': {
     \       'buffer_nr': bufnr,
-    \       'buffer_pos': [60, 0],
+    \       'buffer_cursor': [60, 0],
     \       'preview_bufnr': bufnr,
-    \       'preview_pos': [60, 0],
+    \       'preview_cursor': [60, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 2
@@ -52,9 +52,9 @@ function! s:test_gather_candidates() abort
     \     'menu': 'jump 3',
     \     'user_data': {
     \       'buffer_nr': bufnr,
-    \       'buffer_pos': [40, 0],
+    \       'buffer_cursor': [40, 0],
     \       'preview_bufnr': bufnr,
-    \       'preview_pos': [40, 0],
+    \       'preview_cursor': [40, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 3
@@ -64,9 +64,9 @@ function! s:test_gather_candidates() abort
     \     'menu': 'jump 4',
     \     'user_data': {
     \       'buffer_nr': bufnr,
-    \       'buffer_pos': [20, 0],
+    \       'buffer_cursor': [20, 0],
     \       'preview_bufnr': bufnr,
-    \       'preview_pos': [20, 0],
+    \       'preview_cursor': [20, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 4
@@ -76,9 +76,9 @@ function! s:test_gather_candidates() abort
     \     'menu': 'jump 5',
     \     'user_data': {
     \       'buffer_nr': bufnr,
-    \       'buffer_pos': [1, 0],
+    \       'buffer_cursor': [1, 0],
     \       'preview_bufnr': bufnr,
-    \       'preview_pos': [1, 0],
+    \       'preview_cursor': [1, 0],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': 5

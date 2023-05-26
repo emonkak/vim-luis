@@ -27,9 +27,9 @@ function! s:Source.on_source_enter(context) abort dict
     \   'dup': 1,
     \   'user_data': {
     \     'buffer_nr': location.bufnr,
-    \     'buffer_pos': [location.lnum, location.col],
+    \     'buffer_cursor': [location.lnum, location.col],
     \     'preview_bufnr': location.bufnr,
-    \     'preview_pos': [location.lnum, location.col],
+    \     'preview_cursor': [location.lnum, location.col],
     \   },
     \   'luis_sort_priority': l - i,
     \ })

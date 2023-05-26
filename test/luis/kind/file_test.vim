@@ -75,8 +75,8 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   let path = expand('$VIMRUNTIME/doc/help.txt')
   let Action = s:kind.action_table[a:action_name]
   for candidate in [
-  \   { 'word': path, 'user_data': { 'file_pos': [4, 1] } },
-  \   { 'word': '', 'user_data': { 'file_path': path, 'file_pos': [4, 1] } },
+  \   { 'word': path, 'user_data': { 'file_cursor': [4, 1] } },
+  \   { 'word': '', 'user_data': { 'file_path': path, 'file_cursor': [4, 1] } },
   \ ]
     let bufnr = s:new_buffer(a:buf_options)
     try
