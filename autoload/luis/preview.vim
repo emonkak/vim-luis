@@ -90,7 +90,23 @@ function! luis#preview#start(session, dimensions) abort
     \   a:dimensions,
     \   hints
     \ )
-  elseif has_key(candidate.user_data, 'preview_path')
+    return 1
+  endif
+
+  if has_key(candidate.user_data, 'preview_bufnr')
+    let bufnr = candidate.user_data.preview_bufnr
+    if bufloaded(bufnr)
+      let hints = s:hints_from_candidate(candidate)
+      call s:current_preview_window.open_buffer(
+      \   bufnr,
+      \   a:dimensions,
+      \   hints
+      \ )
+      return 1
+    endif
+  endif
+
+  if has_key(candidate.user_data, 'preview_path')
     let path = candidate.user_data.preview_path
     if filereadable(path)
       try
@@ -107,29 +123,16 @@ function! luis#preview#start(session, dimensions) abort
         \   a:dimensions,
         \   hints
         \ )
+        return 1
       catch /\<E484:/
         call s:current_preview_window.close()
+        return 0
       endtry
-    else
-      call s:current_preview_window.close()
     endif
-  elseif has_key(candidate.user_data, 'preview_bufnr')
-    let bufnr = candidate.user_data.preview_bufnr
-    if bufloaded(bufnr)
-      let hints = s:hints_from_candidate(candidate)
-      call s:current_preview_window.open_buffer(
-      \   bufnr,
-      \   a:dimensions,
-      \   hints
-      \ )
-    else
-      call s:current_preview_window.close()
-    endif
-  else
-    call s:current_preview_window.close()
   endif
-  
-  return 1
+
+  call s:current_preview_window.close()
+  return 0
 endfunction
 
 function! s:hints_from_candidate(candidate) abort

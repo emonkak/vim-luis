@@ -136,7 +136,7 @@ function! s:test_start__with_buffer_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let dimensions = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
-    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(0, luis#preview#start(session, dimensions))
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(2, source_spies.on_preview.call_count())
     call assert_equal([
@@ -248,7 +248,7 @@ function! s:test_start__with_file_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let dimensions = { 'row': 3, 'col': 4, 'width': 5, 'height': 6 }
 
-    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(0, luis#preview#start(session, dimensions))
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(3, source_spies.on_preview.call_count())
     call assert_equal([
@@ -282,7 +282,7 @@ function! s:test_start__with_no_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let dimensions = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-    call assert_equal(1, luis#preview#start(session, dimensions))
+    call assert_equal(0, luis#preview#start(session, dimensions))
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(1, source_spies.on_preview.call_count())
     call assert_equal([
