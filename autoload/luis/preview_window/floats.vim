@@ -2,11 +2,11 @@ if !exists('s:preview_bufnr')
   let s:preview_bufnr = -1
 endif
 
-function! luis#preview_win#floats#new(...) abort
-  let preview_win = copy(s:PreviewWindow)
-  let preview_win.float_config = get(a:000, 0, {})
-  let preview_win.window = -1
-  return preview_win
+function! luis#preview_window#floats#new(...) abort
+  let preview_window = copy(s:PreviewWindow)
+  let preview_window.float_config = get(a:000, 0, {})
+  let preview_window.window = -1
+  return preview_window
 endfunction
 
 let s:PreviewWindow = {}
@@ -104,13 +104,13 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
   let config.height = a:dimensions.height
   let config.noautocmd = v:true
 
-  let preview_win = nvim_open_win(a:bufnr, v:false, config)
+  let preview_window = nvim_open_win(a:bufnr, v:false, config)
 
-  call nvim_win_set_option(preview_win, 'foldenable', v:false)
-  call nvim_win_set_option(preview_win, 'scrolloff', 0)
-  call nvim_win_set_option(preview_win, 'signcolumn', 'no')
+  call nvim_win_set_option(preview_window, 'foldenable', v:false)
+  call nvim_win_set_option(preview_window, 'scrolloff', 0)
+  call nvim_win_set_option(preview_window, 'signcolumn', 'no')
 
-  return preview_win
+  return preview_window
 endfunction
 
 function! s:set_dimensions(win, dimensions) abort

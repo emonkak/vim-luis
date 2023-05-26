@@ -1,26 +1,26 @@
-if !exists('s:current_preview_win')
-  let s:current_preview_win = 0
+if !exists('s:current_preview_window')
+  let s:current_preview_window = 0
 endif
 
-function! luis#preview#attach_window(new_preview_win) abort
-  if !luis#validations#validate_preview_window(a:new_preview_win)
+function! luis#preview#attach_window(new_preview_window) abort
+  if !luis#validations#validate_preview_windowdow(a:new_preview_window)
     return 0
   endif
-  let old_preview_win = s:current_preview_win
-  let s:current_preview_win = a:new_preview_win
-  if old_preview_win isnot 0
-    call old_preview_win.close()
+  let old_preview_window = s:current_preview_window
+  let s:current_preview_window = a:new_preview_window
+  if old_preview_window isnot 0
+    call old_preview_window.close()
   endif
-  return old_preview_win
+  return old_preview_window
 endfunction
 
 function! luis#preview#detach_window() abort
-  let old_preview_win = s:current_preview_win
-  let s:current_preview_win = 0
-  if old_preview_win isnot 0
-    call old_preview_win.close()
+  let old_preview_window = s:current_preview_window
+  let s:current_preview_window = 0
+  if old_preview_window isnot 0
+    call old_preview_window.close()
   endif
-  return old_preview_win
+  return old_preview_window
 endfunction
 
 function! luis#preview#detect_filetype(path) abort
@@ -43,31 +43,31 @@ function! luis#preview#detect_filetype(path) abort
 endfunction
 
 function! luis#preview#is_active() abort
-  return s:current_preview_win isnot 0 && s:current_preview_win.is_active()
+  return s:current_preview_window isnot 0 && s:current_preview_window.is_active()
 endfunction
 
 function! luis#preview#is_enabled() abort
-  return s:current_preview_win isnot 0
+  return s:current_preview_window isnot 0
 endfunction
 
 function! luis#preview#quit() abort
-  if s:current_preview_win is 0
+  if s:current_preview_window is 0
     echoerr 'luis: Preview not available'
     return 0
   endif
-  call s:current_preview_win.close()
+  call s:current_preview_window.close()
   return 1
 endfunction
 
 function! luis#preview#start(session, dimensions) abort
-  if s:current_preview_win is 0
+  if s:current_preview_window is 0
     echoerr 'luis: Preview not available'
     return 0
   endif
 
   let candidate = a:session.guess_candidate()
   let context = {
-  \   'preview_win': s:current_preview_win,
+  \   'preview_window': s:current_preview_window,
   \   'session': a:session,
   \ }
 
@@ -81,7 +81,7 @@ function! luis#preview#start(session, dimensions) abort
 
   if has_key(candidate.user_data, 'preview_lines')
     let hints = s:hints_from_candidate(candidate)
-    call s:current_preview_win.open_text(
+    call s:current_preview_window.open_text(
     \   candidate.user_data.preview_lines,
     \   a:dimensions,
     \   hints
@@ -92,31 +92,31 @@ function! luis#preview#start(session, dimensions) abort
       try
         let lines = readfile(path, '', a:dimensions.height)
         let hints = s:hints_from_candidate(candidate)
-        call s:current_preview_win.open_text(
+        call s:current_preview_window.open_text(
         \   lines,
         \   a:dimensions,
         \   hints
         \ )
       catch /\<E484:/
-        call s:current_preview_win.close()
+        call s:current_preview_window.close()
       endtry
     else
-      call s:current_preview_win.close()
+      call s:current_preview_window.close()
     endif
   elseif has_key(candidate.user_data, 'preview_bufnr')
     let bufnr = candidate.user_data.preview_bufnr
     if bufloaded(bufnr)
       let hints = s:hints_from_candidate(candidate)
-      call s:current_preview_win.open_buffer(
+      call s:current_preview_window.open_buffer(
       \   bufnr,
       \   a:dimensions,
       \   hints
       \ )
     else
-      call s:current_preview_win.close()
+      call s:current_preview_window.close()
     endif
   else
-    call s:current_preview_win.close()
+    call s:current_preview_window.close()
   endif
   
   return 1

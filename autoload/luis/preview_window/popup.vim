@@ -6,11 +6,11 @@ if !exists('s:preview_bufnr')
   let s:preview_bufnr = -1
 endif
 
-function! luis#preview_win#popup#new(...) abort
-  let preview_win = copy(s:PreviewWindow)
-  let preview_win.popup_config = get(a:000, 0, {})
-  let preview_win.window = -1
-  return preview_win
+function! luis#preview_window#popup#new(...) abort
+  let preview_window = copy(s:PreviewWindow)
+  let preview_window.popup_config = get(a:000, 0, {})
+  let preview_window.window = -1
+  return preview_window
 endfunction
 
 let s:PreviewWindow = {}
@@ -121,14 +121,14 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
   let config.maxwidth = a:dimensions.width
   let config.maxheight = a:dimensions.height
 
-  let preview_win = popup_create(a:bufnr, config)
+  let preview_window = popup_create(a:bufnr, config)
 
-  call setwinvar(preview_win, '&foldenable', 0)
-  call setwinvar(preview_win, '&scrolloff', 0)
-  call setwinvar(preview_win, '&signcolumn', 'no')
-  call setwinvar(preview_win, '&wincolor', 'Normal')
+  call setwinvar(preview_window, '&foldenable', 0)
+  call setwinvar(preview_window, '&scrolloff', 0)
+  call setwinvar(preview_window, '&signcolumn', 'no')
+  call setwinvar(preview_window, '&wincolor', 'Normal')
 
-  return preview_win
+  return preview_window
 endfunction
 
 function! s:set_dimensions(win, dimensions) abort
