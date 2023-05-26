@@ -14,8 +14,11 @@ function! s:Source.gather_candidates(context) abort dict
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
+  let argidx = argidx()
   let self.cached_candidates = map(argv(), '{
   \   "word": v:val,
+  \   "kind": v:key == argidx ? "*" : "",
   \   "user_data": { "args_index": v:key, "preview_bufnr": bufnr(v:val) },
+  \   "luis_sort_priority": -v:key,
   \ }')
 endfunction

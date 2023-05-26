@@ -1,6 +1,6 @@
 function! luis#source#tags#new(tag_files) abort
   let source = copy(s:Source)
-  let source._tag_files = a:tag_files
+  let source.tag_files = a:tag_files
   let source.cached_candidates = []
   return source
 endfunction
@@ -17,7 +17,7 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
 
-  for tag_file in self._tag_files
+  for tag_file in self.tag_files
     let lines = readfile(tag_file)
     for line in lines
       let components = split(line, '\t')

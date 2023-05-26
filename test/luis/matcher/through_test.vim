@@ -17,16 +17,6 @@ function! s:test_matcher_definition() abort
   call assert_equal(1, luis#validations#validate_matcher(s:matcher))
 endfunction
 
-function! s:test_format_candidate() abort
-  let candidate = { 'word': 'foo' }
-  let index = 0
-  let context = {}
-  call assert_equal(
-  \   candidate,
-  \   s:matcher.format_candidate(copy(candidate), index, context)
-  \ )
-endfunction
-
 function! s:test_sort_candidates() abort
   let cs = [
   \   { 'word': 'foo' },

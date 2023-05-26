@@ -1,8 +1,33 @@
-if !exists('s:default_matcher')
-  let s:default_matcher = 0
+if !exists('g:luis#ui#default_matcher')
+  let g:luis#ui#default_matcher = exists('*matchfuzzypos')
+  \                             ? luis#matcher#fuzzy_native#import()
+  \                             : luis#matcher#fuzzy#import()
 endif
 
-function! luis#matcher#acc_text(pattern, candidates, source) abort
+if !exists('g:luis#ui#default_comparer')
+  let s:DefaultComparer = {}
+
+  function! s:DefaultComparer.compare(first, second) abort dict
+    let first_sp = get(a:first, 'luis_sort_priority', 0)
+    let second_sp = get(a:second, 'luis_sort_priority', 0)
+
+    if first_sp != second_sp
+      return second_sp - first_sp
+    endif
+
+    if a:first.word < a:second.word
+      return -1
+    elseif a:first.word > a:second.word
+      return 1
+    endif
+
+    return 0
+  endfunction
+
+  let g:luis#ui#default_comparer = s:DefaultComparer
+endif
+
+function! luis#ui#acc_text(pattern, candidates, source) abort
   " ACC = Automatic Component Completion
   let sep = a:pattern[-1:]
   let components = split(a:pattern, sep, 1)
@@ -108,64 +133,50 @@ function! luis#matcher#acc_text(pattern, candidates, source) abort
   return ''
 endfunction
 
-function! luis#matcher#collect_candidates(session, pattern, NormalizeCandidate) abort
+function! luis#ui#collect_candidates(session, pattern) abort
   let source = a:session.source
+  let hook = a:session.hook
   let matcher = has_key(source, 'matcher')
   \           ? source.matcher
-  \           : luis#matcher#default()
-  let hook = a:session.hook
+  \           : g:luis#ui#default_matcher
+  let comparer = has_key(source, 'comparer')
+  \            ? source.comparer
+  \            : g:luis#ui#default_comparer
   let context = {
-  \   'pattern': a:pattern,
+  \   'comparer': comparer,
   \   'matcher': matcher,
+  \   'pattern': a:pattern,
   \   'session': a:session,
   \ }
 
+  let normalizers = []
+
+  if has_key(matcher, 'normalize_candidate')
+    call add(normalizers, matcher)
+  endif
+  if has_key(hook, 'normalize_candidate')
+    call add(normalizers, hook)
+  endif
+  if has_key(a:session, 'normalize_candidate')
+    call add(normalizers, a:session)
+  endif
+
   let candidates = source.gather_candidates(context)
   let candidates = matcher.filter_candidates(candidates, context)
-  if has_key(hook, 'format_candidate')
-    call map(
-    \   candidates,
-    \   'a:NormalizeCandidate(
-    \     matcher.format_candidate(
-    \       hook.format_candidate(v:val, v:key, context),
-    \       v:key,
-    \       context
-    \     ),
-    \     v:key,
-    \     context
-    \   )'
-    \ )
-  else
-    call map(
-    \   candidates,
-    \   'a:NormalizeCandidate(
-    \     matcher.format_candidate(v:val, v:key, context),
-    \     v:key,
-    \     context
-    \   )'
-    \ )
+  if len(normalizers) > 0
+    for i in range(len(candidates))
+      for normalizer in normalizers
+        let candidates[i] = normalizer.normalize_candidate(
+        \   candidates[i],
+        \   i,
+        \   context
+        \ )
+      endfor
+    endfor
   endif
   let candidates = matcher.sort_candidates(candidates, context)
 
   return candidates
-endfunction
-
-function! luis#matcher#default() abort
-  if s:default_matcher is 0
-    let s:default_matcher = exists('*matchfuzzypos')
-    \                     ? luis#matcher#fuzzy_native#import()
-    \                     : luis#matcher#fuzzy#import()
-  endif
-  return s:default_matcher
-endfunction
-
-function! luis#matcher#set_default(new_matcher) abort
-  if a:new_matcher isnot 0 && !luis#validations#validate_matcher(a:new_matcher)
-    return 0
-  endif
-  let old_default = s:default_matcher
-  let s:default_matcher = a:new_matcher
-  return old_default
 endfunction
 
 function! s:make_skip_regexp(s) abort

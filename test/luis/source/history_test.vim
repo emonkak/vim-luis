@@ -27,7 +27,7 @@ function! s:test_gather_candidates() abort
     \       'history_index': 1
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 1
+    \     'luis_sort_priority': -1,
     \   },
     \   {
     \     'word': 'bar',
@@ -37,7 +37,7 @@ function! s:test_gather_candidates() abort
     \       'history_index': 2
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 2
+    \     'luis_sort_priority': -2,
     \   },
     \   {
     \     'word': 'baz',
@@ -47,7 +47,7 @@ function! s:test_gather_candidates() abort
     \       'history_index': 3
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 3
+    \     'luis_sort_priority': -3,
     \   }
     \ ], candidates)
   finally

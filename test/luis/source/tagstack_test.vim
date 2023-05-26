@@ -41,7 +41,7 @@ function! s:test_gather_candidates() abort
     \       'tagstack_index': 1,
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 1,
+    \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'usr_02.txt',
@@ -54,7 +54,7 @@ function! s:test_gather_candidates() abort
     \       'tagstack_index': 2,
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 2,
+    \     'luis_sort_priority': -1,
     \   },
     \   {
     \     'word': 'usr_03.txt',
@@ -67,7 +67,7 @@ function! s:test_gather_candidates() abort
     \       'tagstack_index': 3,
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 3,
+    \     'luis_sort_priority': -2,
     \   }
     \ ], candidates)
 

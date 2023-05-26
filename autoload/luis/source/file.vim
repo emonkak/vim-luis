@@ -56,8 +56,7 @@ function! s:Source.gather_candidates(context) abort dict
     call add(candidates, {
     \   'word': a:context.pattern,
     \   'kind': '*new*',
-    \   'user_data': {},
-    \   'luis_sort_priority': 1,
+    \   'luis_match_priority': -1,
     \ })
   endif
 

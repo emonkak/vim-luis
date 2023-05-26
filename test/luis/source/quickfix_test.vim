@@ -13,10 +13,7 @@ function! s:test_gather_candidates() abort
     call source.on_source_enter({})
 
     let context = { 'pattern': 'VIM' }
-    " Returns candidates in arbitrary order.
-    let candidates = sort(source.gather_candidates(context), { x, y ->
-    \   x.word < y.word ? -1 : x.word > y.word ? 1 : 0
-    \ })
+    let candidates = source.gather_candidates(context)
 
     call assert_equal([
     \   {
@@ -41,7 +38,7 @@ function! s:test_gather_candidates() abort
     \       'preview_cursor': [24, 0],
     \       'quickfix_nr': 2,
     \     },
-    \     'luis_sort_priority': 1,
+    \     'luis_sort_priority': -1,
     \   },
     \ ], candidates)
   finally

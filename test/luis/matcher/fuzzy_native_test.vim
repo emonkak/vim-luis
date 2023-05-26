@@ -1,3 +1,6 @@
+silent runtime! test/mocks.vim
+silent runtime! test/spy.vim
+
 let s:matcher = luis#matcher#fuzzy_native#import()
 
 function! s:test_filter_candidates() abort
@@ -10,6 +13,7 @@ function! s:test_filter_candidates() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
+
   call assert_equal([
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
@@ -57,7 +61,7 @@ function! s:test_matcher_definition() abort
   call assert_equal(1, luis#validations#validate_matcher(s:matcher))
 endfunction
 
-function! s:test_format_candidate() abort
+function! s:test_normalize_candidate() abort
   let candidate = { 'word': 'foo' }
   let index = 0
   let context = { '_match_positions': [[0]], '_match_scores': [100] }
@@ -65,46 +69,96 @@ function! s:test_format_candidate() abort
   \   'word': 'foo',
   \   'luis_match_positions': [0],
   \   'luis_match_score': 100,
-  \   'luis_sort_priority': 0,
-  \ }, s:matcher.format_candidate(copy(candidate), index, context))
+  \   'luis_match_priority': 0,
+  \ }, s:matcher.normalize_candidate(candidate, index, context))
 
-  let candidate = { 'word': 'foo', 'luis_sort_priority': 1 }
+  let candidate = { 'word': 'foo', 'luis_match_priority': 1 }
   let index = 0
   let context = { '_match_positions': [[0]], '_match_scores': [100] }
   call assert_equal({
   \   'word': 'foo',
   \   'luis_match_positions': [0],
   \   'luis_match_score': 100,
-  \   'luis_sort_priority': 1,
-  \ }, s:matcher.format_candidate(copy(candidate), index, context))
+  \   'luis_match_priority': 1,
+  \ }, s:matcher.normalize_candidate(candidate, index, context))
 endfunction
 
 function! s:test_sort_candidates() abort
-  let cs = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
+  let cs1 = [
+  \   {
+  \     'word': '/BIN',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/bin',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/lib',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 500,
+  \   },
+  \   {
+  \     'word': '/sbin',
+  \     'luis_match_positions': [0, 2],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 760,
+  \   },
   \ ]
-  let context = {}
-  call assert_equal([
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \ ], s:matcher.sort_candidates(copy(cs), context))
+  let cs2 = [
+  \   {
+  \     'word': '/BIN',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/bin',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/lib',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 1,
+  \     'luis_match_score': 500,
+  \   },
+  \   {
+  \     'word': '/sbin',
+  \     'luis_match_positions': [0, 2],
+  \     'luis_match_priority': 1,
+  \     'luis_match_score': 760,
+  \   },
+  \ ]
 
-  let cs = [
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
-  \ ]
-  let context = {}
-  call assert_equal([
-  \   { 'word': 'FOOBAR', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foobar', 'luis_match_score': 192, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 0 },
-  \   { 'word': 'foo', 'luis_match_score': 195, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
-  \   { 'word': 'foobarbaz', 'luis_match_score': 189, 'luis_match_positions': [0, 1, 2], 'luis_sort_priority': 1 },
-  \ ], s:matcher.sort_candidates(copy(cs), context))
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
+  let context = { 'comparer': comparer }
+  call assert_equal(
+  \   [cs1[0], cs1[1], cs1[3], cs1[2]],
+  \   s:matcher.sort_candidates(copy(cs1), context)
+  \ )
+  call assert_true(comparer_spies.compare.called())
+
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
+  let context = { 'comparer': comparer }
+  call assert_equal(
+  \   [cs2[3], cs2[2], cs2[0], cs2[1]],
+  \   s:matcher.sort_candidates(copy(cs2), context)
+  \ )
+  call assert_true(comparer_spies.compare.called())
+endfunction
+
+function! s:default_comparer(first, second) abort
+  if a:first.word < a:second.word
+    return -1
+  elseif a:first.word > a:second.word
+    return 1
+  endif
+  return 0
 endfunction

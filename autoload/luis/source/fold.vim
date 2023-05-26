@@ -32,6 +32,8 @@ function! s:Source.on_source_enter(context) abort dict
     setlocal foldtext&
     normal! zM
 
+    let last_lnum = line('$')
+
     for lnum in range(1, line('$'))
       if foldclosed(lnum) > 0
         let foldtext = foldtextresult(lnum)
@@ -51,7 +53,7 @@ function! s:Source.on_source_enter(context) abort dict
           \     'preview_bufnr': bufnr,
           \     'preview_cursor': [lnum, 1],
           \   },
-          \   'luis_sort_priority': lnum,
+          \   'luis_sort_priority': -lnum,
           \ })
           execute lnum 'foldopen'
         endif

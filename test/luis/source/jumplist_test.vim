@@ -1,6 +1,6 @@
 function! s:test_gather_candidates() abort
-  if !exists('*settagstack')
-    return 'settagstack() function is required.'
+  if !exists('*getjumplist')
+    return 'getjumplist() function is required.'
   endif
 
   let bufname = tempname()
@@ -8,13 +8,15 @@ function! s:test_gather_candidates() abort
   let bufnr = bufnr('%')
   let window = win_getid()
 
-  call setline(1, range(1, 100))
+  call setline(1, range(1, 10))
   clearjumps
-  normal! 20gg
-  normal! 40gg
-  normal! 60gg
-  normal! 80gg
-  normal! 1gg
+  normal! 2gg
+  normal! 4gg
+  normal! 8gg
+  normal! 10gg
+  execute 'normal!' "\<C-o>"
+
+  call assert_equal([1, 2, 4, 8, 10], map(getjumplist()[0], 'v:val.lnum'))
 
   try
     let source = luis#source#jumplist#new(window)
@@ -24,64 +26,74 @@ function! s:test_gather_candidates() abort
     let candidates = source.gather_candidates({})
     call assert_equal([
     \   {
-    \     'word': bufname . ':80:0',
-    \     'menu': 'jump 1',
-    \     'user_data': {
-    \       'buffer_nr': bufnr,
-    \       'buffer_cursor': [80, 0],
-    \       'preview_bufnr': bufnr,
-    \       'preview_cursor': [80, 0],
-    \     },
-    \     'dup': 1,
-    \     'luis_sort_priority': 1
-    \   },
-    \   {
-    \     'word': bufname . ':60:0',
-    \     'menu': 'jump 2',
-    \     'user_data': {
-    \       'buffer_nr': bufnr,
-    \       'buffer_cursor': [60, 0],
-    \       'preview_bufnr': bufnr,
-    \       'preview_cursor': [60, 0],
-    \     },
-    \     'dup': 1,
-    \     'luis_sort_priority': 2
-    \   },
-    \   {
-    \     'word': bufname . ':40:0',
-    \     'menu': 'jump 3',
-    \     'user_data': {
-    \       'buffer_nr': bufnr,
-    \       'buffer_cursor': [40, 0],
-    \       'preview_bufnr': bufnr,
-    \       'preview_cursor': [40, 0],
-    \     },
-    \     'dup': 1,
-    \     'luis_sort_priority': 3
-    \   },
-    \   {
-    \     'word': bufname . ':20:0',
-    \     'menu': 'jump 4',
-    \     'user_data': {
-    \       'buffer_nr': bufnr,
-    \       'buffer_cursor': [20, 0],
-    \       'preview_bufnr': bufnr,
-    \       'preview_cursor': [20, 0],
-    \     },
-    \     'dup': 1,
-    \     'luis_sort_priority': 4
-    \   },
-    \   {
     \     'word': bufname . ':1:0',
-    \     'menu': 'jump 5',
+    \     'menu': 'jump 1',
+    \     'kind': '',
     \     'user_data': {
-    \       'buffer_nr': bufnr,
     \       'buffer_cursor': [1, 0],
+    \       'buffer_nr': bufnr,
+    \       'jumplist_location': 0,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [1, 0],
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': 5
+    \     'luis_sort_priority': 0,
+    \   },
+    \   {
+    \     'word': bufname . ':2:0',
+    \     'menu': 'jump 2',
+    \     'kind': '',
+    \     'user_data': {
+    \       'buffer_cursor': [2, 0],
+    \       'buffer_nr': bufnr,
+    \       'jumplist_location': 1,
+    \       'preview_bufnr': bufnr,
+    \       'preview_cursor': [2, 0],
+    \     },
+    \     'dup': 1,
+    \     'luis_sort_priority': -1,
+    \   },
+    \   {
+    \     'word': bufname . ':4:0',
+    \     'menu': 'jump 3',
+    \     'kind': '',
+    \     'user_data': {
+    \       'buffer_cursor': [4, 0],
+    \       'buffer_nr': bufnr,
+    \       'jumplist_location': 2,
+    \       'preview_bufnr': bufnr,
+    \       'preview_cursor': [4, 0],
+    \     },
+    \     'dup': 1,
+    \     'luis_sort_priority': -2,
+    \   },
+    \   {
+    \     'word': bufname . ':8:0',
+    \     'menu': 'jump 4',
+    \     'kind': '*',
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_cursor': [8, 0],
+    \       'jumplist_location': 3,
+    \       'preview_bufnr': bufnr,
+    \       'preview_cursor': [8, 0],
+    \     },
+    \     'dup': 1,
+    \     'luis_sort_priority': -3,
+    \   },
+    \   {
+    \     'word': bufname . ':10:0',
+    \     'menu': 'jump 5',
+    \     'kind': '',
+    \     'user_data': {
+    \       'buffer_nr': bufnr,
+    \       'buffer_cursor': [10, 0],
+    \       'jumplist_location': 4,
+    \       'preview_bufnr': bufnr,
+    \       'preview_cursor': [10, 0],
+    \     },
+    \     'dup': 1,
+    \     'luis_sort_priority': -4,
     \   },
     \ ], candidates)
   finally

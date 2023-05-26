@@ -15,35 +15,37 @@ endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let qflist = getqflist()
-  let errors_for_buffer = {}  " buffer number -> [error number]
+  let error_count_for_buffer = {}  " buffer number -> erorr count
+  let first_errors = []
 
   for i in range(len(qflist))
     let entry = qflist[i]
     if entry.valid
-      if has_key(errors_for_buffer, entry.bufnr)
-        call add(errors_for_buffer[entry.bufnr], i)
+      if has_key(error_count_for_buffer, entry.bufnr)
+        let error_count_for_buffer[entry.bufnr] += 1
       else
-        let errors_for_buffer[entry.bufnr] = [i]
+        let error_count_for_buffer[entry.bufnr] = 1
+        call add(first_errors, i)
       endif
     endif
   endfor
 
   let candidates = []
 
-  for [key, errors] in items(errors_for_buffer)
-    let first_error = errors[0]
-    let entry = qflist[first_error]
+  for i in first_errors
+    let entry = qflist[i]
+    let error_count = error_count_for_buffer[entry.bufnr]
     call add(candidates, {
     \   'word': bufname(entry.bufnr),
-    \   'menu': len(errors) . ' errors',
+    \   'menu': error_count . ' errors',
     \   'user_data': {
     \     'buffer_nr': entry.bufnr,
     \     'buffer_cursor': [entry.lnum, entry.col],
     \     'preview_bufnr': entry.bufnr,
     \     'preview_cursor': [entry.lnum, entry.col],
-    \     'quickfix_nr': first_error + 1,
+    \     'quickfix_nr': i + 1,
     \   },
-    \   'luis_sort_priority': first_error,
+    \   'luis_sort_priority': -i,
     \ })
   endfor
 

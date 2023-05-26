@@ -9,8 +9,10 @@ endfunction
 
 function! s:test_gather_candidates__filled_list() abort
   argadd A B C
+  silent argument 3
   call assert_equal(3, argc())
   call assert_equal(['A', 'B', 'C'], argv())
+  call assert_equal(2, argidx())
 
   let bufnr_A = bufnr('A')
   let bufnr_B = bufnr('B')
@@ -29,24 +31,30 @@ function! s:test_gather_candidates__filled_list() abort
     call assert_equal([
     \   {
     \     'word': 'A',
+    \     'kind': '',
     \     'user_data': {
     \       'args_index': 0,
     \       'preview_bufnr': bufnr_A,
     \     },
+    \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'B',
+    \     'kind': '',
     \     'user_data': {
     \       'args_index': 1,
     \       'preview_bufnr': bufnr_B,
     \     },
+    \     'luis_sort_priority': -1,
     \   },
     \   {
     \     'word': 'C',
+    \     'kind': '*',
     \     'user_data': {
     \       'args_index': 2,
     \       'preview_bufnr': bufnr_C,
     \     },
+    \     'luis_sort_priority': -2,
     \   },
     \ ], candidates)
   finally

@@ -26,7 +26,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'c',
     \     'dup': 1,
-    \     'luis_sort_priority': 97,
+    \     'luis_sort_priority': -char2nr('a'),
     \   },
     \   {
     \     'word': 'bar',
@@ -37,7 +37,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'l',
     \     'dup': 1,
-    \     'luis_sort_priority': 98,
+    \     'luis_sort_priority': -char2nr('b'),
     \   },
     \   {
     \     'word': 'baz',
@@ -48,7 +48,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'b',
     \     'dup': 1,
-    \     'luis_sort_priority': 99,
+    \     'luis_sort_priority': -char2nr('c'),
     \   },
     \ ], candidates)
   finally

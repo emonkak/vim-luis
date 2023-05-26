@@ -16,21 +16,23 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
   for bufinfo in getbufinfo({ 'buflisted': 1 })
+    let sort_priority = 0
     if bufinfo.name == ''
-      let bufname = '[No Name]'
+      let word = '[No Name]'
       let dup = 1
-      let sort_priority = 3
     else
-      let bufname = fnamemodify(bufinfo.name, ':~:.')
+      let word = fnamemodify(bufinfo.name, ':~:.')
       let dup = 0
-      let sort_priority = getbufvar(bufinfo.bufnr, '&buftype') != ''
-      \                 ? 2
-      \                 : bufname ==# bufinfo.name
-      \                 ? 1
-      \                 : 0
+      let sort_priority += 1
+      if word ==# bufinfo.name
+        let sort_priority += 1
+      endif
+      if getbufvar(bufinfo.bufnr, '&buftype') == ''
+        let sort_priority += 1
+      endif
     endif
     call add(candidates, {
-    \   'word': bufname,
+    \   'word': word,
     \   'menu': 'buffer ' . bufinfo.bufnr,
     \   'kind': s:buffer_indicator(bufinfo),
     \   'dup': dup,

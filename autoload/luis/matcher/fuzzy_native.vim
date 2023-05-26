@@ -18,36 +18,35 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
   return candidates
 endfunction
 
-function! s:Matcher.format_candidate(candidate, index, context) abort dict
-  let a:candidate.luis_match_positions = get(a:context._match_positions, a:index, 0)
-  let a:candidate.luis_match_score = get(a:context._match_scores, a:index, 0)
-  if !has_key(a:candidate, 'luis_sort_priority')
-    let a:candidate.luis_sort_priority = 0
+function! s:Matcher.normalize_candidate(candidate, index, context) abort dict
+  let a:candidate.luis_match_positions = get(a:context._match_positions, a:index, [])
+  if !has_key(a:candidate, 'luis_match_priority')
+    let a:candidate.luis_match_priority = 0
   endif
+  let a:candidate.luis_match_score = get(a:context._match_scores, a:index, 0)
   return a:candidate
 endfunction
 
 function! s:Matcher.sort_candidates(candidates, context) abort dict
-  return sort(a:candidates, 's:compare')
+  return sort(a:candidates, 's:compare', a:context)
 endfunction
 
-function! s:compare(x, y) abort
-  if a:x.luis_sort_priority < a:y.luis_sort_priority
-    return -1
-  elseif a:x.luis_sort_priority > a:y.luis_sort_priority
-    return 1
+function! s:compare(first, second) abort dict
+  let first_priority = a:first.luis_match_priority
+  let second_priority = a:second.luis_match_priority
+
+  if first_priority != second_priority
+    return second_priority - first_priority
   endif
-  if a:x.luis_match_positions != a:y.luis_match_positions
-    if a:x.luis_match_score > a:y.luis_match_score
-      return -1
-    elseif a:x.luis_match_score < a:y.luis_match_score
-      return 1
+
+  if a:first.luis_match_positions != a:second.luis_match_positions
+    let first_score = a:first.luis_match_score
+    let second_score = a:second.luis_match_score
+
+    if first_score != second_score
+      return second_score - first_score
     endif
   endif
-  if a:x.word < a:y.word
-    return -1
-  elseif a:x.word > a:y.word
-    return 1
-  endif
-  return 0
+
+  return self.comparer.compare(a:first, a:second)
 endfunction

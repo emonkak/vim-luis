@@ -80,10 +80,9 @@ function! luis#ui#pmenu#_omnifunc(findstart, base) abort
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let candidates = luis#matcher#collect_candidates(
+    let candidates = luis#ui#collect_candidates(
     \   session,
-    \   pattern,
-    \   function('s:normalize_candidate')
+    \   pattern
     \ )
     let session.last_candidates = candidates
     return candidates
@@ -128,6 +127,17 @@ endfunction
 
 function! s:Session.is_active() abort dict
   return bufexists(s:ui_bufnr) && bufwinnr(s:ui_bufnr) != -1
+endfunction
+
+function! s:Session.normalize_candidate(candidate, index, context) abort
+  let a:candidate.equal = 1
+  if !has_key(a:candidate, 'user_data')
+    let a:candidate.user_data = {}
+  endif
+  if s:USER_DATA_CAN_ONLY_BE_STRING
+    let a:candidate.user_data = json_encode(a:candidate.user_data)
+  endif
+  return a:candidate
 endfunction
 
 function! s:Session.quit() abort dict
@@ -343,7 +353,7 @@ function! s:keys_to_complete() abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let pattern = s:remove_prompt(line)
-      let acc_text = luis#matcher#acc_text(
+      let acc_text = luis#ui#acc_text(
       \   pattern,
       \   session.last_candidates,
       \   session.source
@@ -402,17 +412,6 @@ function! s:keys_to_delete_backward_component() abort
     " current line.
     return (pumvisible() ? "\<C-e>" : '') . "\<C-w>"
   endif
-endfunction
-
-function! s:normalize_candidate(candidate, index, context) abort
-  let a:candidate.equal = 1
-  if !has_key(a:candidate, 'user_data')
-    let a:candidate.user_data = {}
-  endif
-  if s:USER_DATA_CAN_ONLY_BE_STRING
-    let a:candidate.user_data = json_encode(a:candidate.user_data)
-  endif
-  return a:candidate
 endfunction
 
 function! s:on_CursorMovedI() abort

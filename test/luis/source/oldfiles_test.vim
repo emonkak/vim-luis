@@ -19,7 +19,7 @@ function! s:test_gather_candidates() abort
     \       'file_path': cwd . '/test/data/files/file1',
     \       'preview_path': cwd . '/test/data/files/file1',
     \     },
-    \     'luis_sort_priority': 0
+    \     'luis_sort_priority': 0,
     \   },
     \   {
     \     'word': 'test/data/files/link1',
@@ -27,7 +27,7 @@ function! s:test_gather_candidates() abort
     \       'file_path': cwd . '/test/data/files/link1',
     \       'preview_path': cwd . '/test/data/files/link1',
     \     },
-    \     'luis_sort_priority': 1
+    \     'luis_sort_priority': -1,
     \   },
     \   {
     \     'word': 'test/data/files/dir1/file2',
@@ -35,7 +35,7 @@ function! s:test_gather_candidates() abort
     \       'file_path': cwd . '/test/data/files/dir1/file2',
     \       'preview_path': cwd . '/test/data/files/dir1/file2',
     \     },
-    \     'luis_sort_priority': 2,
+    \     'luis_sort_priority': -2,
     \   },
     \ ], candidates)
   finally

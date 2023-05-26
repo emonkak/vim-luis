@@ -28,16 +28,17 @@ let s:SCHEMA_KIND.properties.prototype = {
 let s:SCHEMA_MATCHER = {
 \   'type': 'struct',
 \   'properties': {
-\      'filter_candidates': {
-\        'type': v:t_func,
-\      },
-\      'format_candidate': {
-\        'type': v:t_func,
-\      },
-\      'sort_candidates': {
-\        'type': v:t_func,
-\      },
-\    },
+\     'filter_candidates': {
+\       'type': v:t_func,
+\     },
+\     'normalize_candidate': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
+\     'sort_candidates': {
+\       'type': v:t_func,
+\     },
+\   },
 \ }
 
 let s:SCHEMA_SOURCE = {
@@ -45,6 +46,10 @@ let s:SCHEMA_SOURCE = {
 \   'properties': {
 \     'name': {
 \       'type': v:t_string,
+\     },
+\     'comparer': {
+\       'type': v:t_func,
+\       'optional': 1,
 \     },
 \     'default_kind': s:SCHEMA_KIND,
 \     'matcher': extend({ 'optional': 1 }, s:SCHEMA_MATCHER, 'keep'),
@@ -81,7 +86,7 @@ let s:SCHEMA_SOURCE = {
 let s:SCHEMA_HOOK = {
 \   'type': 'struct',
 \   'properties': {
-\     'format_candidate': {
+\     'normalize_candidate': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
@@ -110,6 +115,10 @@ let s:SCHEMA_SESSION = {
 \     'hook': s:SCHEMA_HOOK,
 \     'is_active': {
 \       'type': v:t_func,
+\     },
+\     'normalize_candidate': {
+\       'type': v:t_func,
+\       'optional': 1,
 \     },
 \     'quit': {
 \       'type': v:t_func,

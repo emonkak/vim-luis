@@ -1,227 +1,217 @@
+silent runtime! test/mocks.vim
+
 let s:matcher = luis#matcher#fuzzy#import()
 
 function! s:test_filter_candidates() abort
-  let cs = [
+  let cs1 = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz' },
+  \   { 'word': 'foobarbaz', 'luis_match_priority': 1 },
   \ ]
 
   call assert_equal([
   \   {
   \     'word': 'foo',
+  \     'luis_match_positions': [],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 900,
-  \     'luis_match_start_pos': -1,
-  \     'luis_match_end_pos': -1,
   \   },
   \   {
   \     'word': 'foobar',
+  \     'luis_match_positions': [],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 900,
-  \     'luis_match_start_pos': -1,
-  \     'luis_match_end_pos': -1,
   \   },
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 900,
-  \     'luis_match_start_pos': -1,
-  \     'luis_match_end_pos': -1,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': '' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': '' }))
   call assert_equal([
   \   {
   \     'word': 'foo',
+  \     'luis_match_positions': [0, 1, 2],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 1000,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 2,
   \   },
   \   {
   \     'word': 'foobar',
+  \     'luis_match_positions': [0, 1, 2],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 950,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 2,
   \   },
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 1, 2],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 933,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 2,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foo' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foo' }))
   call assert_equal([
   \   {
   \     'word': 'foobar',
+  \     'luis_match_positions': [3, 4, 5],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 500,
-  \     'luis_match_start_pos': 3,
-  \     'luis_match_end_pos': 5,
   \   },
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [3, 4, 5],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 633,
-  \     'luis_match_start_pos': 3,
-  \     'luis_match_end_pos': 5,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'bar' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'bar' }))
   call assert_equal([
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [6, 7, 8],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 333,
-  \     'luis_match_start_pos': 6,
-  \     'luis_match_end_pos': 8,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'baz' }))
-  call assert_equal([], s:matcher.filter_candidates(cs, { 'pattern': 'qux' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'baz' }))
+  call assert_equal([], s:matcher.filter_candidates(cs1, { 'pattern': 'qux' }))
 
   call assert_equal([
   \   {
   \     'word': 'foobar',
+  \     'luis_match_positions': [0, 1, 2, 3, 4, 5],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 1000,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 5,
   \   },
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 1, 2, 3, 4, 5],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 967,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 5,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobar' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobar' }))
   call assert_equal([
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 1, 2, 3, 4, 8],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 667,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 8,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobaz' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobaz' }))
   call assert_equal(
   \   [],
-  \   s:matcher.filter_candidates(cs, { 'pattern': 'foobarbar' })
+  \   s:matcher.filter_candidates(cs1, { 'pattern': 'foobarbar' })
   \ )
   call assert_equal([
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 1000,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 8,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'foobarbaz' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobarbaz' }))
 
   call assert_equal([
   \   {
   \     'word': 'foobar',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 0,
   \     'luis_match_score': 633,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 3,
   \   },
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 722,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 3,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'fb' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'fb' }))
   call assert_equal([
   \   {
   \     'word': 'foobarbaz',
+  \     'luis_match_positions': [0, 3, 6],
+  \     'luis_match_priority': 1,
   \     'luis_match_score': 533,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 6,
   \   },
-  \ ], s:matcher.filter_candidates(cs, { 'pattern': 'fbb' }))
+  \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'fbb' }))
 endfunction
 
 function! s:test_matcher_definition() abort
   call assert_equal(1, luis#validations#validate_matcher(s:matcher))
 endfunction
 
-function! s:test_format_candidate() abort
-  let candidate = { 'word': 'foo' }
-  let index = 0
-  let context = {}
-  call assert_equal(
-  \    { 'word': 'foo', 'luis_sort_priority': 0 },
-  \    s:matcher.format_candidate(copy(candidate), index, context)
-  \ )
+function! s:test_sort_candidates() abort
+  let cs1 = [
+  \   {
+  \     'word': '/BIN',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/bin',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/lib',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 500,
+  \   },
+  \   {
+  \     'word': '/sbin',
+  \     'luis_match_positions': [0, 2],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 760,
+  \   },
+  \ ]
+  let cs2 = [
+  \   {
+  \     'word': '/BIN',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/bin',
+  \     'luis_match_positions': [0, 1],
+  \     'luis_match_priority': 0,
+  \     'luis_match_score': 950,
+  \   },
+  \   {
+  \     'word': '/lib',
+  \     'luis_match_positions': [0, 3],
+  \     'luis_match_priority': 1,
+  \     'luis_match_score': 500,
+  \   },
+  \   {
+  \     'word': '/sbin',
+  \     'luis_match_positions': [0, 2],
+  \     'luis_match_priority': 1,
+  \     'luis_match_score': 760,
+  \   },
+  \ ]
 
-  let candidate = { 'word': 'foo', 'luis_sort_priority': 1 }
-  let index = 0
-  let context = {}
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
+  let context = { 'comparer': comparer }
   call assert_equal(
-  \    { 'word': 'foo', 'luis_sort_priority': 1 },
-  \    s:matcher.format_candidate(copy(candidate), index, context)
+  \   [cs1[0], cs1[1], cs1[3], cs1[2]],
+  \   s:matcher.sort_candidates(copy(cs1), context)
   \ )
+  call assert_true(comparer_spies.compare.called())
+
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
+  let context = { 'comparer': comparer }
+  call assert_equal(
+  \   [cs2[3], cs2[2], cs2[0], cs2[1]],
+  \   s:matcher.sort_candidates(copy(cs2), context)
+  \ )
+  call assert_true(comparer_spies.compare.called())
 endfunction
 
-function! s:test_sort_candidates() abort
-  let cs = [
-  \   {
-  \     'word': '/BIN',
-  \     'luis_match_score': 950,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 1,
-  \     'luis_sort_priority': 0,
-  \   },
-  \   {
-  \     'word': '/bin',
-  \     'luis_match_score': 950,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 1,
-  \     'luis_sort_priority': 0,
-  \   },
-  \   {
-  \     'word': '/lib',
-  \     'luis_match_score': 500,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 3,
-  \     'luis_sort_priority': 0,
-  \   },
-  \   {
-  \     'word': '/sbin',
-  \     'luis_match_score': 760,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 2,
-  \     'luis_sort_priority': 0,
-  \   },
-  \ ]
-  let context = {}
-  call assert_equal(
-  \   [cs[0], cs[1], cs[3], cs[2]],
-  \   s:matcher.sort_candidates(cs, context)
-  \ )
-
-  let cs = [
-  \   {
-  \     'word': '/BIN',
-  \     'luis_match_score': 950,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 1,
-  \     'luis_sort_priority': 1,
-  \   },
-  \   {
-  \     'word': '/bin',
-  \     'luis_match_score': 950,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 1,
-  \     'luis_sort_priority': 1,
-  \   },
-  \   {
-  \     'word': '/lib',
-  \     'luis_match_score': 500,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 3,
-  \     'luis_sort_priority': 0,
-  \   },
-  \   {
-  \     'word': '/sbin',
-  \     'luis_match_score': 760,
-  \     'luis_match_start_pos': 0,
-  \     'luis_match_end_pos': 2,
-  \     'luis_sort_priority': 0,
-  \   },
-  \ ]
-  let context = {}
-  call assert_equal(
-  \   [cs[3], cs[2], cs[0], cs[1]],
-  \   s:matcher.sort_candidates(cs, context)
-  \ )
+function! s:default_comparer(first, second) abort
+  if a:first.word < a:second.word
+    return -1
+  elseif a:first.word > a:second.word
+    return 1
+  endif
+  return 0
 endfunction
