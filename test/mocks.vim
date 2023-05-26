@@ -23,7 +23,7 @@ endfunction
 function! CreateMockMatcher() abort
   return {
   \   'filter_candidates': { candidates, context -> candidates },
-  \   'normalize_candidate': { candidate, index, context -> candidate },
+  \   'format_candidate': { candidate, index, context -> candidate },
   \   'sort_candidates': { candidates, context -> candidates },
   \ }
 endfunction

@@ -31,7 +31,7 @@ let s:SCHEMA_MATCHER = {
 \      'filter_candidates': {
 \        'type': v:t_func,
 \      },
-\      'normalize_candidate': {
+\      'format_candidate': {
 \        'type': v:t_func,
 \      },
 \      'sort_candidates': {

@@ -18,7 +18,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
   return candidates
 endfunction
 
-function! s:Matcher.normalize_candidate(candidate, index, context) abort dict
+function! s:Matcher.format_candidate(candidate, index, context) abort dict
   if !has_key(a:candidate, 'luis_sort_priority')
     let a:candidate.luis_sort_priority = 0
   endif

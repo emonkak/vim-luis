@@ -48,13 +48,13 @@ function! s:test_matcher_definition() abort
   call assert_equal(1, luis#validations#validate_matcher(s:matcher))
 endfunction
 
-function! s:test_normalize_candidate() abort
+function! s:test_format_candidate() abort
   let candidate = { 'word': 'foo' }
   let index = 0
   let context = {}
   call assert_equal(
   \    { 'word': 'foo', 'luis_sort_priority': 0 },
-  \    s:matcher.normalize_candidate(copy(candidate), index, context)
+  \    s:matcher.format_candidate(copy(candidate), index, context)
   \ )
 
   let candidate = { 'word': 'foo', 'luis_sort_priority': 1 }
@@ -62,7 +62,7 @@ function! s:test_normalize_candidate() abort
   let context = {}
   call assert_equal(
   \    { 'word': 'foo', 'luis_sort_priority': 1 },
-  \    s:matcher.normalize_candidate(copy(candidate), index, context)
+  \    s:matcher.format_candidate(copy(candidate), index, context)
   \ )
 endfunction
 

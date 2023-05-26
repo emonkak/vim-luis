@@ -122,7 +122,7 @@ function! s:test_collect_candidates__with_default_matcher() abort
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
   \   [candidates[2], 2, expected_context],
-  \ ], matcher_spies.normalize_candidate.args())
+  \ ], matcher_spies.format_candidate.args())
   call assert_equal([
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
@@ -186,7 +186,7 @@ function! s:test_collect_candidates__with_hook() abort
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
   \   [candidates[2], 2, expected_context],
-  \ ], matcher_spies.normalize_candidate.args())
+  \ ], matcher_spies.format_candidate.args())
   call assert_equal([
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
@@ -242,7 +242,7 @@ function! s:test_collect_candidates__with_source_matcher() abort
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
   \   [candidates[2], 2, expected_context],
-  \ ], matcher_spies.normalize_candidate.args())
+  \ ], matcher_spies.format_candidate.args())
   call assert_equal([
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],

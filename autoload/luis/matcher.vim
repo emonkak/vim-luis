@@ -108,7 +108,7 @@ function! luis#matcher#acc_text(pattern, candidates, source) abort
   return ''
 endfunction
 
-function! luis#matcher#collect_candidates(session, pattern, Normalize) abort
+function! luis#matcher#collect_candidates(session, pattern, NormalizeCandidate) abort
   let source = a:session.source
   let matcher = has_key(source, 'matcher')
   \           ? source.matcher
@@ -125,8 +125,8 @@ function! luis#matcher#collect_candidates(session, pattern, Normalize) abort
   if has_key(hook, 'format_candidate')
     call map(
     \   candidates,
-    \   'a:Normalize(
-    \     matcher.normalize_candidate(
+    \   'a:NormalizeCandidate(
+    \     matcher.format_candidate(
     \       hook.format_candidate(v:val, v:key, context),
     \       v:key,
     \       context
@@ -138,8 +138,8 @@ function! luis#matcher#collect_candidates(session, pattern, Normalize) abort
   else
     call map(
     \   candidates,
-    \   'a:Normalize(
-    \     matcher.normalize_candidate(v:val, v:key, context),
+    \   'a:NormalizeCandidate(
+    \     matcher.format_candidate(v:val, v:key, context),
     \     v:key,
     \     context
     \   )'
