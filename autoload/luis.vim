@@ -240,17 +240,16 @@ function! s:list_key_bindings(key_table) abort
   "   'label': label
   " }
   let actions = {}
-  for [key, action] in items(a:key_table)
-    if !has_key(actions, action)
-      let actions[action] = {'keys': []}
+  for [key, action_name] in items(a:key_table)
+    if !has_key(actions, action_name)
+      let actions[action_name] = { 'keys': [] }
     endif
-    call add(actions[action].keys, [key, strtrans(key)])
+    call add(actions[action_name].keys, [key, strtrans(key)])
   endfor
-  for _ in values(actions)
-    call sort(_.keys)
-    let _.label = join(map(copy(_.keys), 'v:val[1]'), ' ')
+  for action in values(actions)
+    call sort(action.keys)
+    let action.label = join(map(copy(action.keys), 'v:val[1]'), ' ')
   endfor
-  silent! unlet _
 
   " key  action
   " ---  ------
