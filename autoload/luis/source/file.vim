@@ -16,22 +16,22 @@ function! s:Source.gather_candidates(context) abort dict
   if !has_key(self.cached_candidates, dir)
     let normal_candidates = []
     let hidden_candidates = []
-    let logical_dir = dir == './' ? '' : dir
-    let physical_dir = s:expand_path(dir)
+    let raw_dir = dir == './' ? '' : dir
+    let real_dir = s:expand_path(dir)
 
-    for filename in s:readdir(physical_dir)
-      let logical_path = logical_dir . filename
-      let physical_path = fnamemodify(physical_dir . filename, ':p')
-      let user_data = { 'file_path': physical_path }
-      let type = getftype(resolve(physical_path))
+    for filename in s:readdir(real_dir)
+      let raw_path = raw_dir . filename
+      let real_path = fnamemodify(real_dir . filename, ':p')
+      let user_data = { 'file_path': real_path }
+      let type = getftype(resolve(real_path))
       if type ==# 'file'
-        let user_data.preview_path = physical_path
+        let user_data.preview_path = real_path
       endif
       let is_hidden = filename[0] == '.'
       let target_candidates = is_hidden ? hidden_candidates : normal_candidates
       call add(target_candidates, {
-      \   'word': logical_path,
-      \   'abbr': logical_path . (type ==# 'dir' ? separator : ''),
+      \   'word': raw_path,
+      \   'abbr': raw_path . (type ==# 'dir' ? separator : ''),
       \   'kind': type,
       \   'user_data': user_data,
       \ })
@@ -84,10 +84,14 @@ function! s:Source.on_source_enter(context) abort dict
 endfunction
 
 function! s:expand_path(path) abort
-  let path = a:path
-  let path = substitute(path, '\~/', '$HOME/', 'g')
-  let path = substitute(path, '\$\h\w*', '\=expand(submatch(0))', 'g')
-  return path
+  if exists('*expandcmd')
+    return expandcmd(a:path)
+  else
+    let path = a:path
+    let path = substitute(path, '\~/', '$HOME/', 'g')
+    let path = substitute(path, '\$\h\w*', '\=expand(submatch(0))', 'g')
+    return path
+  endif
 endfunction
 
 function! s:parse_pattern(pattern, sep) abort

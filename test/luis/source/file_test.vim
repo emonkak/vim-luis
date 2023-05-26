@@ -283,7 +283,7 @@ function! s:test_gather_candidates() abort
   endtry
 endfunction
 
-function! s:test_gather_candidates__home_directory() abort
+function! s:test_gather_candidates__with_env() abort
   let old_HOME = $HOME
   let new_HOME = getcwd() . '/test/data/files'
   let $HOME = new_HOME
@@ -292,35 +292,6 @@ function! s:test_gather_candidates__home_directory() abort
     let source = luis#source#file#new()
 
     call source.on_source_enter({})
-
-    call assert_equal([
-    \   {
-    \     'word': '~/dir1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
-    \     },
-    \     'kind': 'dir',
-    \     'abbr': '~/dir1/',
-    \   },
-    \   {
-    \     'word': '~/file1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/file1',
-    \       'preview_path': new_HOME . '/file1',
-    \     },
-    \     'kind': 'file',
-    \     'abbr': '~/file1',
-    \   },
-    \   {
-    \     'word': '~/link1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/link1',
-    \       'preview_path': new_HOME . '/link1',
-    \     },
-    \     'kind': 'file',
-    \     'abbr': '~/link1',
-    \   },
-    \ ], source.gather_candidates({ 'pattern': '~/' }))
 
     call assert_equal([
     \   {
@@ -350,52 +321,6 @@ function! s:test_gather_candidates__home_directory() abort
     \     'abbr': '$HOME/link1',
     \   },
     \ ], source.gather_candidates({ 'pattern': '$HOME/' }))
-
-    call assert_equal([
-    \   {
-    \     'word': '~/.dir1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/.dir1/',
-    \     },
-    \     'kind': 'dir',
-    \     'abbr': '~/.dir1/',
-    \   },
-    \   {
-    \     'word': '~/.file1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/.file1',
-    \       'preview_path': new_HOME . '/.file1',
-    \     },
-    \     'kind': 'file',
-    \     'abbr': '~/.file1',
-    \   },
-    \   {
-    \     'word': '~/dir1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
-    \     },
-    \     'kind': 'dir',
-    \     'abbr': '~/dir1/',
-    \   },
-    \   {
-    \     'word': '~/file1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/file1',
-    \       'preview_path': new_HOME . '/file1',
-    \     },
-    \     'kind': 'file',
-    \     'abbr': '~/file1',
-    \   },
-    \   {
-    \     'word': '~/link1',
-    \     'user_data': {
-    \       'file_path': new_HOME . '/link1',
-    \       'preview_path': new_HOME . '/link1',
-    \     },
-    \     'kind': 'file',
-    \     'abbr': '~/link1',
-    \   },
-    \ ], source.gather_candidates({ 'pattern': '~/.' }))
 
     call assert_equal([
     \   {
@@ -442,6 +367,95 @@ function! s:test_gather_candidates__home_directory() abort
     \     'abbr': '$HOME/link1',
     \   },
     \ ], source.gather_candidates({ 'pattern': '$HOME/.' }))
+  finally
+    let $HOME = old_HOME
+  endtry
+endfunction
+
+function! s:test_gather_candidates__with_home() abort
+  let old_HOME = $HOME
+  let new_HOME = getcwd() . '/test/data/files'
+  let $HOME = new_HOME
+
+  try
+    let source = luis#source#file#new()
+
+    call source.on_source_enter({})
+
+    call assert_equal([
+    \   {
+    \     'word': '~/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/dir1/',
+    \   },
+    \   {
+    \     'word': '~/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/file1',
+    \   },
+    \   {
+    \     'word': '~/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/link1',
+    \   },
+    \ ], source.gather_candidates({ 'pattern': '~/' }))
+
+    call assert_equal([
+    \   {
+    \     'word': '~/.dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/.dir1/',
+    \   },
+    \   {
+    \     'word': '~/.file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/.file1',
+    \       'preview_path': new_HOME . '/.file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/.file1',
+    \   },
+    \   {
+    \     'word': '~/dir1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/dir1/',
+    \     },
+    \     'kind': 'dir',
+    \     'abbr': '~/dir1/',
+    \   },
+    \   {
+    \     'word': '~/file1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/file1',
+    \       'preview_path': new_HOME . '/file1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/file1',
+    \   },
+    \   {
+    \     'word': '~/link1',
+    \     'user_data': {
+    \       'file_path': new_HOME . '/link1',
+    \       'preview_path': new_HOME . '/link1',
+    \     },
+    \     'kind': 'file',
+    \     'abbr': '~/link1',
+    \   },
+    \ ], source.gather_candidates({ 'pattern': '~/.' }))
   finally
     let $HOME = old_HOME
   endtry
