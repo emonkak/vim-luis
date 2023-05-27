@@ -126,7 +126,9 @@ function! s:Session.guess_candidate() abort dict
 endfunction
 
 function! s:Session.is_active() abort dict
-  return bufexists(s:ui_bufnr) && bufwinnr(s:ui_bufnr) != -1
+  return bufexists(s:ui_bufnr)
+  \      && bufwinnr(s:ui_bufnr) != -1
+  \      && getbufvar(s:ui_bufnr, 'luis_session', 0) isnot 0
 endfunction
 
 function! s:Session.normalize_candidate(candidate, index, context) abort
@@ -146,21 +148,23 @@ function! s:Session.quit() abort dict
   " :close'ing, because s:Session.quit() may be called recursively.
   let self.is_quitting = 1
 
-  if luis#preview#is_enabled()
-    call luis#preview#quit()
-  endif
+  try
+    if luis#preview#is_enabled()
+      call luis#preview#quit()
+    endif
 
-  close
+    unlet b:luis_session
 
-  let &backspace = self.original_backspace
-  let &equalalways = self.original_equalalways
-  let &completeopt = self.original_completeopt
+    close
 
-  if self.original_window > 0
-    execute win_id2win(self.original_window) 'wincmd w'
-  endif
+    let &backspace = self.original_backspace
+    let &equalalways = self.original_equalalways
+    let &completeopt = self.original_completeopt
 
-  let self.is_quitting = 0
+    call win_gotoid(self.original_window)
+  finally
+    let self.is_quitting = 0
+  endtry
 endfunction
 
 function! s:Session.reload_candidates() abort dict
@@ -261,10 +265,7 @@ function! s:initialize_ui_buffer() abort
 
   augroup plugin-luis-pmenu
     autocmd!
-    autocmd BufLeave,WinLeave <buffer>
-    \   if !b:luis_session.is_quitting
-    \ |   call luis#quit()
-    \ | endif
+    autocmd WinLeave <buffer>  call s:on_WinLeave()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     if exists('#TextChangedP')
@@ -415,10 +416,18 @@ function! s:keys_to_delete_backward_component() abort
 endfunction
 
 function! s:on_CursorMovedI() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
   call feedkeys(s:keys_to_complete(), 'n')
 endfunction
 
 function! s:on_InsertEnter() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
   let session = b:luis_session
   let session.is_inserted_by_acc = 0
   let session.last_column = -1
@@ -427,6 +436,10 @@ function! s:on_InsertEnter() abort
 endfunction
 
 function! s:on_TextChangedP() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
   " BUGS: complete_info() may return incorrect selected item index. Therefore,
   "       we can only use it to determine whether the selected item exists or
   "       not.
@@ -449,6 +462,14 @@ function! s:on_TextChangedP() abort
     \ }
     call luis#preview#start(session, dimensions)
   endif
+endfunction
+
+function! s:on_WinLeave() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
+  call luis#quit()
 endfunction
 
 function! s:pattern_is_empty() abort
