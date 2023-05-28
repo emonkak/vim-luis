@@ -325,11 +325,15 @@ endfunction
 
 function! s:keys_to_complete() abort
   let session = b:luis_session
+  let cursor_lnum = line('.')
   let cursor_column = col('.')
   let line = getline('.')
 
   " The order of the following conditions are important.
-  if !s:contains_the_prompt(line)
+  if cursor_lnum < s:LNUM_PATTERN
+    " Fix the cursor position if it is above the pattern line.
+    let keys = repeat("\<Down>", s:LNUM_PATTERN - cursor_lnum)
+  elseif !s:contains_the_prompt(line)
     " Complete the prompt if it doesn't exist for some reasons.
     let keys = repeat("\<Right>", len(s:PROMPT))
     call s:complete_the_prompt()
