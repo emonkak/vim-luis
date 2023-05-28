@@ -10,7 +10,7 @@ function! s:test_do_action() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, {}, {}, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
 
@@ -31,7 +31,7 @@ function! s:test_do_action__action_is_not_definied() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, {}, {}, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
 
@@ -53,7 +53,7 @@ function! s:test_quit() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -71,7 +71,7 @@ function! s:test_quit() abort
     call assert_equal(hook, hook_spies.on_source_enter.last_self())
     call assert_equal(0, hook_spies.on_source_leave.call_count())
 
-    call assert_equal(1, luis#quit())
+    call assert_true(luis#quit())
     call assert_equal(1, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.quit.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -99,10 +99,10 @@ function! s:test_quit__session_is_not_active() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 0))
 
   try
-    silent call assert_equal(0, luis#quit())
+    silent call assert_false(luis#quit())
     call assert_equal(0, session_spies.quit.call_count())
 
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -120,7 +120,7 @@ function! s:test_quit__session_is_not_active() abort
     call assert_equal(hook, hook_spies.on_source_enter.last_self())
     call assert_equal(0, hook_spies.on_source_leave.call_count())
 
-    silent call assert_equal(0, luis#quit())
+    silent call assert_false(luis#quit())
     call assert_equal(1, session_spies.is_active.call_count())
     call assert_equal(0, session_spies.quit.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -138,7 +138,7 @@ function! s:test_restart() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 0))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -156,7 +156,7 @@ function! s:test_restart() abort
     call assert_equal(hook, hook_spies.on_source_enter.last_self())
     call assert_equal(0, hook_spies.on_source_leave.call_count())
 
-    call assert_equal(1, luis#restart())
+    call assert_true(luis#restart())
     call assert_equal(1, session_spies.is_active.call_count())
     call assert_equal(2, session_spies.start.call_count())
     call assert_equal(2, source_spies.on_source_enter.call_count())
@@ -184,7 +184,7 @@ function! s:test_restart__session_is_already_active() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -202,7 +202,7 @@ function! s:test_restart__session_is_already_active() abort
     call assert_equal(hook, hook_spies.on_source_enter.last_self())
     call assert_equal(0, hook_spies.on_source_leave.call_count())
 
-    silent call assert_equal(0, luis#restart())
+    silent call assert_false(luis#restart())
     call assert_equal(1, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -220,7 +220,7 @@ function! s:test_restart__session_is_not_started_yet() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 1))
 
   try
-    silent call assert_equal(0, luis#restart())
+    silent call assert_false(luis#restart())
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(0, session_spies.start.call_count())
     call assert_equal(0, source_spies.on_source_enter.call_count())
@@ -238,7 +238,7 @@ function! s:test_start() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 0))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -256,7 +256,7 @@ function! s:test_start() abort
     call assert_equal(hook, hook_spies.on_source_enter.last_self())
     call assert_equal(0, hook_spies.on_source_leave.call_count())
 
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(1, session_spies.is_active.call_count())
     call assert_equal(2, session_spies.start.call_count())
     call assert_equal(2, source_spies.on_source_enter.call_count())
@@ -284,7 +284,7 @@ function! s:test_start__session_is_already_active() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(1, source_spies.on_source_enter.call_count())
@@ -332,7 +332,7 @@ function! s:test_take_action__choose_action() abort
   let kind.action_table.default = default_action_spy.to_funcref()
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(1, session_spies.start.call_count())
 
     call feedkeys("\<CR>", 'nt')
@@ -382,7 +382,7 @@ function! s:test_take_action__do_default_action() abort
   let kind.action_table.default = default_action_spy.to_funcref()
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(1, session_spies.start.call_count())
     call assert_equal(0, source_spies.on_source_leave.call_count())
 
@@ -427,7 +427,7 @@ function! s:test_take_action__session_is_not_active() abort
   try
     silent call assert_equal(0, luis#take_action('default'))
 
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(0, session_spies.is_active.call_count())
     call assert_equal(1, session_spies.start.call_count())
 
@@ -448,7 +448,7 @@ function! s:test_take_action__with_kind() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, {}, candidate, 1))
 
   try
-    call assert_equal(1, luis#start(session))
+    call assert_true(luis#start(session))
     call assert_equal(1, session_spies.start.call_count())
 
     silent call assert_equal(1, luis#take_action('default'))
