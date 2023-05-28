@@ -128,7 +128,7 @@ endfunction
 function! s:Session.is_active() abort dict
   return bufexists(s:ui_bufnr)
   \      && bufwinnr(s:ui_bufnr) != -1
-  \      && getbufvar(s:ui_bufnr, 'luis_session', 0) isnot 0
+  \      && getbufvar(s:ui_bufnr, 'luis_session', 0) is self
 endfunction
 
 function! s:Session.normalize_candidate(candidate, index, context) abort
