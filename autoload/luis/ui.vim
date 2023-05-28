@@ -8,27 +8,19 @@ if !exists('g:luis#ui#default_comparer')
   let s:DefaultComparer = {}
 
   function! s:DefaultComparer.compare_candidates(first, second) abort dict
-    let first_sp = a:first.luis_sort_priority
-    let second_sp = a:second.luis_sort_priority
-
-    if first_sp != second_sp
-      return second_sp - first_sp
-    endif
-
-    if a:first.word < a:second.word
-      return -1
-    elseif a:first.word > a:second.word
-      return 1
-    endif
-
-    return 0
+    return a:first.luis_sort_priority != a:second.luis_sort_priority
+    \      ? a:second.luis_sort_priority - a:first.luis_sort_priority
+    \      : a:first.word < a:second.word
+    \      ? -1
+    \      : a:first.word > a:second.word
+    \      ? 1
+    \      : 0
   endfunction
 
   function! s:DefaultComparer.normalize_candidate(candidate, index, context) abort dict
     if !has_key(a:candidate, 'luis_sort_priority')
       let a:candidate.luis_sort_priority = 0
     endif
-
     return a:candidate
   endfunction
 

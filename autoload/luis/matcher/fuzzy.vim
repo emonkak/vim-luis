@@ -25,23 +25,12 @@ function! s:Matcher.sort_candidates(candidates, context) abort dict
 endfunction
 
 function! s:compare(first, second) abort dict
-  let first_priority = a:first.luis_match_priority
-  let second_priority = a:second.luis_match_priority
-
-  if first_priority != second_priority
-    return second_priority - first_priority
-  endif
-
-  if a:first.luis_match_positions != a:second.luis_match_positions
-    let first_score = a:first.luis_match_score
-    let second_score = a:second.luis_match_score
-
-    if first_score != second_score
-      return second_score - first_score
-    endif
-  endif
-
-  return self.comparer.compare_candidates(a:first, a:second)
+  return a:first.luis_match_priority != a:second.luis_match_priority
+  \      ? a:second.luis_match_priority - a:first.luis_match_priority
+  \      : a:first.luis_match_positions != a:second.luis_match_positions
+  \        && a:first.luis_match_score != a:second.luis_match_score
+  \      ? a:second.luis_match_score - a:first.luis_match_score
+  \      : self.comparer.compare_candidates(a:first, a:second)
 endfunction
 
 function! s:score(word, pattern, offset) abort
