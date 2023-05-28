@@ -16,5 +16,6 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
 endfunction
 
 function! s:Matcher.sort_candidates(candidates, context) abort dict
-  return sort(a:candidates, a:context.comparer.compare, a:context.comparer)
+  let comparer = a:context.comparer
+  return sort(a:candidates, comparer.compare_candidates, comparer)
 endfunction

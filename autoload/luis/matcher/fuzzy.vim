@@ -41,7 +41,7 @@ function! s:compare(first, second) abort dict
     endif
   endif
 
-  return self.comparer.compare(a:first, a:second)
+  return self.comparer.compare_candidates(a:first, a:second)
 endfunction
 
 function! s:score(word, pattern, offset) abort

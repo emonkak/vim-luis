@@ -67,14 +67,5 @@ function! s:test_sort_candidates() abort
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 0 },
   \ ], s:matcher.sort_candidates(cs, context))
-  call assert_true(comparer_spies.compare.called())
-endfunction
-
-function! s:default_comparer(first, second) abort
-  if a:first.word < a:second.word
-    return -1
-  elseif a:first.word > a:second.word
-    return 1
-  endif
-  return 0
+  call assert_true(comparer_spies.compare_candidates.called())
 endfunction

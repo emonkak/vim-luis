@@ -85,6 +85,7 @@ function! s:test_collect_candidates__with_default_matcher_and_comparer() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let [matcher, matcher_spies] = SpyDict(CreateMockMatcher())
   let [source, source_spies] = SpyDict(CreateMockSource({
   \   'candidates': candidates,
@@ -93,12 +94,14 @@ function! s:test_collect_candidates__with_default_matcher_and_comparer() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, {}, 1))
 
   let original_matcher = g:luis#ui#default_matcher
+  let original_comparer = g:luis#ui#default_comparer
   let g:luis#ui#default_matcher = matcher
+  let g:luis#ui#default_comparer = comparer
 
   try
     let pattern = 'foo'
     let expected_context = {
-    \   'comparer': g:luis#ui#default_comparer,
+    \   'comparer': comparer,
     \   'pattern': pattern,
     \   'matcher': matcher,
     \   'session': session,
@@ -122,6 +125,11 @@ function! s:test_collect_candidates__with_default_matcher_and_comparer() abort
     \   [candidates[0], 0, expected_context],
     \   [candidates[1], 1, expected_context],
     \   [candidates[2], 2, expected_context],
+    \ ], comparer_spies.normalize_candidate.args())
+    call assert_equal([
+    \   [candidates[0], 0, expected_context],
+    \   [candidates[1], 1, expected_context],
+    \   [candidates[2], 2, expected_context],
     \ ], matcher_spies.normalize_candidate.args())
     call assert_equal([
     \   [candidates[0], 0, expected_context],
@@ -139,6 +147,7 @@ function! s:test_collect_candidates__with_default_matcher_and_comparer() abort
     \   matcher_spies.sort_candidates.last_args()
     \ )
   finally
+    let g:luis#ui#default_comparer = original_comparer
     let g:luis#ui#default_matcher = original_matcher
   endtry
 endfunction
@@ -149,7 +158,7 @@ function! s:test_collect_candidates__with_source_matcher_and_comparer() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-  let comparer = {}  " Dictionary functions cannot be compared, so use dummy
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let [default_matcher, default_matcher_spies] = SpyDict(CreateMockMatcher())
   let [source_matcher, source_matcher_spies] = SpyDict(CreateMockMatcher())
   let [source, source_spies] = SpyDict(CreateMockSource({
@@ -192,6 +201,11 @@ function! s:test_collect_candidates__with_source_matcher_and_comparer() abort
     \   [candidates[0], 0, expected_context],
     \   [candidates[1], 1, expected_context],
     \   [candidates[2], 2, expected_context],
+    \ ], comparer_spies.normalize_candidate.args())
+    call assert_equal([
+    \   [candidates[0], 0, expected_context],
+    \   [candidates[1], 1, expected_context],
+    \   [candidates[2], 2, expected_context],
     \ ], source_matcher_spies.normalize_candidate.args())
     call assert_equal([
     \   [candidates[0], 0, expected_context],
@@ -217,18 +231,66 @@ endfunction
 function! s:test_default_comparer() abort
   let comparer = g:luis#ui#default_comparer
 
-  call assert_equal(0, comparer.compare({ 'word': 'A' }, { 'word': 'A' }))
-  call assert_equal(-1, comparer.compare({ 'word': 'A' }, { 'word': 'B' }))
-  call assert_equal(-1, comparer.compare({ 'word': 'A' }, { 'word': 'a' }))
-  call assert_equal(1, comparer.compare({ 'word': 'a' }, { 'word': 'A' }))
-  call assert_equal(1, comparer.compare({ 'word': 'B' }, { 'word': 'A' }))
+  call assert_equal(
+  \   { 'word': 'A', 'luis_sort_priority': 0 },
+  \   comparer.normalize_candidate({ 'word': 'A' }, 0, {})
+  \ )
+  call assert_equal(
+  \   { 'word': 'A', 'luis_sort_priority': 1 },
+  \   comparer.normalize_candidate(
+  \     { 'word': 'A', 'luis_sort_priority': 1 },
+  \     0,
+  \     {}
+  \   )
+  \ )
 
-  call assert_equal(0, comparer.compare({ 'word': 'A' }, { 'word': 'A', 'luis_sort_priority': 0 }))
-  call assert_equal(1, comparer.compare({ 'word': 'A' }, { 'word': 'A', 'luis_sort_priority': 1 }))
-  call assert_equal(0, comparer.compare({ 'word': 'A', 'luis_sort_priority': 0 }, { 'word': 'A' }))
-  call assert_equal(0, comparer.compare({ 'word': 'A', 'luis_sort_priority': 0 }, { 'word': 'A', 'luis_sort_priority': 0 }))
-  call assert_equal(1, comparer.compare({ 'word': 'A', 'luis_sort_priority': 0 }, { 'word': 'A', 'luis_sort_priority': 1 }))
-  call assert_equal(-1, comparer.compare({ 'word': 'A', 'luis_sort_priority': 1 }, { 'word': 'A' }))
-  call assert_equal(-1, comparer.compare({ 'word': 'A', 'luis_sort_priority': 1 }, { 'word': 'A', 'luis_sort_priority': 0 }))
-  call assert_equal(0, comparer.compare({ 'word': 'A', 'luis_sort_priority': 1 }, { 'word': 'A', 'luis_sort_priority': 1 }))
+  call assert_equal(
+  \   0,
+  \   comparer.compare_candidates(
+  \     { 'word': 'A', 'luis_sort_priority': 0 },
+  \     { 'word': 'A', 'luis_sort_priority': 0 }
+  \   )
+  \ )
+  call assert_equal(
+  \   -1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'A', 'luis_sort_priority': 0 },
+  \     { 'word': 'B', 'luis_sort_priority': 0 }
+  \   )
+  \ )
+  call assert_equal(
+  \   1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'B', 'luis_sort_priority': 0 },
+  \     { 'word': 'A', 'luis_sort_priority': 0 }
+  \   )
+  \ )
+  call assert_equal(
+  \   -1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'A', 'luis_sort_priority': 1 },
+  \     { 'word': 'A', 'luis_sort_priority': 0 }
+  \   )
+  \ )
+  call assert_equal(
+  \   -1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'B', 'luis_sort_priority': 1 },
+  \     { 'word': 'A', 'luis_sort_priority': 0 }
+  \   )
+  \ )
+  call assert_equal(
+  \   1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'A', 'luis_sort_priority': 0 },
+  \     { 'word': 'A', 'luis_sort_priority': 1 }
+  \   )
+  \ )
+  call assert_equal(
+  \   1,
+  \   comparer.compare_candidates(
+  \     { 'word': 'B', 'luis_sort_priority': 0 },
+  \     { 'word': 'A', 'luis_sort_priority': 1 }
+  \   )
+  \ )
 endfunction

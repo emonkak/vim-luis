@@ -42,7 +42,7 @@ function! CreateMockSession(source, hook, candidate, is_active) abort
   \   'guess_candidate': { -> a:candidate },
   \   'hook': a:hook,
   \   'is_active': { -> a:is_active },
-  \   'normalize_candidate': { candidate -> candidate },
+  \   'normalize_candidate': { candidate, index, context -> candidate },
   \   'quit': { -> 0 },
   \   'reload_candidates': { -> 0 },
   \   'source': a:source,
@@ -100,8 +100,9 @@ endfunction
 
 function! CreateMockComparer() abort
   return {
-  \   'compare': { first, second ->
+  \   'compare_candidates': { first, second ->
   \     first.word < second.word ? -1 : first.word > second.word ? 1 : 0
   \   },
+  \   'normalize_candidate': { candidate, index, context -> candidate },
   \ }
 endfunction

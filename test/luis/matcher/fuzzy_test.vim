@@ -196,7 +196,7 @@ function! s:test_sort_candidates() abort
   \   [cs1[0], cs1[1], cs1[3], cs1[2]],
   \   s:matcher.sort_candidates(copy(cs1), context)
   \ )
-  call assert_true(comparer_spies.compare.called())
+  call assert_true(comparer_spies.compare_candidates.called())
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let context = { 'comparer': comparer }
@@ -204,14 +204,5 @@ function! s:test_sort_candidates() abort
   \   [cs2[3], cs2[2], cs2[0], cs2[1]],
   \   s:matcher.sort_candidates(copy(cs2), context)
   \ )
-  call assert_true(comparer_spies.compare.called())
-endfunction
-
-function! s:default_comparer(first, second) abort
-  if a:first.word < a:second.word
-    return -1
-  elseif a:first.word > a:second.word
-    return 1
-  endif
-  return 0
+  call assert_true(comparer_spies.compare_candidates.called())
 endfunction

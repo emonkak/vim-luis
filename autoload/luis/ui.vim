@@ -7,9 +7,9 @@ endif
 if !exists('g:luis#ui#default_comparer')
   let s:DefaultComparer = {}
 
-  function! s:DefaultComparer.compare(first, second) abort dict
-    let first_sp = get(a:first, 'luis_sort_priority', 0)
-    let second_sp = get(a:second, 'luis_sort_priority', 0)
+  function! s:DefaultComparer.compare_candidates(first, second) abort dict
+    let first_sp = a:first.luis_sort_priority
+    let second_sp = a:second.luis_sort_priority
 
     if first_sp != second_sp
       return second_sp - first_sp
@@ -22,6 +22,14 @@ if !exists('g:luis#ui#default_comparer')
     endif
 
     return 0
+  endfunction
+
+  function! s:DefaultComparer.normalize_candidate(candidate, index, context) abort dict
+    if !has_key(a:candidate, 'luis_sort_priority')
+      let a:candidate.luis_sort_priority = 0
+    endif
+
+    return a:candidate
   endfunction
 
   let g:luis#ui#default_comparer = s:DefaultComparer
@@ -136,12 +144,8 @@ endfunction
 function! luis#ui#collect_candidates(session, pattern) abort
   let source = a:session.source
   let hook = a:session.hook
-  let matcher = has_key(source, 'matcher')
-  \           ? source.matcher
-  \           : g:luis#ui#default_matcher
-  let comparer = has_key(source, 'comparer')
-  \            ? source.comparer
-  \            : g:luis#ui#default_comparer
+  let comparer = get(source, 'comparer', g:luis#ui#default_comparer)
+  let matcher = get(source, 'matcher', g:luis#ui#default_matcher)
   let context = {
   \   'comparer': comparer,
   \   'matcher': matcher,
@@ -151,6 +155,9 @@ function! luis#ui#collect_candidates(session, pattern) abort
 
   let normalizers = []
 
+  if has_key(comparer, 'normalize_candidate')
+    call add(normalizers, comparer)
+  endif
   if has_key(matcher, 'normalize_candidate')
     call add(normalizers, matcher)
   endif
