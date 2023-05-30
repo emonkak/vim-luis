@@ -56,9 +56,9 @@ function! luis#start(new_session) abort
     return 0
   endif
 
-  call s:start_session(a:new_session)
-
   let s:session = a:new_session
+
+  call s:start_session(a:new_session)
 
   return 1
 endfunction
