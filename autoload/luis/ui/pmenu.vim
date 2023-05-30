@@ -293,7 +293,9 @@ function! s:initialize_ui_buffer() abort
   inoremap <buffer> <expr> <SID>(delete-backward-line)
   \        pumvisible() ? '<C-e><C-u>' : '<C-u>'
   inoremap <buffer> <expr> <SID>(delete-backward-component)
-  \        <SID>keys_to_delete_backward_component()
+         \ exists('b:luis_session')
+         \ ? <SID>keys_to_delete_backward_component(b:luis_session)
+         \ : ''
 
   nnoremap <buffer> <script> <Plug>(luis-choose-action)
   \        <SID>(choose-action)
@@ -323,8 +325,7 @@ function! s:initialize_ui_buffer() abort
   endif
 endfunction
 
-function! s:keys_to_complete() abort
-  let session = b:luis_session
+function! s:keys_to_complete(session) abort
   let cursor_lnum = line('.')
   let cursor_column = col('.')
   let line = getline('.')
@@ -340,14 +341,14 @@ function! s:keys_to_complete() abort
   elseif cursor_column <= len(s:PROMPT)
     " Move the cursor out of the prompt if it is in the prompt.
     let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
-  elseif len(line) < cursor_column && cursor_column != session.last_column
+  elseif len(line) < cursor_column && cursor_column != a:session.last_column
     let sep = line[-1:]
     " New character is inserted. Let's complete automatically.
-    if !session.is_inserted_by_acc
-    \  && session.selected_index == -1
+    if !a:session.is_inserted_by_acc
+    \  && a:session.selected_index == -1
     \  && len(s:PROMPT) + 2 <= len(line)
-    \  && has_key(session.source, 'is_special_char')
-    \  && session.source.is_special_char(sep)
+    \  && has_key(a:session.source, 'is_special_char')
+    \  && a:session.source.is_special_char(sep)
       " (1) The last inserted character is not inserted by ACC.
       " (2) The selected item does not exist.
       " (3) It seems not to be the 1st one in line.
@@ -360,33 +361,33 @@ function! s:keys_to_complete() abort
       let pattern = s:remove_prompt(line)
       let acc_text = luis#ui#acc_text(
       \   pattern,
-      \   session.last_candidates,
-      \   session.source
+      \   a:session.last_candidates,
+      \   a:session.source
       \ )
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
         call setline('.', acc_text)
         let keys = "\<End>" . sep
-        let session.is_inserted_by_acc = 1
+        let a:session.is_inserted_by_acc = 1
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let session.is_inserted_by_acc = 0
+        let a:session.is_inserted_by_acc = 0
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let session.is_inserted_by_acc = 0
+      let a:session.is_inserted_by_acc = 0
     endif
   else
     let keys = ''
   endif
 
-  let session.last_column = cursor_column
-  let session.last_pattern_raw = line
+  let a:session.last_column = cursor_column
+  let a:session.last_pattern_raw = line
   return keys
 endfunction
 
-function! s:keys_to_delete_backward_component() abort
+function! s:keys_to_delete_backward_component(session) abort
   " In the following figures,
   " '|' means the cursor position, and
   " '^' means characters to delete:
@@ -399,12 +400,11 @@ function! s:keys_to_delete_backward_component() abort
   "
   "   >/usr/|
   "     ^^^^
-  let session = b:luis_session
   let line = getline('.')
   if len(line) < col('.')
-    if has_key(session.source, 'is_special_char')
+    if has_key(a:session.source, 'is_special_char')
       for i in range(len(line) - 2, 0, -1)
-        if session.source.is_special_char(line[i:i])
+        if a:session.source.is_special_char(line[i:i])
           let num_chars = strchars(line[i + 1:])
           return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
         endif
@@ -424,7 +424,9 @@ function! s:on_CursorMovedI() abort
     return
   endif
 
-  call feedkeys(s:keys_to_complete(), 'n')
+  let session = b:luis_session
+
+  call feedkeys(s:keys_to_complete(session), 'n')
 endfunction
 
 function! s:on_InsertEnter() abort
@@ -436,7 +438,7 @@ function! s:on_InsertEnter() abort
   let session.is_inserted_by_acc = 0
   let session.last_column = -1
   let session.last_pattern_raw = ''
-  call feedkeys(s:keys_to_complete(), 'n')
+  call feedkeys(s:keys_to_complete(session), 'n')
 endfunction
 
 function! s:on_TextChangedP() abort
@@ -444,16 +446,17 @@ function! s:on_TextChangedP() abort
     return
   endif
 
+  let session = b:luis_session
+
   " BUGS: complete_info() may return incorrect selected item index. Therefore,
   "       we can only use it to determine whether the selected item exists or
   "       not.
   "       https://github.com/vim/vim/issues/12230
   let complete_info = complete_info(['selected'])
   if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS && complete_info.selected == -1
-    call feedkeys(s:keys_to_complete(), 'n')
+    call feedkeys(s:keys_to_complete(session), 'n')
   endif
 
-  let session = b:luis_session
   let session.selected_index = complete_info.selected
 
   if luis#preview#is_enabled()
