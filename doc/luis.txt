@@ -1,0 +1,1765 @@
+*luis.txt*	A framework for fuzzy finder
+
+Author: Shota Nozaki <emonkak@gmail.com>
+License: MIT license
+
+==============================================================================
+CONTENTS						*luis-contents*
+
+Introduction                      |luis-introduction|
+Session                           |luis-session|
+  Attributes                      |luis-session-attributes|
+  Functions                       |luis-session-functions|
+  Variables                       |luis-session-variables|
+  Autocommands                    |luis-session-autocommands|
+Hook                              |luis-hook|
+  Attributes                      |luis-hook-attributes|
+UI                                |luis-ui|
+  Attributes                      |luis-ui-attributes|
+  Common Mappings                 |luis-ui-common-mappings|
+  Automatic Component Completion  |luis-ui-acc|
+  Popupmenu UI                    |luis-ui-popupmenu|
+Source                            |luis-source|
+  Candidate                       |luis-source-candidate|
+  Attributes                      |luis-source-attributes|
+  Example                         |luis-source-example|
+  Built-ins                       |luis-source-built-ins|
+Kind                              |luis-kind|
+  Attributes                      |luis-kind-attributes|
+  Action                          |luis-kind-action|
+  Example                         |luis-kind-example|
+  Customization                   |luis-kind-customization|
+  Argument Kind                   |luis-kind-argument|
+  Buffer Kind                     |luis-kind-buffer|
+  Colorscheme Kin                 |luis-kind-colorscheme|
+  Common Kind                     |luis-kind-common|
+  File Kind                       |luis-kind-file|
+  Help Kind                       |luis-kind-help|
+  History Kind                    |luis-kind-history|
+  Jumplist Kind                   |luis-kind-jumplist|
+  Mark Kind                       |luis-kind-mark|
+  Quickfix Kind                   |luis-kind-quickfix|
+  Register Kind                   |luis-kind-register|
+  Tag Kind                        |luis-kind-tag|
+  Tagstack Kind                   |luis-kind-tagstack|
+  text Kind                       |luis-kind-text|
+Matcher                           |luis-matcher|
+  Attributes                      |luis-matcher-attributes|
+  Example                         |luis-matcher-example|
+  Built-ins                       |luis-matcher-built-ins|
+Comparer                          |luis-comparer|
+  Attributes                      |luis-comparer-attributes|
+  Example                         |luis-comparer-example|
+  Built-ins                       |luis-comparer-built-ins|
+Previewer                         |luis-previewer|
+  Attributes                      |luis-previewer-attributes|
+  Built-ins                       |luis-previewer-built-ins|
+
+==============================================================================
+INTRODUCTION						*luis-introduction*
+
+Luis, which stands for Lookup UI for Sources, is a framework for providing a
+highly customizable fuzzy finder.  It provides Source to gather
+candidates, Kind to provides the actions for a candidate, Matcher
+to filter candidates, Previewer to preview each candidate, and UI
+for integrating them.
+
+Requirements:
+
+- Vim 8.0 or later
+
+==============================================================================
+SESSION							*luis-session*
+
+Session is the only argument that contains all the parameters required to
+run Luis.  The session is represented as a dictionary with the following keys:
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-session-attributes*
+
+Session.id (number) (required)				*luis-session-id*
+	The unique identifier for the session.
+
+Session.source (Source) (required)			*luis-session-source*
+	The source (|luis-source|) for gather candidates.
+
+Session.ui (UI) (required)				*luis-session-ui*
+	The UI (|luis-ui|) for rendering candidates.
+
+Session.matcher (Matcher) (required)			*luis-session-matcher*
+	The matcher (|luis-matcher|) for filtering candidates.
+
+Session.comparer (Comparer) (required)			*luis-session-comparer*
+	The comparer (|luis-comparer|) for sorting candidates.
+
+Session.previewer (Previewer) (required)	*luis-session-previewer*
+	The previewer (|luis-previewer|) for previewing each candidates.
+
+Session.hook (Hook) (required)			*luis-session-hook*
+	The |luis-hook| for some events.
+
+Session.initial_pattern (string) (required)	*luis-session-initial_pattern*
+	The initial value of the pattern for filtering candidates.
+
+------------------------------------------------------------------------------
+FUNCTIONS					*luis-session-functions*
+
+luis#acc_text({pattern}, {candidates}, {source})	*luis#acc_text()*
+	Execute ACC |luis-auto-component-completion| to expand {pattern}.
+	It returns the string representing the expanded pattern if successful,
+	or it returns the empty string otherwise.
+
+	NOTE: This is a function intended for UI implementation.
+
+luis#collect_candidates({session}, {pattern})	*luis#collect_candidates()*
+	Collect candidates using the following steps:
+
+	1. Collect candidates from the source.
+	2. The matcher extracts candidates that match the specified pattern.
+	3. Normalize each candidate.
+	4. The matcher sorts the candidates based on match scores and the
+	   comparer.
+
+luis#do_action({session}, {action_name}, {candidate})	*luis#do_action()*
+	Execute the action indicated by {action_name} with {candidate}.
+	If the action is successful, it returns 0.  Otherwise, it returns a
+	string representing the error.
+
+	When {action_name} is empty string, nothing will be done.
+
+	When {action_name} is "*", you can select the action interactively.
+
+luis#new_session({source}, {options} = {})		*luis#new_session()*
+	Create the new session for {source}, and return the created one.
+
+	{options} is a dictionary that can contain the following keys:
+	  "ui"              (UI) An alternative UI that replaces the
+	                    |luis#default_ui|.
+	  "matcher"         (Matcher) An alternate matcher that replaces the
+	                    |luis#default_matcher|.  This value is prioritized
+	                    over the one specified in the source.
+	  "comparer"        (Comparer) An alternate comparer that replaces
+	                    |luis#default_comparer|.  This value is prioritized
+	                    over the one specified in the source.
+	  "previewer"       (Previewer) The alternate previewer that replaces
+	                    |luis#default_previewer|.
+	  "hook"            (Hook) The |luis-hook| for some events.
+	  "initial_pattern" (string) The initial value of the pattern for
+	                    filtering candidates.
+
+luis#preview_candidates({session})	*luis#preview_candidates()*
+	If possible, preview the currently selected candidate in the UI.
+
+	You can specify the following special keys in the "user_data" of the
+	candidate:
+
+	  "preview_bufnr"     (number) The number of the buffer to preview.
+	                      It is prioritized over the "preview_path"
+	  "preview_cursor"    (string) The position of the cursor in the
+	                      prewview buffer.
+	  "preview_filetype"  (string) 'filetype' of the preview buffer.
+	  "preview_lines"     (list of strings) The list of lines representing
+	                      the text to preview.  It is prioritized over the
+	                      "preview_bufnr" or "preview_path".
+	  "preview_path"      (string) The path of the file to preview.  If
+	                      not specified, it will be inferred from the
+	                      content or the path.
+
+	NOTE: This is a function intended for UI implementation.
+
+luis#quit({session})					*luis#quit()*
+	Quit the {session}.  It returns TRUE if successful, or it returns
+	FALSE otherwise.
+
+luis#start({session})					*luis#start()*
+	Start the {session}.  It returns TRUE if successful, or it returns
+	FALSE otherwise.
+
+luis#take_action({session}, {action_name})		*luis#take_action()*
+	Take an action indicated by {action_name} with a selected candidate in
+	UI.  It returns TRUE if successful, or it returns FALSE and outputs
+	errors otherwise.
+
+	If the selected candidate is not found in the UI, an ad-hoc candidate
+	like the following will be given to the action:
+>
+	{ 'word': '{current_pattern}', user_data: {} }
+<
+
+	NOTE: This is a function intended for UI implementation.
+
+------------------------------------------------------------------------------
+VARIABLES					*luis-session-variables*
+
+g:luis#default_comparer				*g:luis#default_comparer*
+	The default value used when comparer is not specified in
+	|luis#new_session()|.
+
+g:luis#default_matcher				*g:luis#default_matcher*
+	The default value used when matcher is not specified in
+	|luis#new_session()|.
+
+g:luis#default_previewer			*g:luis#default_previewer*
+	The default value used previewer is not specified in
+	|luis#new_session()|.
+
+g:luis#default_ui					*g:luis#default_ui*
+	The default value used UI is not specified in
+	|luis#new_session()|.
+
+------------------------------------------------------------------------------
+AUTOCOMMANDS					*luis-session-autocommands*
+
+User LuisInit							*LuisInit*
+
+	When Luis is autoloaded, this event will be triggered only once before
+	Luis is initialized.  If you want to override the
+	|luis-session-variables| or other settings, use |autocmd| like the
+	following:
+>
+	autocmd! User LuisInit  call s:on_luis_init()
+	function! s:on_luis_init() abort
+	  ...
+	endfunction
+<
+==============================================================================
+HOOK							*luis-hook*
+
+The Hook provides some callbacks for various events that occur during a
+session.
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-hook-attributes*
+
+					|luis-hook-normalize_candidate|
+Hook.normalize_candidate({candidate}, {index}, {context}) (optional)
+	The function that formats candidates.  It must return the formatted
+	candidate as a return value.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "session"   (Session) The currently active session.
+	  "pattern"   (string) The pattern for filtering a list of candidates.
+
+Hook.on_action({candidate}, {context}) (optional)	|luis-hook-on_action|
+	The callback that is called after |luis-source-on_action|.
+
+Hook.on_source_enter({context}) (optional)	|luis-hook-on_source_enter|
+	The callback that is called before |luis-source-on_source_enter|.
+
+Hook.on_source_leave({context}) (optional)	|luis-hook-on_source_leave|
+	The callback that is called after |luis-source-on_source_leave|.
+
+Hook.on_preview({candidate}, {context}) (optional)	|luis-hook-on_preview|
+	The callback that is called after |luis-source-on_preview|.
+
+==============================================================================
+UI								*luis-ui*
+
+UI provides the window to render a list of candidates.
+
+------------------------------------------------------------------------------
+ATTRIBUTES						*luis-ui-attributes*
+
+UI.current_pattern() (required)			|luis-ui-current_pattern|
+	Return the current pattern that has been input by the user.
+
+UI.guess_candidate() (required)			|luis-ui-guess_candidate|
+	Return the currently selected candidate.  If the selected candidate
+	is not found, it must return 0.
+
+	If the UI has cached the candidate, it should return a clone of the
+	candidate.
+
+							|luis-ui-is_active|
+UI.is_active() (required)
+	Return TRUE if the preview window is active, otherwise return FALSE.
+
+						|luis-ui-normalize_candidate|
+UI.normalize_candidate({candidate}, {index}, {context}) (optional)
+	Normalize a candidate for rendering the list of candidates.
+
+UI.preview_bounds() (required)			|luis-ui-preview_bounds|
+	Return a dictionary representing the position and size of the preview
+	window.  See |luis-previewer-bounds| for the dictionary format.
+
+UI.quit() (required)						|luis-ui-quit|
+	Close the window and release the associated session.
+
+	If the UI's window is not active, the UI maybe raise an error.
+
+UI.refresh_candidates() (required)		|luis-ui-refresh_candidates|
+	Refresh the candidates currently displayed in the UI.
+
+UI.start({session}) (required)				|luis-ui-start|
+	Launch the UI with {session} as a new session.
+
+	If the UI's window is already active, the UI maybe raise an error.
+
+	If the same session as the previous session is given, the last pattern,
+	which have been input by the user, should be restored.
+
+------------------------------------------------------------------------------
+COMMON MAPPINGS					*luis-session-mappings*
+
+The following mapping is common to all UI implementations.
+
+						*<Plug>(luis-choose-action)*
+<Plug>(luis-choose-action)			*i_<Plug>(luis-choose-action)*
+	Like |<Plug>(luis-do-default-action)|, but you can choose an action
+	from all available actions for the currently selected candidate.
+
+	This function does:
+	1. Show a message about what actions are available,
+	2. Take an input of a single key stroke,
+	3. Then do the action corresponding to the key.
+
+<Plug>(luis-delete-backward-char)	*i_<Plug>(luis-delete-backward-char)*
+	Delete backward character like |i_<BS>|, with special treatment for
+	Luis.
+
+				*i_<Plug>(luis-delete-backward-component)*
+<Plug>(luis-delete-backward-component)
+	Like |i_CTRL-W| to delete backward word, but it deletes backward
+	"component" instead.  See also |luis-ui-acc| for what "component" is.
+
+	Examples:
+
+	Pattern		After deletion ~
+	------------------------------ ~
+	>/usr/local/b	>/usr/local/
+	>/usr/local/	>/usr/
+	>/usr/		>/
+	>/		>
+
+					*<Plug>(luis-do-default-action)*
+<Plug>(luis-do-default-action)		*i_<Plug>(luis-do-default-action)*
+	Do the default action on the currently selected candidate, then quit
+	the current session.
+
+						*<Plug>(luis-quit-session)*
+<Plug>(luis-quit-session)			*i_<Plug>(luis-quit-session)*
+	Quit the current session.
+
+------------------------------------------------------------------------------
+AUTO COMPONENT COMPLETION					*luis-ui-acc*
+
+Whenever a special character [^1] is typed, the names of appropriate
+components [^2] will be automatically inserted.  For example, if the 1st item
+in the completion menu is 'usr/share/man/man1', the current input pattern will
+be replaced (i.e., completed) as follows:
+
+User Input	Replacement          ~
+------------------------------------ ~
+u/		usr/
+usr//		usr/share/
+usr/share//	usr/share/man/
+sh/		usr/share/	[^3]
+m/		usr/share/man/	[^3]
+
+This feature is derived from BlueWind, command-based application launcher for
+Microsoft Windows <http://cspace.s2.xrea.com/software/bluewind/>.
+
+[^1]: In the above example, '/' is a special character to activate this
+completion.  This character is configurable with
+|luis-source-is_component_separator|.
+
+[^2]: In the above example, components are directories.  More precisely,
+components are just strings separated by a special character.  So in the above
+example, components are directory-like stuffs and they may not be directories.
+
+[^3]: In these cases, Luis completes more than 1 directories. Because user
+seems to want to complete several directories rather than just 1 directory.
+This behavior is not in BlueWind, but it's useful.
+
+------------------------------------------------------------------------------
+POPUPMENU UI						*luis-ui-popupmenu*
+
+Popupmenu UI is a simple implementation that uses |ins-completion-menu|.
+
+FUNCTIONS					*luis-ui-popupmenu-functions*
+
+luis#ui#popupmenu#define_default_key_mappings()
+	Define default ui key mappings used in the UI buffer.
+
+	See |luis-ui-popupmenu-default-key-mappings| for the details of key
+	bindings.
+
+VARIABLES				*luis-ui-popupmenu-variables*
+
+b:luis_session (Session)
+	The currently active session.
+
+	When a session is not started, this variable is not defined.
+
+AUTOCOMMANDS
+
+FileType luis-popupmenu-ui			*filetype-luis-popupmenu-ui*
+	This event is published whenever the UI buffer is created then being
+	initialized.  Use this event to do your initialization, for example,
+	customize key mappings for the UI buffer.
+
+	Note that if there is no |:autocmd| nor filetype plugin for this
+	event, the UI will call luis#ui#popupmenu#default_key_mappings() to
+	define the default key mappings.  Otherwise, this initialization will
+	not be done.
+
+	Example: Define a key mapping to execute "left" action with a single
+	key stroke.
+>
+	autocmd FileType luis-popupmenu-ui  call s:on_luis_popupmenu_ui()
+	function s:on_luis_popupmenu_ui() abort
+	  call luis#ui#popupmenu#define_default_key_mappings()
+	  nnoremap <expr> <M-[>
+	         \ exists('b:luis_session')
+	         \ ? ":<C-u>call luis#take_action(b:luis_session, 'left')<CR>"
+	         \ : ''
+	  inoremap <expr> <M-[>
+	         \ exists('b:luis_session')
+	         \ ? "<Esc>:<C-u>call luis#take_action(b:luis_session, 'left')<CR>"
+	         \ : ''
+	endfunction
+<
+DEFAULT KEY MAPPINGS		*luis-ui-popupmenu-default-key-mappings*
+
+Modes	Key sequence	Meaning                                              ~
+---------------------------------------------------------------------------- ~
+i	<BS>		|<Plug>(luis-delete-backward-char)|, but if the
+			current pattern is empty, |<Plug>(luis-quit-session)|
+ni	<Esc>		|<Plug>(luis-quit-session)|
+ni	<C-c>		|<Plug>(luis-quit-session)|
+i	<C-h>		|<Plug>(luis-delete-backward-char)|, but if the
+			current pattern is empty, |<Plug>(luis-quit-session)|
+ni	<C-i>		|<Plug>(luis-choose-action)|
+ni	<C-m>		|<Plug>(luis-do-default-action)|
+i	<C-w>		|<Plug>(luis-delete-backward-component)|, but if the
+			current pattern is empty, |<Plug>(luis-quit-session)|
+ni	<Enter>		|<Plug>(luis-do-default-action)|
+ni	<Return>	|<Plug>(luis-do-default-action)|
+ni	<Tab>		|<Plug>(luis-choose-action)|
+
+==============================================================================
+SOURCE							*luis-source*
+
+Sources are like kinds of information.  For example, the "buffer" source
+gather the all existing buffers as candidates.
+
+------------------------------------------------------------------------------
+CANDIDATE					*luis-source-candidate*
+
+The candidate is a dictionary mostly same to |complete-items|.
+
+Luis adds several additional entries for this dictionary.  Keys of such
+entries are prefixed with "luis_":
+
+  "luis_sort_priority"   (number) The priority of sort used by "default"
+                         comparer.  Higher numerical values are placed at the
+                         front.
+  "luis_match_priority"  (number) The priority of sort used by "fuzzy" or
+                         "fuzzy_native" matcher. Higher numerical values are
+                         placed at the front.  This value has a
+                         higher priority than "luis_sort_priority".
+
+Additionally, in Luis, The "user_data" entry is always represented as a
+dictionary.  This dictionary is used for the following purposes:
+
+- Parameters for the kind actions. Keys of such entries must be prefixed with
+  "{kind}_", where {kind} is the name of a kind (e.g. "buffer_nr",
+  "file_path").
+- The kind of the candidate. If the "user_data" contains the entry for "kind",
+  it will override the default kind of the source with this
+  value.
+- Preview hints. Keys of such entries are prefixed with "preview_" (e.g.
+  "preview_lines", "preview_bufnr").
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-source-attributes*
+
+Source.name (string) (required)				*luis-source-name*
+	The name of a source.  It must consist of the following characters:
+	- a-z
+	- 0-9
+	- /
+	- _
+	- -
+
+Source.comparer (Comparer) (optional)			*luis-source-comparer*
+	The comparer is used for sorting the list of candidates.  If not
+	specified, the default comparer will be used.
+
+Source.default_kind (Kind) (required)		*luis-source-default_kind*
+	The default value used as the kind for candidates.  If a candidate has
+	"user_data.kind", this value will be overwritten.
+
+Source.matcher (Matcher) (optional)			*luis-source-matcher*
+	The matcher is used for mathing candidates.If not specified, the
+	default matcher will be used.
+
+					*luis-source-gather_candidates*
+Source.gather_candidates({context}) (required)
+	Gather candidates and returns a list of candidates.  See
+	|luis-source-candiate| for about the format of a candidate.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "session"   (Session) The currently active session.
+	  "pattern"   (string) The pattern for filtering a list of candidates.
+
+						*luis-source-on_action*
+Source.on_action({candidate}, {context}) (optional)
+	The callback called before the kind action is invoked. {candidate} is
+	a duplicate of the cached candidate, you can modify it as you like in
+	this callback.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "action"       (Funcref) The funcref of the action to be executed.
+	                 You can override this value to change the action to
+	                 be executed.
+	  "action_name"  (string) The name of the action to be executed.
+	  "session"      (Session) The currently active session.
+	  "kind"         (Kind) The kind to which {candidate} belongs.
+
+						*luis-source-on_preview*
+Source.on_preview({candidate}, {context}) (optional)
+	The callback called before preview. {candidate} is a duplicate of the
+	candidate, you can modify it as you like in this callback.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "session"  (Session) The currently active session.
+
+Source.on_source_enter({context}) (optional)	*luis-source-on_source_enter*
+	The callback that is called only once when the session is started with
+	this source.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "session"  (Session) The currently active session.
+
+Source.on_source_leave({context}) (optional)	*luis-source-on_source_leave*
+	It is a callback that is called only once before the session is quited
+	with this source.
+
+	{context} is a dictionary that contains the following keys:
+
+	  "session"  (Session) The currently active session.
+
+					*luis-source-is_component_separator*
+Source.is_component_separator({char}) (optional)
+	Return TRUE if a given {char} is a component separator for
+	|luis-ui-acc| (ACC), otherwise return FALSE.
+
+Source.is_valid_for_acc({candidate}) (optional)	*luis-source-is_valid_for_acc*
+	Return return if a given candidate is valid one for
+	|luis-ui-acc| (ACC).  Otherwise return FALSE.
+
+	For example, if you explore files and directories, you want to
+	activate ACC only for directories.  So a function should be as follows:
+>
+	function! s:Source.valid_for_acc_p(candidate) abort dict
+	  return isdirectory(a:candidate.word)
+	endfunction
+<
+------------------------------------------------------------------------------
+EXAMPLE						*luis-source-example*
+>
+	function! s:Source() abort
+	  let source = copy(s:Source)
+	  let source.cached_candidates = []
+	  return source
+	endfunction
+
+	let s:Source = {
+	\   'name': 'mysource',
+	\   'default_kind': luis#kind#buffer#import(),
+	\ }
+
+	function! s:Source.gather_candidates(context) abort dict
+	  return self.cached_candidates
+	endfunction
+
+	function! s:Source.on_source_enter(context) abort dict
+	  let self.cached_candidates = map(getbufinfo({ 'buflisted': 1 }), '{
+	  \   "word": v:val.name != "" ? v:val.name : "[No Name]",
+	  \   "dup": v:val.name == "",
+	  \   "user_data": {
+	  \     "buffer_nr": v:val.bufnr,
+	  \     "preview_bufnr": v:val.bufnr,
+	  \   },
+	  \ }')
+	endfunction
+<
+------------------------------------------------------------------------------
+BUILT-INS					*luis-source-built-ins*
+
+						*luis-source-args*
+luis#source#arglist#new()			*luis#source#args#new()*
+	Create a "arglist" source that gathers candidates from
+	|argument-list|.
+
+	Each candidates are associated with the |luis-kind-argument|.
+
+						*luis-source-async*
+						*luis#source#async#new()*
+luis#source#async#new({name}, {default_kind}, {command}, {options} = {})
+	Create a "async/{name}" source that gathers candidates via the
+	external process using the Vim or NeoVim |job| API.  In addition to
+	gathering candidates, the external process handles filtering and
+	sorting, ensuring that the UI is not blocked.
+
+	{name} is a string used as a suffix for the source name.
+
+	{default_kind} is a dictionary of the kind that is used as the default
+	kind for candidates.
+
+	{command} is a list of command arguments for collecting and filtering
+	candidates.
+
+	{options} is a dictionary of optional parameters.
+
+	{options.debounce_time} delays patterns input by the user for the
+	given due time in milliseconds.  If within this time a new pattern
+	is input, the previous pending pattern is dropped.  If not specified,
+	patterns will never delay.
+
+	{options.to_candidate} is a function for converting lines of command
+	output into candidates.  If not specified, the following function is
+	used to create candidates with the whole line as "word":
+>
+	function! s:to_candidate(line) abort
+	  return { 'word': a:line }
+	endif
+<
+	Async sources require the source command and the filter command.  The
+	source command responsible for generating the candidate output,
+	such as "find" or "git".  The filter is the filter command used to
+	filter and sort the candidates based on a pattern from the output of
+	the source command.
+
+	The filter command is a very simple one and operates based on the
+	following steps:
+
+	1. Execute the source command and store the execution result.
+	2. Wait for a pattern string from the standard input.
+	3. Output the lines from the execution result that match the pattern.
+	4. Output EOF.
+	5. Go back to step 2.
+
+	The filter command can be implemented as a simple shell script, as
+	follows (Note: a sequential number are prepended to the pattern input
+	and output lines for identification):
+>
+	#!/bin/env bash
+
+	set -o errexit -o nounset
+
+	output="$("${@}")"  # Execute source command
+
+	while read -r sequence pattern
+	do
+	  while read -r line
+	  do
+	    if [[ "${line}" == *"${pattern}"* ]]
+	    then
+	      echo "${sequence}" "${line}"
+	    fi
+	  done <<< "${output}"
+	  echo "${sequence}"  # EOF
+	done
+<
+	"fzf-filter" [^1] is a useful implementation of a filter command that
+	performs the fuzzy matching on a output of the source command.  To
+	create an async source for the "fd" [^2] command using "fzf-filter",
+	you can configure it as follows:
+>
+	let command = [
+	\   'fzf-filter', '-l', '1000',
+	\   '--',
+	\   'fd',
+	\   '--type', 'f',
+	\   '--strip-cwd-prefix',
+	\   '-c', 'never',
+	\   '--max-results', '10000',
+	\ ]
+	let options = {
+	\   'to_candidate': { line -> {
+	\     'word': line,
+	\     'user_data': { 'preview_path': line },
+	\   }},
+	\ }
+	let source = luis#source#async#new(
+	\   'fd',
+	\   luis#kind#file#import(),
+	\   command,
+	\   options
+	\ )
+<
+	[^1] https://github.com/emonkak/fzf-filter
+	[^2] https://github.com/sharkdp/fd
+
+						*luis-source-buffer*
+luis#source#buffer#new()			*luis#source#buffer#new()*
+	Create a "buffer" source that gathers candidates from the all existing
+	buffers.
+
+	Each candidates are associated with the |luis-kind-buffer|.
+
+	The buffers are sorted in the following order of priority, with the
+	buffer that satisfies all conditions being the highest priority:
+
+	1. The buffer is located within the current directory.
+	2. The buffer has an empty value for 'buftype'.
+	3. The buffer is not an unnamed buffer.
+
+					*luis-source-colorscheme*
+luis#source#colorscheme#new()		*luis#source#colorscheme#new()*
+	Create a "colorscheme" source that gathers candidates from available
+	colorschemes in 'runtimepath'.
+
+	Each candidates are associated with the |luis-kind-colorscheme|.
+
+						*luis-source-file*
+luis#source#file#new()				*luis#source#file#new()*
+	Create a "file" source that gathers candidates from the current
+	directory.
+
+	Each candidates are associated with the |luis-kind-file|.
+
+						*luis-source-fold*
+luis#source#fold#new({window})			*luis#source#fold#new()*
+	Create a "fold" source that gathers candidates from all closed folds
+	in the {window}.
+
+	Each candidates are associated with the |luis-kind-fold|.
+
+						*luis-source-history*
+luis#source#history#new({history_name})		*luis#source#history#new()*
+	Create a "history/{history_name}" source that gathers candidates from
+	history.  See |hist-names| for the possible values of {history_name}.
+
+	Each candidates are associated with the |luis-kind-history|.
+
+						*luis-source-jumplist*
+luis#source#jumplist#new({window})		*luis#source#jumplist#new()*
+	Create a "jumplist" source that gathers candidates from |jumplist| in
+	{window}.
+
+	Each candidates are associated with the |luis-kind-jumplist|.
+
+						*luis-source-local_mark*
+luis#source#local_mark#new({bufnr})		*luis#source#local_mark#new()*
+	Create a "local_mark" source that gathers candidates from local marks
+	in buffer {bufnr}.
+
+	Each candidates are associated with the |luis-kind-mark|.
+
+						*luis-source-mark*
+luis#source#mark#new({bufnr})			*luis#source#mark#new()*
+	Create a "mark" source that gathers candidates from global marks.
+
+	Each candidates are associated with the |luis-kind-mark|.
+
+						*luis-source-metarw*
+luis#source#metarw#new({scheme})		*luis#source#metarw#new()*
+	Create a "metarw/{scheme}" source that gathers candidates from
+	|metarw-fakepath|.  This source is required |metarw| [^1] plugin.
+
+	Each candidates are associated with the |luis-kind-file|.
+
+	[^1]: https://github.com/kana/vim-metarw
+
+						*luis-source-oldfiles*
+luis#source#oldfiles#new()			*luis#source#oldfiles#new()*
+	Create a "oldfiles" source that gathers candidates from marks stored
+	in the |shada| file.  See |v:oldfiles| for more details.
+
+	Each candidates are associated with the |luis-kind-file|.
+
+						*luis-source-quickfix*
+luis#source#quickfix#new()			*luis#source#quickfix#new()*
+	Create a "quickfix" source that gathers candidates from |quickfix|.
+	Each candidate corresponds to the first error per buffer.
+
+	Each candidates are associated with the |luis-kind-quickfix|.
+
+						*luis-source-register*
+luis#source#register#new()			*luis#source#register#new()*
+	Create a "register" source that gathers candidates from |registers|.
+
+	Each candidates are associated with the |luis-kind-register|.
+
+						*luis-source-spell*
+luis#source#spell#new()				*luis#source#spell#new()*
+	Create a "spell" source that gathers candidates from the spell file.
+	See |spell| for more details.
+
+	Each candidates are associated with the |luis-kind-text|.
+
+						*luis-source-tagstack*
+luis#source#tagstack#new({window})		*luis#source#tagstack#new()*
+	Create a "tagstack" source that gathers candidates from |tag-stack|.
+
+	Each candidates are associated with the |luis-kind-tagstack|.
+
+						*luis-source-tags*
+luis#source#tags#new({window})			*luis#source#tags#new()*
+	Create a "tags" source that gathers candidates from tags files.
+
+	Each candidates are associated with the |luis-kind-tag|.
+
+==============================================================================
+KIND								*luis-kind*
+
+Kind is a mechanism to provide the same actions and the same key bindings to
+choose action for a specific kind of candidates.  For example, "file" source
+(|luis-source-file|) gathers candidates corresponding to files, so the kind of
+such candidates are "file".
+
+However, not only "file" source but also other sources gather candidates
+corresponding to files.  You expect that actions and key bindings to choose
+action for such candidates should be the same ones regardless of what sources
+gather them.
+
+------------------------------------------------------------------------------
+ACTION							*luis-kind-action*
+
+An action is a function which is executed for a currently selected candidate
+in |luis-ui|.
+
+This function must take two arguments, which are {candidate} and {context},
+and it must return 0 for success or string for failure.  The string is
+displayed as an error message.
+
+{context} is a dictionary that contains the following keys:
+
+  "action"       (Funcref) The function of the action to be executed.
+                 You can override this value to change the action to
+                 be executed.
+  "action_name"  (string) The name of the action to be executed.
+  "session"      (Session) The currently active session.
+  "kind"         (Kind) The kind to which {candidate} belongs.
+
+------------------------------------------------------------------------------
+ATTRIBUTES						*luis-kind-attributes*
+
+action_table (dictionary) (required)		*luis-kind-action_table*
+	The action table is a dictionary which contains available actions for
+	candidates of a kind.
+
+	Each key is a string which is the name of an action, and each value is
+	a |Funcref| to the function which is executed whenever the
+	corresponding action is taken on a candidate.
+
+key_table (dictionary) (required)			 *luis-kind-key_table*
+	The key table is a dictionary which contains key bindings to choose an
+	action for |<Plug>(luis-choose-action)|.
+
+	Each key is a string which represents a key to type, and each value is
+	a string which is the name of an action.
+
+name (string) (required)				 *luis-kind-name*
+	The name of a kind.
+
+prototype (Kind) (optional)				 *luis-kind-prototype*
+	Another kind as the inheritance of a kind.
+
+	Action and key resolution starts from the its own table and then
+	traverses to the prototype.
+
+------------------------------------------------------------------------------
+EXAMPLE							*luis-kind-example*
+>
+	function! s:action_open(candidate, context) abort
+	  return s:do_open('edit', a:candidate)
+	endfunction
+
+	function! s:action_open_x(candidate, context) abort
+	  return s:do_open('edit!', a:candidate)
+	endfunction
+
+	function! s:do_open(command, candidate) abort
+	  let v:errmsg = ''
+	  execute 'silent!' a:command '`=a:candidate.word`'
+	  if v:errmsg != ''
+	    return v:errmsg
+	  endif
+	  return 0
+	endfunction
+
+	let s:Kind = {
+	\   'name': 'mykind',
+	\   'action_table': {
+        \     'open': function('s:action_open'),
+        \     'open!': function('s:action_open_x'),
+	\   },
+	\   'key_table': {},
+	\   'prototype': luis#kind#common#import(),
+	\ }
+<
+------------------------------------------------------------------------------
+CUSTOMIZATION					*luis-kind-customization*
+
+	There is no special way to add new actions or change keys in a kind.
+	Instead, you can simply modify it.
+>
+	autocmd User plugin-luis-preload
+	\ call s:on_luis_preload()
+
+	function! s:on_luis_preload() abort
+	  " Add the "echo" action to the "common" kind.
+	  let common = luis#kind#common#import()
+	  let common.action_table['echo'] = function('s:action_echo')
+	  let common.key_table['e'] = 'echo'
+	endfunction
+
+	function! s:action_echo(candidate, context) abort
+	  echomsg a:candidate.word
+	endfunction
+<
+------------------------------------------------------------------------------
+ARGUMENT KIND						*luis-kind-argument*
+
+This kind represents a candidate for the |argument|.
+
+{candidate.user_data} may or must have the following items:
+
+argument_index (number) (required)		*luis-user_data-argument_index*
+	The index for |argument-list| corresponding to the candidate.
+
+FUNCTIONS					*luis-kind-argument-functions*
+
+luis#kind#argument#import()			*luis#kind#argument#import()*
+	Import the "argument" kind.
+
+ACTION TABLE				*luis-kind-argument-action-table*
+
+open					*luis-kind-argument-action-open*
+	Open the index of |argument-list|, corresponding to the candidate, in
+	the current window.
+
+open!					*luis-kind-argument-action-open!*
+	Like "open", but use ":argument!" instead of |:argument|.
+
+argdelete				*luis-kind-argument-action-argdelete*
+	Do |:argdelete| on a given candidate.
+
+KEY TABLE				*luis-kind-argument-key-table*
+
+Key	Action		~
+-----------------------	~
+d	argdelete	|luis-kind-argument-action-argdelete|
+
+See also:
+- |luis-kind-common-action-table|
+
+------------------------------------------------------------------------------
+BUFFER KIND						*luis-kind-buffer*
+
+This kind represents a buffer-like candidate.
+
+{candidate.user_data} may or must have the following items:
+
+buffer_nr (string) (optional)			*luis-user_data-buffer_nr*
+	The buffer number (|bufnr()|) of the buffer corresponding to the
+	candidate.
+
+	If this key is not given, buffer number is calculated from
+	{candidate.word}.
+
+buffer_cursor (list) (optional)			*luis-user_data-buffer_cursor*
+	The position of the cursor corresponding to the candidate.  The value
+	must be a |List| that is the same as a {list} in the |cursor()|.
+
+FUNCTIONS					*luis-kind-buffer-functions*
+
+luis#kind#buffer#import()			*luis#kind#buffer#import()*
+	Import the "buffer" kind.
+
+ACTION TABLE				*luis-kind-buffer-action-table*
+
+open						*luis-kind-buffer-action-open*
+	Open the buffer, corresponding to the candidate, in the current
+	window.
+
+open!					*luis-kind-buffer-action-open!*
+	Like "open", but use ":buffer!" instead of |:buffer|.
+
+unload					*luis-kind-buffer-action-unload*
+delete					*luis-kind-buffer-action-delete*
+wipeout					*luis-kind-buffer-action-wipeout*
+	Do |:bunload|, |:bdelete| or |:bwipeout| on the buffer corresponding
+	to a candidate.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE					*luis-kind-buffer-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+COLORSCHEME KIND				*luis-kind-colorscheme*
+
+This kind represents a candidate for the |colorscheme|.
+
+FUNCTIONS				*luis-kind-colorscheme-functions*
+
+luis#kind#colorscheme#import()		*luis#kind#colorscheme#import()*
+	Import the "colorscheme" kind.
+
+ACTION TABLE				*luis-kind-colorscheme-action-table*
+
+open					*luis-kind-colorscheme-action-open*
+	Do |:colorscheme| on a given candidate.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-colorscheme-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+COMMON KIND						*luis-kind-common*
+
+This kind is the prototype of all built-in kinds.
+
+FUNCTIONS					*luis-kind-common-functions*
+
+luis#kind#common#import()			*luis#kind#common#import()*
+	Import the "common" kind.
+
+ACTION TABLE				*luis-kind-common-action-table*
+
+cancel					*luis-kind-common-action-cancel*
+	Do nothing for a given candidate.  In other words, cancel to take an
+	action.
+
+cd						*luis-kind-common-action-cd*
+	Do |:cd| to a directory which is corresponding to a given candidate.
+
+	If a candidate seems to be a directory, do ":cd" to that one.
+
+	If a candidate seems to be a file, do ":cd" to the directory which
+	contains the file.
+
+	Otherwise, does nothing and show a warning message.
+
+default					*luis-kind-common-action-default*
+	Do the default action on a given candidate.
+
+	By default, this action is just an alias of
+	|luis-kind-common-action-open|.
+
+ex						*luis-kind-common-action-ex*
+	Enter Command-line mode, insert a whitespace and a given candidate,
+	then move the cursor to the beginning of the command line.  This
+	action is useful to execute an Ex command on a candidate.
+
+	For example, if a candidate is "src/main.c", this action sets up the
+	following state (here "|" means the cursor position):
+>
+		:| src/main.c
+<
+lcd						*luis-kind-common-action-lcd*
+	Like |luis-kind-common-action-cd|, but do |:lcd| instead of |:cd|.
+
+open						*luis-kind-common-action-open*
+	Do "open" a given candidate.  This action is just a placeholder and it
+	is overridden by each kind of candidates.  So what this action does is
+	varied for each kind.  See the document of each kind for what its
+	"open" action does.
+
+open!					*luis-kind-common-action-open!*
+	Like "open", but its meaning is usually similar to :edit!,
+	corresponding to |:edit|, so that "open!" discards changes in the
+	current buffer before opening a given candidate in the current window.
+
+	If this action is not overridden, it acts as same as "open".
+
+put						*luis-kind-common-action-put*
+	Put a given candidate after the cursor.
+
+put!						*luis-kind-common-action-put!*
+	Put a given candidate before the cursor.
+
+reselect				*luis-kind-common-action-reselect*
+	Cancel to choose an action, and return to the previous state of
+	|luis-ui| to reselect a given candidate.
+
+yank						*luis-kind-common-action-yank*
+	Yank a given candidate.
+
+Bottom					*luis-kind-common-action-Bottom*
+Left					*luis-kind-common-action-Left*
+Right					*luis-kind-common-action-Right*
+Top					*luis-kind-common-action-Top*
+above					*luis-kind-common-action-above*
+below					*luis-kind-common-action-below*
+left					*luis-kind-common-action-left*
+right					*luis-kind-common-action-right*
+	Open a new window, then do |luis-kind-common-action-open|.
+
+	"above", "below", "left" and "right" open a new window next to the
+	current window (like |:leftabove| split).
+
+	"Bottom", "Left", "Right" and "Top" open a new window at the outermost
+	side (like |:topleft| split).
+
+tab-Left				*luis-kind-common-action-tab-Left*
+tab-Right				*luis-kind-common-action-tab-Right*
+tab-left				*luis-kind-common-action-tab-left*
+tab-right				*luis-kind-common-action-tab-right*
+	Like "left", "right", "Left" or "Right", but open a new tab page
+	instead of a window, then do |luis-action-open|.
+
+	"tab-left" and "tab-right" open a new tab page next to the current tab
+	page, while "tab-Left" and "tab-Right" open a new tab page at the most
+	left or at the most right.
+
+KEY TABLE				*luis-kind-common-key-table*
+
+The following key bindings are used for all built-in kinds.
+
+Key	Action		~
+----------------------- ~
+/	cd		|luis-kind-common-action-cd|
+:	ex		|luis-kind-common-action-ex|
+;	ex		|luis-kind-common-action-ex|
+<C-c>	cancel		|luis-kind-common-action-cancel|
+<C-h>	left		|luis-kind-common-action-left|
+<C-j>	below		|luis-kind-common-action-below|
+<C-k>	above		|luis-kind-common-action-above|
+<C-l>	right		|luis-kind-common-action-right|
+<C-m>	default		|luis-kind-common-action-default|
+<C-o>	open		|luis-kind-common-action-open|
+<C-r>	reselect	|luis-kind-common-action-reselect|
+<C-t>	tab-Right	|luis-kind-common-action-tab-Right|
+<Esc>	cancel		|luis-kind-common-action-cancel|
+<CR>	default		|luis-kind-common-action-default|
+?	lcd		|luis-kind-common-action-lcd|
+H	Left		|luis-kind-common-action-Left|
+J	Bottom		|luis-kind-common-action-Bottom|
+K	Top		|luis-kind-common-action-Top|
+L	Right		|luis-kind-common-action-Right|
+O	open!		|luis-kind-common-action-open!|
+P	put!		|luis-kind-common-action-put!|
+h	left		|luis-kind-common-action-left|
+j	below		|luis-kind-common-action-below|
+k	above		|luis-kind-common-action-above|
+l	right		|luis-kind-common-action-right|
+o	open		|luis-kind-common-action-open|
+p	put		|luis-kind-common-action-put|
+t	tab-Right	|luis-kind-common-action-tab-Right|
+y	yank		|luis-kind-common-action-yank|
+
+------------------------------------------------------------------------------
+FILE KIND						*luis-kind-file*
+
+This kind represents a file-like candidate.
+
+{candidate.user_data} may or must have the following items:
+
+file_path (string) (optional)			*luis-user_data-file_path*
+	The path to the file corresponding to the candidate.
+
+	If this key is not given, {candidate.word} is used as a path.
+
+file_cursor (list) (optional)			*luis-user_data-file_cursor*
+	The position of the cursor corresponding to the candidate.  The value
+	must be a |List| that is the same as a {list} in the |cursor()|.
+
+FUNCTIONS					*luis-kind-file-functions*
+
+luis#kind#file#import()				*luis#kind#file#import()*
+	Import the "file" kind.
+
+ACTION TABLE				*luis-kind-file-action-table*
+
+open						*luis-kind-file-action-open*
+	Do |:edit| the file/directory corresponding to a given candidate.
+
+open!						*luis-kind-file-action-open!*
+	Like "open", but use ":edit!" instead.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-file-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+HELP KIND						*luis-kind-help*
+
+This kind represents a candidate for the tag for |:help|.
+
+FUNCTIONS					*luis-kind-help-functions*
+
+luis#kind#help#import()				*luis#kind#help#import()*
+	Import the "help" kind.
+
+ACTION TABLE				*luis-kind-help-action-table*
+
+open					*luis-kind-help-action-open*
+	Jump to the tag of |:help| corresponding to a given candidate.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-help-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+HISTORY KIND						*luis-kind-history*
+
+This kind represents a candidate for the |history| item.
+
+{candidate.user_data} may or must have the following items:
+
+history_name (string) (required)		*luis-user_data-history_name*
+	The name of the history.  See |hist-names| for the possible values of
+	it.
+
+history_index (list) (required)			*luis-user_data-history_index*
+	The index of the history.  See |:history-indexing| for more details.
+
+FUNCTIONS					*luis-kind-history-functions*
+
+luis#kind#history#import()			*luis#kind#history#import()*
+	Import the "history" kind.
+
+ACTION TABLE				*luis-kind-history-table*
+
+delete					*luis-kind-history-delete*
+	Delete a hisory corresponding to a given candidate.
+
+open					*luis-kind-history-open*
+	Act as follows based on the "history_name":
+
+	  "cmd"      Enter Command-line mode, insert a whitespace and
+	             a given candidate,  then move the cursor to the beginning
+	             of the command line.
+	  "search"   Start search forward, and insert a given candidate.
+	  "expr"     Enter Insert mode before the cursor, and start prompt for
+	             expression
+	             (|i_CTRL-R_=|) with a given candidate.
+	  "input"    Insert a given candidate before the cursor.
+
+open!					*luis-kind-history-open!*
+	  Act as follows based on the "history_name":
+
+	  "cmd"      Enter Command-line mode, and insert a given candidate.
+	  "search"   Start search backward, insert a given candidate.
+	  "expr"     Enter Insert mode after the cursor, and start prompt for
+	             expression (|i_CTRL-R_=|) with a given candidate.
+	  "input"    Insert a given candidate after the cursor.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-history-key-table*
+
+Key	Action	~
+---------------	~
+d	delete	|luis-kind-history-delete|
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+JUMPLIST KIND						*luis-kind-jumplist*
+
+This kind represents a candidate for the |jumplist| item.
+
+{candidate.user_data} may or must have the following items:
+
+jumplist_index (number) (required)		*luis-user_data-jumplist_index*
+	The index of the current position in the |jumplist|.
+
+FUNCTIONS					*luis-kind-jumplist-functions*
+
+luis#kind#jumplist#import()			*luis#kind#jumplist#import()*
+	Import the "jumplist" kind.
+
+ACTION TABLE					*luis-kind-jumplist-table*
+
+open						*luis-kind-jumplist-open*
+	Go to the position corresponding to a given candidate in the
+	|jumplist|.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-jumplist-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+MARK KIND						*luis-kind-mark*
+
+This kind represents a candidate for the |mark|.
+
+{candidate.user_data} may or must have the following items:
+
+mark_name (string) (required)			*luis-user_data-mark_name*
+	The name of the |mark|.
+
+FUNCTIONS					*luis-kind-mark-functions*
+
+luis#kind#mark#import()				*luis#kind#mark#import()*
+	Import the "mark" kind.
+
+ACTION TABLE						*luis-kind-mark-table*
+
+delete						*luis-kind-mark-delete*
+	Do |:delmarks| on the mark corresponding to a given candidate.
+
+open							*luis-kind-mark-open*
+	Jump to the |mark| corresponding to a given candidate.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE					*luis-kind-mark-key-table*
+
+Key	Action	~
+---------------	~
+d	delete	|luis-kind-mark-delete|
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+QUICKFIX KIND						*luis-kind-quickfix*
+
+This kind represents a candidate for the |quickfix| error.
+
+{candidate.user_data} may or must have the following items:
+
+quickfix_nr (number) (required)			*luis-user_data-quickfix_nr*
+	The error number in the |quickfix|.
+
+FUNCTIONS					*luis-kind-quickfix-functions*
+
+luis#kind#quickfix#import()			*luis#kind#quickfix#import()*
+	Import the "quickfix" kind.
+
+ACTION TABLE					*luis-kind-quickfix-table*
+
+open						*luis-kind-quickfix-open*
+	Display the error number corresponding to a given candidate.
+
+open!						*luis-kind-quickfix-open!*
+	Like "open", but use ":cc!" instead of |:cc|.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-quickfix-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+REGISTER KIND						*luis-kind-register*
+
+This kind represents a candidate for the |register|.
+
+{candidate.user_data} may or must have the following items:
+
+register_name (number) (required)		*luis-user_data-register_name*
+	The name of the register.  See |registers| for more details.
+
+FUNCTIONS					*luis-kind-register-functions*
+
+luis#kind#register#import()			*luis#kind#register#import()*
+	Import the "register" kind.
+
+ACTION TABLE					*luis-kind-register-table*
+
+delete					*luis-kind-register-action-delete*
+	Delete the register contents corresponding to a given candidate.
+
+open					*luis-kind-register-action-put*
+	Put the register contents, corresponding to a given candidate, after
+	the cursor.
+
+open!					*luis-kind-register-action-put!*
+	Like "open", but put the register contents before the cursor.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE					*luis-kind-register-key-table*
+
+Key	Action	~
+---------------	~
+d	delete	|luis-kind-register-delete|
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+TAG KIND						*luis-kind-tag*
+
+This kind represents a candidate for the |tag|.
+
+FUNCTIONS					*luis-kind-tag-functions*
+
+luis#kind#tag#import()				*luis#kind#tag#import()*
+	Import the "tag" kind.
+
+ACTION TABLE					*luis-kind-tag-table*
+
+open					*luis-kind-tag-action-put*
+	Do |:tag| on a given candidate.
+
+open!					*luis-kind-tag-action-put!*
+	Like "open", but use :tag!.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE				*luis-kind-tag-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+TAGSTACK KIND						*luis-kind-tagstack*
+
+This kind represents a candidate for the |tagstack| entry.
+
+{candidate.user_data} may or must have the following items:
+
+tagstack_index (number) (optional)		*luis-user_data-tagstack_index*
+	The index in the |tag-stack|.
+
+FUNCTIONS					*luis-kind-tagstack-functions*
+
+luis#kind#tagstack#import()			*luis#kind#tagstack#import()*
+	Import the "tagstack" kind.
+
+ACTION TABLE					*luis-kind-tagstack-table*
+
+open					*luis-kind-tagstack-action-put*
+	Like |luis-kind-buffer-action-open|, but also set the current index,
+	corresponding to a given candidate, in the |tag-stack|.
+
+open!					*luis-kind-tagstack-action-put!*
+	Like "open", but use ":buffer!" instead of |:buffer|.
+
+See also:
+- |luis-kind-buffer-action-table|
+- |luis-kind-common-action-table|
+
+KEY TABLE					*luis-kind-tagstack-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-buffer-key-table|
+- |luis-kind-common-key-table|
+
+------------------------------------------------------------------------------
+TEXT KIND						*luis-kind-text*
+
+This kind represents a candidate for the arbitrary text.
+
+FUNCTIONS					*luis-kind-text-functions*
+
+luis#kind#text#import()				*luis#kind#text#import()*
+	Import the "text" kind.
+
+ACTION TABLE					*luis-kind-text-table*
+
+open					*luis-kind-text-action-put*
+	Insert the text, corresponding to a given candidate, before the
+	cursor.
+
+open!					*luis-kind-text-action-put!*
+	Like "open", but insert the text after the cursor.
+
+See also:
+- |luis-kind-common-action-table|
+
+KEY TABLE					*luis-kind-text-key-table*
+
+There is no key binding specific to candidates.
+
+See also:
+- |luis-kind-common-key-table|
+
+==============================================================================
+MATCHER								*luis-matcher*
+
+Matcher provides candidate filtering by a given pattern and sorting based on
+their scores.
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-matcher-attributes*
+
+					*luis-matcher-filter_candidates*
+Matcher.filter_candidates({candidates}, {context}) (required)
+	Filter a list of candidates by a given pattern.
+
+	You must return a new list of candidates without modifying
+	{candidates}.
+
+	{context} is a dictionary that contains the following keys:
+
+	"pattern"   (string) The pattern for filtering a list of candidates.
+	"session"   (Session) The currently active session.
+
+					*luis-matcher-normalize_candidate*
+Matcher.normalize_candidate({candidate}, {index}, {context}) (optional)
+	Normalize a candidate for sorting the list of candidates.
+
+	{context} is a dictionary that contains the following keys:
+
+	"pattern"   (string) The pattern for filtering a list of candidates.
+	"session"   (Session) The currently active session.
+
+					*luis-matcher-sort_candidates*
+Matcher.sort_candidates({candidates}, {context}) (required)
+	Sort a list of candidates based on their scores and the comparer of
+	the session.
+
+	{context} is a dictionary that contains the following keys:
+
+	"pattern"   (string) The pattern for filtering a list of candidates.
+	"session"   (Session) The currently active session.
+
+------------------------------------------------------------------------------
+EXAMPLE						*luis-matcher-example*
+
+The following code is the implementation of |luis-matcher-substring|.
+>
+	let s:Matcher = {}
+
+	function! s:Matcher.filter_candidates(candidates, context) abort dict
+	  if a:context.pattern != ''
+	    return filter(
+	    \   copy(a:candidates),
+	    \   'stridx(v:val.word, a:context.pattern) >= 0'
+	    \ )
+	  else
+	    return copy(a:candidates)
+	  endif
+	endfunction
+
+	function! s:Matcher.sort_candidates(candidates, context) abort dict
+	  let comparer = a:context.session.comparer
+	  return sort(a:candidates, comparer.compare_candidates, comparer)
+	endfunction
+<
+------------------------------------------------------------------------------
+BUILT-INS					*luis-matcher-built-ins*
+
+			*luis-matcher-fuzzy* *luis#matcher#fuzzy#import()*
+luis#matcher#fuzzy#import()
+	Import the "fuzzy" matcher.  It uses a pure Vimscript implementation
+	for fuzzy matching.  However, this implementation is slow, so it is
+	recommended to use the "fuzzy_native" matcher if possible.
+
+	It add the following entries to a candidate:
+
+	  "luis_match_priority"   (number) The priority of sort.  Higher
+	                          numerical values are placed at the front.
+                                  It prioritize over the score.  You can
+	                          override this value to adjust the sorting
+	                          order (default: 0).
+	  "luis_match_positions"  (list of number) The list of positions of
+	                          matched characters.
+	  "luis_match_score"      (number) The number of the score.  Higher
+	                          numerical values are placed at the front.
+
+	*luis-matcher-fuzzy-native* *luis#matcher#fuzzy_native#import()*
+luis#matcher#fuzzy_native#import()
+	Import the "fuzzy_native" matcher. It is the same as "fuzzy" Matcher,
+	but use |matchfuzzypos()| instead of the pure Vim script
+	implementation for Fuzzy Matching .
+
+	*luis-matcher-through* *luis#matcher#through#import()*
+luis#matcher#through#import()
+	Import the "through" matcher.  It does nothing and returns the list of
+	candidates as it is.
+
+	It is used in combination with a source like "async"
+	(|luis-source-asnc|) to gather a pre-filtered and sorted list of
+	candidate items.
+
+==============================================================================
+COMPARER						*luis-comparer*
+
+Comparer provides a comparison function that defines the order of candidates.
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-comparer-attributes*
+
+					*luis-comparer-compare_candidates*
+Comaprer.compare_candidates({first_candidate}, {second_candidate}) (required)
+	Comparer two candidates.
+
+	It must return 0 if they are equal, 1 or bigger if the first one sorts
+	after the second one, and -1 or smaller if the first one sorts before
+	the second one.
+
+					*luis-comparer-normalize_candidate*
+Comparer.normalize_candidate({candidate}, {index}, {context}) (optional)
+	Normalize a candidate for comparing.
+
+	{context} is a dictionary that contains the following keys:
+
+	"pattern"   (string) The pattern for filtering a list of candidates.
+	"session"   (Session) The currently active session.
+
+------------------------------------------------------------------------------
+EXAMPLE						*luis-comparer-example*
+
+The following code is the implementation of |luis-comparer-default|.
+>
+	let s:Comparer = {}
+
+	function! s:Comparer.compare_candidates(first, second) abort dict
+	  return a:first.luis_sort_priority != a:second.luis_sort_priority
+	  \      ? a:second.luis_sort_priority - a:first.luis_sort_priority
+	  \      : a:first.word < a:second.word
+	  \      ? -1
+	  \      : a:first.word > a:second.word
+	  \      ? 1
+	  \      : 0
+	endfunction
+
+	function! s:Comparer.normalize_candidate(candidate, index, context) abort dict
+	  if !has_key(a:candidate, 'luis_sort_priority')
+	    let a:candidate.luis_sort_priority = 0
+	  endif
+	  return a:candidate
+	endfunction
+<
+------------------------------------------------------------------------------
+BUILT-INS					*luis-comparer-built-ins*
+
+			*luis-comparer-default* *luis#comparer#default#import()*
+luis#matcher#fuzzy#import()
+	Import the "default" comparer.
+
+	It add the following entries to a candidate:
+
+	  "luis_sort_priority"  (number) The priority of sort.  Higher
+	                        numerical values are placed at the front.  You
+	                        can override this value to adjust the sorting
+	                        order (default: 0).
+
+==============================================================================
+PREVIEWER						*luis-previewer*
+
+Previewer provides previewing each candidate in the preview window.
+
+------------------------------------------------------------------------------
+ATTRIBUTES					*luis-previewer-attributes*
+
+Previewer.close() (required)			*luis-previewer-close*
+	Close the preview window.  If this function is called when the window
+	is not active, it may raise an error.
+
+Previewer.bounds() (required)			*luis-previewer-bounds*
+	Return a dictionary that represents the position and size of the the
+	preview window.  If the preview window is not active, the function
+	returns a dictionary with all values set to 0.
+
+	That dictionary contains the following entries:
+
+	Name		Type   ~
+	---------------------- ~
+	"row"		number
+	"col"		number
+	"width"		number
+	"height"	number
+
+Previewer.is_active() (required)		*luis-previewer-is_active*
+	Return TRUE if the preview window is active, otherwise return FALSE.
+
+						*luis-previewer-open_buffer*
+Previewer.open_buffer(bufnr, bounds, hints) (required)
+	Open the buffer indicated by {bufnr} in the preview window.
+
+	You must specify a dictionary to {bounds} that represents the position
+	and size of the preview window.  See |luis-previewer-bounds| for more
+	details.
+
+	{hints} is a dictionary that can include the following entries:
+
+						*luis-previewer-hints*
+	  "cursor"    (list) A list that represents the cursor position. See
+	              |cursor()| for more details.
+	  "filetype"  (number) A |'filetype'| option for the preview text.
+	  "title"     (string) A title for the preview window.
+
+						*luis-previewer-open_text*
+Previewer.open_text(lines, bounds, hints) (required)
+	Like |luis-previewer-open_buffer|, but display an arbitrary text, and
+	open the preview window.
+
+------------------------------------------------------------------------------
+BUILT-INS					*luis-previewer-built-ins*
+
+			*luis-previewer-float* *luis#previewer#float#new()*
+luis#previewer#float#new({options} = {})
+	Create a previewer using a floating window (|api-floatwin|).
+
+	The {options} can be specified as follows:
+
+	  "window_options"  (dict) A dictionary containing window-local
+	                    |options| that can be set with
+	                    |nvim_win_set_option()|
+	                    (e.g. `{ 'number': v:true }`).
+	  "window_config"   (dict) A dictionary that represents a window
+	                    config that can be set with |nvim_open_win()|.
+
+	(Available only in NeoVim)
+
+			*luis-null-popup*	*luis#null#popup#new()*
+luis#float#null#import()
+	Import the previewer that does not display anything.  You can use this
+	when you want to disable the preview.
+
+			*luis-previewer-popup*	*luis#previewer#popup#new()*
+luis#previewer#popup#new({options} = {})
+	Create a previewer using a |popup|.
+
+	The {options} can be specified as follows:
+
+	  "window_options"  (dict) A dictionary containing window-local
+	                    |options| (e.g. `{ 'number': 1 }`).
+	  "window_config"   (dict) A dictionary that represents a window
+	                    config.  See |popup_create-arguments| for more
+	                    details.
+
+	(Available only in Vim)
+
+==============================================================================
+vim:tw=78:ts=8:ft=help
