@@ -92,12 +92,9 @@ endfunction
 let s:Session = {}
 
 function! s:Session.guess_candidate() abort dict
-  if s:is_valid_completed_item(v:completed_item)
-    let candidate = copy(v:completed_item)
-    if type(candidate.user_data) is v:t_string
-      let candidate.user_data = json_decode(candidate.user_data)
-    endif
-    return candidate
+  if has_key(v:completed_item, 'user_data')
+  \  && v:completed_item.user_data isnot ''
+    return s:clone_candidate(v:completed_item)
   endif
 
   let current_pattern_raw = getline(s:LNUM_PATTERN)
@@ -106,14 +103,14 @@ function! s:Session.guess_candidate() abort dict
     " so user seemed to select a candidate by Vim's completion.
     for candidate in self.last_candidates
       if current_pattern_raw ==# candidate.word
-        return candidate
+        return s:clone_candidate(candidate)
       endif
     endfor
   else
     if len(self.last_candidates) > 0
       " There are 1 or more candidates -- user seems to want to take action on
       " the first one.
-      return copy(self.last_candidates[0])
+      return s:clone_candidate(self.last_candidates[0])
     endif
   endif
 
@@ -231,6 +228,14 @@ function! s:Session.start() abort dict
   call feedkeys('A' . typeahead_buffer, 'n')
 endfunction
 
+function! s:clone_candidate(candidate) abort
+  let candidate = copy(a:candidate)
+  if type(candidate.user_data) is v:t_string
+    let candidate.user_data = json_decode(a:candidate.user_data)
+  endif
+  return candidate
+endfunction
+
 function! s:complete_the_prompt() abort
   call setline('.', s:PROMPT . getline('.'))
   return
@@ -316,11 +321,6 @@ function! s:initialize_ui_buffer() abort
   if !exists('#FileType#luis-pmenu') && !exists('b:did_ftplugin')
     call luis#ui#pmenu#define_default_key_mappings()
   endif
-endfunction
-
-function! s:is_valid_completed_item(completed_item) abort
-  return has_key(a:completed_item, 'user_data')
-  \      && a:completed_item.user_data isnot ''
 endfunction
 
 function! s:keys_to_complete() abort

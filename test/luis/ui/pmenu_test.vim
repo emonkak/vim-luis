@@ -6,14 +6,19 @@ function! s:test_guess_candidate__from_completed_item() abort
   let session = luis#ui#pmenu#new_session(source, {})
 
   try
-    let candidate = { 'word': 'VIM', 'user_data': {} }
-    let v:completed_item = candidate
+    let candidate = {
+    \   'word': 'VIM',
+    \   'user_data': {},
+    \ }
+    let v:completed_item = copy(candidate)
     call assert_equal(candidate, session.guess_candidate())
 
     " Decode user_data as JSON if it is a string.
-    let candidate = { 'word': 'VIM', 'user_data': { 'file_path': '/VIM' } }
     let v:completed_item = { 'word': 'VIM', 'user_data': '{"file_path": "/VIM"}' }
-    call assert_equal(candidate, session.guess_candidate())
+    call assert_equal({
+    \   'word': 'VIM',
+    \   'user_data': { 'file_path': '/VIM' },
+    \ }, session.guess_candidate())
   catch 'Vim(let):E46:'
     return 'v:completed_item must be writable.'
   endtry
@@ -41,9 +46,9 @@ function! s:test_guess_candidate__from_first_candidate() abort
     call assert_true(session.is_active())
 
     let session.last_candidates = [
-    \   { 'word': 'foo' },
-    \   { 'word': 'bar' },
-    \   { 'word': 'baz' },
+    \   { 'word': 'foo', 'user_data': {} },
+    \   { 'word': 'bar', 'user_data': {} },
+    \   { 'word': 'baz', 'user_data': {} },
     \ ]
     let session.last_pattern_raw = '>'
 
@@ -81,9 +86,9 @@ function! s:test_guess_candidate__from_selected_candidate() abort
     call assert_true(session.is_active())
 
     let session.last_candidates = [
-    \   { 'word': 'foo' },
-    \   { 'word': 'bar' },
-    \   { 'word': 'baz' },
+    \   { 'word': 'foo', 'user_data': {} },
+    \   { 'word': 'bar', 'user_data': {} },
+    \   { 'word': 'baz', 'user_data': {} },
     \ ]
     call setline(line('.'), 'bar')
 
