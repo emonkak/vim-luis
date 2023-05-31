@@ -12,9 +12,9 @@ endfunction
 
 function! s:do_open(action_name, candidate, context) abort
   let error = luis#do_action(
-  \   a:context.kind.prototype,
   \   a:action_name,
-  \   a:candidate
+  \   a:candidate,
+  \   extend({ 'kind': a:context.kind.prototype }, a:context, 'keep')
   \ )
   if error isnot 0
     return error

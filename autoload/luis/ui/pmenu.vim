@@ -80,7 +80,7 @@ function! luis#ui#pmenu#_omnifunc(findstart, base) abort
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let candidates = luis#ui#collect_candidates(
+    let candidates = luis#collect_candidates(
     \   session,
     \   pattern
     \ )
@@ -147,7 +147,7 @@ function! s:Session.quit() abort dict
 
   try
     if self.preview_window isnot 0
-      call self.preview_window.quit()
+      call self.preview_window.close()
     endif
 
     unlet b:luis_session
@@ -278,12 +278,18 @@ function! s:initialize_ui_buffer() abort
     endif
   augroup END
 
-  nnoremap <buffer> <silent> <SID>(choose-action)
-  \        :<C-u>call luis#take_action()<CR>
-  nnoremap <buffer> <silent> <SID>(do-default-action)
-  \        :<C-u>call luis#take_action('default')<CR>
-  nnoremap <buffer> <silent> <SID>(quit-session)
-  \        :<C-u>call luis#quit()<CR>
+  nnoremap <buffer> <expr> <silent> <SID>(choose-action)
+         \ exists('b:luis_session')
+         \ ? ':<C-u>call luis#take_action(b:luis_session)<CR>'
+         \ : ''
+  nnoremap <buffer> <expr> <silent> <SID>(do-default-action)
+         \ exists('b:luis_session')
+         \ ? ':<C-u>call luis#take_action(b:luis_session, ''default'')<CR>'
+         \ : ''
+  nnoremap <buffer> <expr> <silent> <SID>(quit-session)
+         \ exists('b:luis_session')
+         \ ? ':<C-u>call luis#quit(b:luis_session)<CR>'
+         \ : ''
   inoremap <buffer> <expr> <SID>(accept-completion)
   \        pumvisible() ? '<C-y>' : ''
   inoremap <buffer> <expr> <SID>(cancel-completion)
@@ -359,7 +365,7 @@ function! s:keys_to_complete(session) abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let pattern = s:remove_prompt(line)
-      let acc_text = luis#ui#acc_text(
+      let acc_text = luis#acc_text(
       \   pattern,
       \   a:session.last_candidates,
       \   a:session.source
@@ -467,7 +473,7 @@ function! s:on_TextChangedP() abort
     \   'width': session.preview_width,
     \   'height': session.preview_height,
     \ }
-    call luis#preview#start(session, session.preview_window, dimensions)
+    call luis#preview_candidate(session, session.preview_window, dimensions)
   endif
 endfunction
 
@@ -476,7 +482,7 @@ function! s:on_WinLeave() abort
     return
   endif
 
-  call luis#quit()
+  call luis#quit(b:luis_session)
 endfunction
 
 function! s:pattern_is_empty() abort

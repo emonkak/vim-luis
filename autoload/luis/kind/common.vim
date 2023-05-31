@@ -37,7 +37,7 @@ function! s:action_cancel(candidate, context) abort
 endfunction
 
 function! s:action_default(candidate, context) abort
-  return luis#do_action(a:context.kind, 'open', a:candidate)
+  return luis#do_action('open', a:candidate, a:context)
 endfunction
 
 function! s:action_ex(candidate, context) abort
@@ -56,7 +56,7 @@ function! s:action_open(candidate, context) abort
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return luis#do_action(a:context.kind, 'open', a:candidate)
+  return luis#do_action('open', a:candidate, a:context)
 endfunction
 
 function! s:action_put(candidate, context) abort
@@ -110,7 +110,7 @@ function! s:open_with_split(direction, candidate, context) abort
     return v:exception
   endtry
 
-  let error = luis#do_action(a:context.kind, 'open', a:candidate)
+  let error = luis#do_action('open', a:candidate, a:context)
   if error isnot 0
     " Undo the last :split.
     close
