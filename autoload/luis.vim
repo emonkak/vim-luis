@@ -209,10 +209,10 @@ function! luis#do_action(action_name, candidate, context) abort
   return Action(a:candidate, a:context)
 endfunction
 
-function! luis#preview_candidate(session, preview_window, dimensions) abort
+function! luis#preview_candidate(session, preview, dimensions) abort
   let candidate = a:session.guess_candidate()
   let context = {
-  \   'preview_window': a:preview_window,
+  \   'preview': a:preview,
   \   'session': a:session,
   \ }
 
@@ -226,7 +226,7 @@ function! luis#preview_candidate(session, preview_window, dimensions) abort
 
   if has_key(candidate.user_data, 'preview_lines')
     let hints = s:preview_hints_from_candidate(candidate)
-    call a:preview_window.open_text(
+    call a:preview.open_text(
     \   candidate.user_data.preview_lines,
     \   a:dimensions,
     \   hints
@@ -238,7 +238,7 @@ function! luis#preview_candidate(session, preview_window, dimensions) abort
     let bufnr = candidate.user_data.preview_bufnr
     if bufloaded(bufnr)
       let hints = s:preview_hints_from_candidate(candidate)
-      call a:preview_window.open_buffer(
+      call a:preview.open_buffer(
       \   bufnr,
       \   a:dimensions,
       \   hints
@@ -259,20 +259,20 @@ function! luis#preview_candidate(session, preview_window, dimensions) abort
             let hints.filetype = filetype
           endif
         endif
-        call a:preview_window.open_text(
+        call a:preview.open_text(
         \   lines,
         \   a:dimensions,
         \   hints
         \ )
         return 1
       catch /\<E484:/
-        call a:preview_window.close()
+        call a:preview.close()
         return 0
       endtry
     endif
   endif
 
-  call a:preview_window.close()
+  call a:preview.close()
   return 0
 endfunction
 

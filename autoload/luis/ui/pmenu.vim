@@ -62,7 +62,7 @@ function! luis#ui#pmenu#new_session(source, ...) abort
   let session.original_completeopt = &completeopt
   let session.original_equalalways = &equalalways
   let session.original_window = 0
-  let session.preview_window = get(options, 'preview_window', 0)
+  let session.preview = get(options, 'preview', 0)
   let session.preview_height = get(options, 'preview_height', &previewheight)
   let session.preview_width = get(options, 'preview_width', 80)
   let session.selected_index = -1
@@ -146,8 +146,8 @@ function! s:Session.quit() abort dict
   let self.is_quitting = 1
 
   try
-    if self.preview_window isnot 0
-      call self.preview_window.close()
+    if self.preview isnot 0
+      call self.preview.close()
     endif
 
     unlet b:luis_session
@@ -465,7 +465,7 @@ function! s:on_TextChangedP() abort
 
   let session.selected_index = complete_info.selected
 
-  if session.preview_window isnot 0
+  if session.preview isnot 0
     let [row, col] = s:preview_pos()
     let dimensions = {
     \   'row': row,
@@ -473,7 +473,7 @@ function! s:on_TextChangedP() abort
     \   'width': session.preview_width,
     \   'height': session.preview_height,
     \ }
-    call luis#preview_candidate(session, session.preview_window, dimensions)
+    call luis#preview_candidate(session, session.preview, dimensions)
   endif
 endfunction
 
