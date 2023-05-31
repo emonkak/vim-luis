@@ -11,6 +11,24 @@ endfunction
 
 let s:PreviewWindow = {}
 
+function! s:PreviewWindow.close() abort dict
+  if s:is_valid_window(self.window)
+    call nvim_win_close(self.window, v:true)
+    let self.window = -1
+  endif
+endfunction
+
+function! s:PreviewWindow.dimensions() abort dict
+  if s:is_valid_window(self.window)
+    let [row, col] = nvim_win_get_position(self.window)
+    let width = nvim_win_get_width(self.window)
+    let height = nvim_win_get_height(self.window)
+    return { 'row': row, 'col': col, 'width': width, 'height': height }
+  else
+    return { 'row': 0, 'col': 0, 'width': 0, 'height': 0 }
+  endif
+endfunction
+
 function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
@@ -62,13 +80,6 @@ function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
 
   let filetype = get(a:hints, 'filetype', '')
   call nvim_buf_set_option(s:preview_bufnr, 'filetype', filetype)
-endfunction
-
-function! s:PreviewWindow.close() abort dict
-  if s:is_valid_window(self.window)
-    call nvim_win_close(self.window, v:true)
-    let self.window = -1
-  endif
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

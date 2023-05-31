@@ -181,7 +181,7 @@ function! luis#validations#validate_source(source) abort
   return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
 endfunction
 
-function! luis#validations#validate_preview_windowdow(window) abort
+function! luis#validations#validate_preview_window(window) abort
   return s:do_validate(s:SCHEMA_PREVIEW_WINDOW, a:window, 'Preview')
 endfunction
 

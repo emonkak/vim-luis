@@ -22,6 +22,20 @@ function! s:PreviewWindow.close() abort dict
   endif
 endfunction
 
+function! s:PreviewWindow.dimensions() abort dict
+  if s:is_valid_window(self.window)
+    let pos = popup_getpos(self.window)
+    return {
+    \   'row': pos.line - 1,
+    \   'col': pos.col,
+    \   'width': pos.core_width,
+    \   'height': pos.core_height,
+    \ }
+  else
+    return { 'row': 0, 'col': 0, 'width': 0, 'height': 0 }
+  endif
+endfunction
+
 function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction

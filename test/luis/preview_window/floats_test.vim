@@ -12,43 +12,30 @@ function! s:test_preview_buffer__preview_twice() abort
 
   try
     let preview_window = luis#preview_window#floats#new()
-
     call assert_false(preview_window.is_active())
 
     let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
     call preview_window.open_buffer(bufnr_1, dimensions, {})
 
-    let wininfo_1 = get(getwininfo(preview_window.window), 0, {})
-    call assert_false(empty(wininfo_1))
-    if empty(wininfo_1)
-      return
-    endif
+    let preview_winnr_1 = preview_window.window
+    let preview_bufnr_1 = winbufnr(preview_winnr_1)
 
     call assert_true(preview_window.is_active())
-    call assert_notequal(0, wininfo_1.winnr)
-    call assert_equal(bufnr_1, wininfo_1.bufnr)
-    call assert_equal(dimensions.row + 1, wininfo_1.winrow)
-    call assert_equal(dimensions.col + 1, wininfo_1.wincol)
-    call assert_equal(dimensions.width, wininfo_1.width)
-    call assert_equal(dimensions.height, wininfo_1.height)
+    call assert_notequal(0, preview_winnr_1)
+    call assert_notequal(0, preview_bufnr_1)
+    call assert_equal(dimensions, preview_window.dimensions())
+    call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
     let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
     call preview_window.open_buffer(bufnr_2, dimensions, { 'cursor': [10, 1] })
-
-    let wininfo_2 = get(getwininfo(preview_window.window), 0, {})
-    call assert_false(empty(wininfo_2))
-    if empty(wininfo_2)
-      return
-    endif
+    let preview_winnr_2 = preview_window.window
+    let preview_bufnr_2 = winbufnr(preview_winnr_2)
 
     call assert_true(preview_window.is_active())
-    call assert_equal(wininfo_1.winnr, wininfo_2.winnr)
-    call assert_equal(bufnr_2, wininfo_2.bufnr)
-    call assert_equal(dimensions.row + 1, wininfo_2.winrow)
-    call assert_equal(dimensions.col + 1, wininfo_2.wincol)
-    call assert_equal(dimensions.width, wininfo_2.width)
-    call assert_equal(dimensions.height, wininfo_2.height)
-    call assert_equal(10, wininfo_2.topline)
+    call assert_equal(preview_winnr_1, preview_winnr_2)
+    call assert_equal(bufnr_2, preview_bufnr_2)
+    call assert_equal(dimensions, preview_window.dimensions())
+    call assert_equal(10, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
     call preview_window.close()
 
@@ -64,56 +51,43 @@ function! s:test_open_text__open_twice() abort
   endif
 
   let preview_window = luis#preview_window#floats#new()
-
   call assert_false(preview_window.is_active())
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
   call preview_window.open_text(lines, dimensions, {})
 
-  let wininfo_1 = get(getwininfo(preview_window.window), 0, {})
-  call assert_false(empty(wininfo_1))
-  if empty(wininfo_1)
-    return
-  endif
+  let preview_winnr_1 = preview_window.window
+  let preview_bufnr_1 = winbufnr(preview_winnr_1)
 
   call assert_true(preview_window.is_active())
-  call assert_notequal(0, wininfo_1.winnr)
-  call assert_notequal(0, wininfo_1.bufnr)
-  call assert_equal(lines, getbufline(wininfo_1.bufnr, 1, '$'))
-  call assert_equal(dimensions.row + 1, wininfo_1.winrow)
-  call assert_equal(dimensions.col + 1, wininfo_1.wincol)
-  call assert_equal(dimensions.width, wininfo_1.width)
-  call assert_equal(dimensions.height, wininfo_1.height)
-  call assert_equal(1, wininfo_1.topline)
-  call assert_equal('', getbufvar(wininfo_1.bufnr, '&filetype'))
+  call assert_notequal(0, preview_winnr_1)
+  call assert_notequal(0, preview_bufnr_1)
+  call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
+  call assert_equal(dimensions, preview_window.dimensions())
+  call assert_equal('', getbufvar(preview_bufnr_1, '&filetype'))
+  call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
   call preview_window.open_text(lines, dimensions, { 'filetype': 'vim' })
 
-  let wininfo_2 = get(getwininfo(preview_window.window), 0, {})
-  call assert_false(empty(wininfo_2))
-  if empty(wininfo_2)
-    return
-  endif
+  let preview_winnr_2 = preview_window.window
+  let preview_bufnr_2 = winbufnr(preview_winnr_2)
 
   call assert_true(preview_window.is_active())
-  call assert_equal(wininfo_1.winnr, wininfo_2.winnr)
-  call assert_equal(wininfo_1.bufnr, wininfo_2.bufnr)
-  call assert_equal(lines, getbufline(wininfo_2.bufnr, 1, '$'))
-  call assert_equal(dimensions.row + 1, wininfo_2.winrow)
-  call assert_equal(dimensions.col + 1, wininfo_2.wincol)
-  call assert_equal(dimensions.width, wininfo_2.width)
-  call assert_equal(dimensions.height, wininfo_2.height)
-  call assert_equal(1, wininfo_2.topline)
-  call assert_equal('vim', getbufvar(wininfo_2.bufnr, '&filetype'))
+  call assert_equal(preview_winnr_1, preview_winnr_2)
+  call assert_equal(preview_bufnr_1, preview_bufnr_2)
+  call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
+  call assert_equal(dimensions, preview_window.dimensions())
+  call assert_equal('vim', getbufvar(preview_bufnr_2, '&filetype'))
+  call assert_equal(1, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
   call preview_window.close()
 
   call assert_false(preview_window.is_active())
 
-  execute wininfo_1.bufnr 'bwipeout'
+  execute preview_bufnr_1 'bwipeout!'
 endfunction
 
 function! s:test_open_text__after_unload_open_buffer() abort
@@ -122,54 +96,42 @@ function! s:test_open_text__after_unload_open_buffer() abort
   endif
 
   let preview_window = luis#preview_window#floats#new()
-
   call assert_false(preview_window.is_active())
 
   let lines = ['foo', 'bar', 'baz']
   let dimensions = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
   call preview_window.open_text(lines, dimensions, {})
 
-  let wininfo_1 = get(getwininfo(preview_window.window), 0, {})
-  call assert_false(empty(wininfo_1))
-  if empty(wininfo_1)
-    return
-  endif
+  let preview_winnr_1 = preview_window.window
+  let preview_bufnr_1 = winbufnr(preview_window.window)
 
   call assert_true(preview_window.is_active())
-  call assert_notequal(0, wininfo_1.winnr)
-  call assert_notequal(0, wininfo_1.bufnr)
-  call assert_equal(lines, getbufline(wininfo_1.bufnr, 1, '$'))
-  call assert_equal(dimensions.row + 1, wininfo_1.winrow)
-  call assert_equal(dimensions.col + 1, wininfo_1.wincol)
-  call assert_equal(dimensions.width, wininfo_1.width)
-  call assert_equal(dimensions.height, wininfo_1.height)
-  call assert_equal(1, wininfo_1.topline)
+  call assert_notequal(0, preview_winnr_1)
+  call assert_notequal(0, preview_bufnr_1)
+  call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
+  call assert_equal(dimensions, preview_window.dimensions())
+  call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
-  execute wininfo_1.bufnr 'bdelete'
+  execute preview_bufnr_1 'bunload!'
 
   let lines = ['qux', 'quux', 'corge']
   let dimensions = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
   call preview_window.open_text(lines, dimensions, {})
 
-  let wininfo_2 = get(getwininfo(preview_window.window), 0, {})
-  call assert_false(empty(wininfo_2))
-  if empty(wininfo_2)
-    return
-  endif
+  let preview_winnr_2 = preview_window.window
+  let preview_bufnr_2 = winbufnr(preview_window.window)
 
   call assert_true(preview_window.is_active())
-  call assert_equal(wininfo_1.winnr, wininfo_2.winnr)
-  call assert_notequal(0, wininfo_2.bufnr)
-  call assert_equal(lines, getbufline(wininfo_2.bufnr, 1, '$'))
-  call assert_equal(dimensions.row + 1, wininfo_2.winrow)
-  call assert_equal(dimensions.col + 1, wininfo_2.wincol)
-  call assert_equal(dimensions.width, wininfo_2.width)
-  call assert_equal(dimensions.height, wininfo_2.height)
-  call assert_equal(1, wininfo_2.topline)
+  call assert_notequal(preview_winnr_1, preview_winnr_2)
+  call assert_notequal(0, preview_winnr_2)
+  call assert_equal(preview_bufnr_1, preview_bufnr_2)
+  call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
+  call assert_equal(dimensions, preview_window.dimensions())
+  call assert_equal(1, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
   call preview_window.close()
 
   call assert_false(preview_window.is_active())
 
-  execute wininfo_2.bufnr 'bwipeout'
+  execute preview_bufnr_1 'bwipeout!'
 endfunction

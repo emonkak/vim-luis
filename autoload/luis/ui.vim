@@ -178,6 +178,114 @@ function! luis#ui#collect_candidates(session, pattern) abort
   return candidates
 endfunction
 
+function! luis#ui#detect_filetype(path, lines) abort
+  if has('nvim')
+    let _ =<< trim END
+    vim.filetype.match({
+      filename = vim.api.nvim_eval('a:path'),
+      contents = vim.api.nvim_eval('a:lines'),
+    }) or ''
+END
+    return luaeval(join(_, ''))
+  else
+    let temp_win = popup_create(a:lines, { 'hidden': 1 })
+    let temp_bufnr = winbufnr(temp_win)
+    try
+      let command = 'doautocmd filetypedetect BufNewFile '
+      \           . fnameescape(a:path)
+      call win_execute(temp_win, command)
+      return getbufvar(temp_bufnr, '&filetype')
+    finally
+      call popup_close(temp_win)
+    endtry
+  endif
+endfunction
+
+function! luis#ui#start_preview(session, preview_window, dimensions) abort
+  let candidate = a:session.guess_candidate()
+  let context = {
+  \   'preview_window': a:preview_window,
+  \   'session': a:session,
+  \ }
+
+  if has_key(a:session.source, 'on_preview')
+    call a:session.source.on_preview(candidate, context)
+  endif
+
+  if has_key(a:session.hook, 'on_preview')
+    call a:session.hook.on_preview(candidate, context)
+  endif
+
+  if has_key(candidate.user_data, 'preview_lines')
+    let hints = s:preview_hints_from_candidate(candidate)
+    call a:preview_window.open_text(
+    \   candidate.user_data.preview_lines,
+    \   a:dimensions,
+    \   hints
+    \ )
+    return 1
+  endif
+
+  if has_key(candidate.user_data, 'preview_bufnr')
+    let bufnr = candidate.user_data.preview_bufnr
+    if bufloaded(bufnr)
+      let hints = s:preview_hints_from_candidate(candidate)
+      call a:preview_window.open_buffer(
+      \   bufnr,
+      \   a:dimensions,
+      \   hints
+      \ )
+      return 1
+    endif
+  endif
+
+  if has_key(candidate.user_data, 'preview_path')
+    let path = candidate.user_data.preview_path
+    if filereadable(path)
+      try
+        let lines = readfile(path, '', a:dimensions.height)
+        let hints = s:preview_hints_from_candidate(candidate)
+        if !has_key(hints, 'filetype')
+          let filetype = luis#ui#detect_filetype(path, lines)
+          if filetype != ''
+            let hints.filetype = filetype
+          endif
+        endif
+        call a:preview_window.open_text(
+        \   lines,
+        \   a:dimensions,
+        \   hints
+        \ )
+        return 1
+      catch /\<E484:/
+        call a:preview_window.close()
+        return 0
+      endtry
+    endif
+  endif
+
+  call a:preview_window.close()
+  return 0
+endfunction
+
+function! s:preview_hints_from_candidate(candidate) abort
+  let hints = {}
+
+  if has_key(a:candidate.user_data, 'preview_title')
+    let hints.title = a:candidate.user_data.preview_title
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_cursor')
+    let hints.cursor = a:candidate.user_data.preview_cursor
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_filetype')
+    let hints.filetype = a:candidate.user_data.preview_filetype
+  endif
+
+  return hints
+endfunction
+
 function! s:make_skip_regexp(s) abort
   " 'abc' ==> '\Va*b*c'
   " '\!/' ==> '\V\\*!*/'

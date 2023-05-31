@@ -39,7 +39,7 @@ function! s:test_do_action__action_is_not_definied() abort
     let context = { 'session': session }
 
     call assert_equal(
-    \   "luis: Action 'XXX' is not defined",
+    \   "luis: Action 'XXX' not defined",
     \   luis#do_action(source.default_kind, 'XXX', candidate)
     \ )
   finally
