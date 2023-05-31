@@ -90,10 +90,6 @@ let s:SCHEMA_HOOK = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'format_preview_content': {
-\       'type': v:t_func,
-\       'optional': 1,
-\     },
 \     'on_action': {
 \       'type': v:t_func,
 \       'optional': 1,
@@ -133,7 +129,7 @@ let s:SCHEMA_SESSION = {
 \   },
 \ }
 
-let s:SCHEMA_PREVIEW_WINDOW = {
+let s:SCHEMA_PREVIEW = {
 \   'type': 'struct',
 \   'properties': {
 \     'close': {
@@ -181,8 +177,8 @@ function! luis#validations#validate_source(source) abort
   return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
 endfunction
 
-function! luis#validations#validate_preview(window) abort
-  return s:do_validate(s:SCHEMA_PREVIEW_WINDOW, a:window, 'Preview')
+function! luis#validations#validate_preview(preview) abort
+  return s:do_validate(s:SCHEMA_PREVIEW, a:preview, 'Preview')
 endfunction
 
 function! s:do_validate(schema, value, name) abort

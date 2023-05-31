@@ -1,3 +1,8 @@
+function! s:test_definition() abort
+  let preview = luis#preview#popup#new()
+  call assert_true(luis#validations#validate_preview(preview))
+endfunction
+
 function! s:test_open_buffer__open_twice() abort
   if !exists('*popup_create')
     return 'popup_create() function is required.'

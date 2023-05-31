@@ -103,6 +103,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#jumplist#new(win_getid())
-  call assert_equal(1, luis#validations#validate_source(source))
+  call assert_true(luis#validations#validate_source(source))
   call assert_equal('jumplist', source.name)
 endfunction

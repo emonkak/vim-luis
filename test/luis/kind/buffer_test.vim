@@ -74,7 +74,7 @@ function! s:test_action_wipeout_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal(1, luis#validations#validate_kind(s:kind))
+  call assert_true(luis#validations#validate_kind(s:kind))
   call assert_equal('buffer', s:kind.name)
 endfunction
 

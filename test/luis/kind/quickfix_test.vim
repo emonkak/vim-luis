@@ -99,6 +99,6 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_equal(1, luis#validations#validate_kind(s:kind))
+  call assert_true(luis#validations#validate_kind(s:kind))
   call assert_equal('quickfix', s:kind.name)
 endfunction
