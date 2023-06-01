@@ -229,7 +229,7 @@ function! s:clone_candidate(candidate) abort
   return candidate
 endfunction
 
-function! s:complete_the_prompt() abort
+function! s:complete_prompt() abort
   call setline('.', s:PROMPT . getline('.'))
   return
 endfunction
@@ -248,7 +248,7 @@ function! s:consume_typeahead_buffer() abort
   return buffer
 endfunction
 
-function! s:contains_the_prompt(s) abort
+function! s:contains_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
@@ -333,10 +333,10 @@ function! s:keys_to_complete(session) abort
   if cursor_lnum < s:LNUM_PATTERN
     " Fix the cursor position if it is above the pattern line.
     let keys = repeat("\<Down>", s:LNUM_PATTERN - cursor_lnum)
-  elseif !s:contains_the_prompt(line)
+  elseif !s:contains_prompt(line)
     " Complete the prompt if it doesn't exist for some reasons.
     let keys = repeat("\<Right>", len(s:PROMPT))
-    call s:complete_the_prompt()
+    call s:complete_prompt()
   elseif cursor_column <= len(s:PROMPT)
     " Move the cursor out of the prompt if it is in the prompt.
     let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
@@ -495,5 +495,5 @@ function! s:preview_pos() abort
 endfunction
 
 function! s:remove_prompt(s) abort
-  return s:contains_the_prompt(a:s) ? a:s[len(s:PROMPT):] : a:s
+  return s:contains_prompt(a:s) ? a:s[len(s:PROMPT):] : a:s
 endfunction
