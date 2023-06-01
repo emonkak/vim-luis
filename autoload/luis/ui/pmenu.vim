@@ -54,7 +54,6 @@ function! luis#ui#pmenu#new_session(source, ...) abort
   let session.hook = get(options, 'hook', {})
   let session.initial_pattern = get(options, 'initial_pattern', '')
   let session.is_inserted_by_acc = 0
-  let session.is_quitting = 0
   let session.last_candidates = []
   let session.last_column = -1
   let session.last_pattern_raw = ''
@@ -141,27 +140,21 @@ endfunction
 
 function! s:Session.quit() abort dict
   " Assumption: The current buffer is the luis buffer.
-  " We have to check self.is_quitting to avoid unnecessary
+  " We have to check b:luis_sessoin to avoid unnecessary
   " :close'ing, because s:Session.quit() may be called recursively.
-  let self.is_quitting = 1
+  unlet b:luis_session
 
-  try
-    if self.preview isnot 0
-      call self.preview.close()
-    endif
+  if self.preview isnot 0
+    call self.preview.close()
+  endif
 
-    unlet b:luis_session
+  close
 
-    close
+  let &backspace = self.original_backspace
+  let &equalalways = self.original_equalalways
+  let &completeopt = self.original_completeopt
 
-    let &backspace = self.original_backspace
-    let &equalalways = self.original_equalalways
-    let &completeopt = self.original_completeopt
-
-    call win_gotoid(self.original_window)
-  finally
-    let self.is_quitting = 0
-  endtry
+  call win_gotoid(self.original_window)
 endfunction
 
 function! s:Session.reload_candidates() abort dict
