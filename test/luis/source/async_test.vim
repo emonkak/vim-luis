@@ -8,7 +8,7 @@ function! s:test_gather_candidates() abort
 
   let spy = Spy({ -> 0 })
   let session = {
-  \   'reload_candidates': spy.to_funcref(),
+  \   'refresh_candidates': spy.to_funcref(),
   \ }
 
   try
@@ -64,7 +64,7 @@ function! s:test_gather_candidates__to_candidate() abort
 
   let spy = Spy({ -> 0 })
   let session = {
-  \   'reload_candidates': spy.to_funcref(),
+  \   'refresh_candidates': spy.to_funcref(),
   \ }
 
   try
@@ -124,7 +124,7 @@ function! s:test_gather_candidates__debounce_time() abort
 
   let spy = Spy({ -> 0 })
   let session = {
-  \   'reload_candidates': spy.to_funcref(),
+  \   'refresh_candidates': spy.to_funcref(),
   \ }
 
   try

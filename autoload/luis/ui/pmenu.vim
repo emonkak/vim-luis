@@ -157,7 +157,7 @@ function! s:Session.quit() abort dict
   call win_gotoid(self.original_window)
 endfunction
 
-function! s:Session.reload_candidates() abort dict
+function! s:Session.refresh_candidates() abort dict
   if self.is_active() && mode() =~# 'i'
     call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif

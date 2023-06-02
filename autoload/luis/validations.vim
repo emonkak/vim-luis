@@ -119,7 +119,7 @@ let s:SCHEMA_SESSION = {
 \     'quit': {
 \       'type': v:t_func,
 \     },
-\     'reload_candidates': {
+\     'refresh_candidates': {
 \       'type': v:t_func,
 \     },
 \     'source': s:SCHEMA_SOURCE,

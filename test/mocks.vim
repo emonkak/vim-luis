@@ -44,7 +44,7 @@ function! CreateMockSession(source, hook, candidate, is_active) abort
   \   'is_active': { -> a:is_active },
   \   'normalize_candidate': { candidate, index, context -> candidate },
   \   'quit': { -> 0 },
-  \   'reload_candidates': { -> 0 },
+  \   'refresh_candidates': { -> 0 },
   \   'source': a:source,
   \   'start': { -> 0 },
   \ }

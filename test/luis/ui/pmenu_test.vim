@@ -143,7 +143,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
   endtry
 endfunction
 
-function! s:test_reload_candidates() abort
+function! s:test_refresh_candidates() abort
   let source = CreateMockSource()
   let [session, session_spies] = SpyDict(luis#ui#pmenu#new_session(source, {}))
 
@@ -163,7 +163,7 @@ function! s:test_reload_candidates() abort
     call assert_true(session.is_active())
 
     function! s:on_CompleteDone() abort closure
-      call session.reload_candidates()
+      call session.refresh_candidates()
       call assert_equal("\<C-x>", nr2char(getchar(0)))
       call assert_equal("\<C-o>", nr2char(getchar(0)))
     endfunction
@@ -172,7 +172,7 @@ function! s:test_reload_candidates() abort
 
     normal! A
 
-    call assert_equal(1, session_spies.reload_candidates.call_count())
+    call assert_equal(1, session_spies.refresh_candidates.call_count())
 
     call session.quit()
 
