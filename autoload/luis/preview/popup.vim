@@ -22,7 +22,7 @@ function! s:PreviewWindow.close() abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.dimensions() abort dict
+function! s:PreviewWindow.bounds() abort dict
   if s:is_valid_window(self.window)
     let pos = popup_getpos(self.window)
     return {
@@ -40,14 +40,14 @@ function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
+function! s:PreviewWindow.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
     call popup_close(self.window)
   endif
 
   let self.window = s:open_window(
   \   a:bufnr,
-  \   a:dimensions,
+  \   a:bounds,
   \   a:hints,
   \   self.popup_config
   \ )
@@ -62,7 +62,7 @@ function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.open_text(lines, bounds, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = bufadd('')
     call s:initialize_preview_buffer(s:preview_bufnr)
@@ -73,12 +73,12 @@ function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
   if s:is_valid_window(self.window)
     if winbufnr(self.window) == s:preview_bufnr
       " Reuse window.
-      call s:set_dimensions(self.window, a:dimensions)
+      call s:set_bounds(self.window, a:bounds)
     else
       call popup_close(self.window)
       let self.window = s:open_window(
       \   s:preview_bufnr,
-      \   a:dimensions,
+      \   a:bounds,
       \   a:hints,
       \   self.popup_config
       \ )
@@ -86,7 +86,7 @@ function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
   else
     let self.window = s:open_window(
     \   s:preview_bufnr,
-    \   a:dimensions,
+    \   a:bounds,
     \   a:hints,
     \   self.popup_config
     \ )
@@ -112,7 +112,7 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && win_gettype(a:win) !=# 'unknown'
 endfunction
 
-function! s:open_window(bufnr, dimensions, hints, override_config) abort
+function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config = {
   \   'border': [],
   \   'borderchars': &ambiwidth ==# 'double'
@@ -128,12 +128,12 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
     let config.title = a:hints.title
   endif
 
-  let config.line = a:dimensions.row + 1  " 1 = {border_width}
-  let config.col = max([1, a:dimensions.col])
-  let config.minwidth = a:dimensions.width
-  let config.minheight = a:dimensions.height
-  let config.maxwidth = a:dimensions.width
-  let config.maxheight = a:dimensions.height
+  let config.line = a:bounds.row + 1  " 1 = {border_width}
+  let config.col = max([1, a:bounds.col])
+  let config.minwidth = a:bounds.width
+  let config.minheight = a:bounds.height
+  let config.maxwidth = a:bounds.width
+  let config.maxheight = a:bounds.height
 
   let preview = popup_create(a:bufnr, config)
 
@@ -145,14 +145,14 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
   return preview
 endfunction
 
-function! s:set_dimensions(win, dimensions) abort
+function! s:set_bounds(win, bounds) abort
   " {line} = {row} + {border_width}
   call popup_move(a:win, {
-  \   'line': a:dimensions.row + 1,
-  \   'col': max([1, a:dimensions.col]),
-  \   'minwidth': a:dimensions.width,
-  \   'minheight': a:dimensions.height,
-  \   'maxwidth': a:dimensions.width,
-  \   'maxheight': a:dimensions.height,
+  \   'line': a:bounds.row + 1,
+  \   'col': max([1, a:bounds.col]),
+  \   'minwidth': a:bounds.width,
+  \   'minheight': a:bounds.height,
+  \   'maxwidth': a:bounds.width,
+  \   'maxheight': a:bounds.height,
   \ })
 endfunction

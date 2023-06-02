@@ -31,8 +31,8 @@ endfunction
 function! CreateMockPreviewWindow(is_active) abort
   return {
   \   'is_active': { -> a:is_active },
-  \   'open_buffer': { bufnr, dimensions, options -> 0 },
-  \   'open_text': { lines, dimensions, options -> 0 },
+  \   'open_buffer': { bufnr, bounds, options -> 0 },
+  \   'open_text': { lines, bounds, options -> 0 },
   \   'close': { -> 0 },
   \ }
 endfunction

@@ -209,7 +209,7 @@ function! luis#do_action(action_name, candidate, context) abort
   return Action(a:candidate, a:context)
 endfunction
 
-function! luis#preview_candidate(session, preview, dimensions) abort
+function! luis#preview_candidate(session, preview, bounds) abort
   let candidate = a:session.guess_candidate()
   let context = {
   \   'preview': a:preview,
@@ -228,7 +228,7 @@ function! luis#preview_candidate(session, preview, dimensions) abort
     let hints = s:preview_hints_from_candidate(candidate)
     call a:preview.open_text(
     \   candidate.user_data.preview_lines,
-    \   a:dimensions,
+    \   a:bounds,
     \   hints
     \ )
     return 1
@@ -240,7 +240,7 @@ function! luis#preview_candidate(session, preview, dimensions) abort
       let hints = s:preview_hints_from_candidate(candidate)
       call a:preview.open_buffer(
       \   bufnr,
-      \   a:dimensions,
+      \   a:bounds,
       \   hints
       \ )
       return 1
@@ -251,7 +251,7 @@ function! luis#preview_candidate(session, preview, dimensions) abort
     let path = candidate.user_data.preview_path
     if filereadable(path)
       try
-        let lines = readfile(path, '', a:dimensions.height)
+        let lines = readfile(path, '', a:bounds.height)
         let hints = s:preview_hints_from_candidate(candidate)
         if !has_key(hints, 'filetype')
           let filetype = luis#detect_filetype(path, lines)
@@ -261,7 +261,7 @@ function! luis#preview_candidate(session, preview, dimensions) abort
         endif
         call a:preview.open_text(
         \   lines,
-        \   a:dimensions,
+        \   a:bounds,
         \   hints
         \ )
         return 1

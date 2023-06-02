@@ -460,13 +460,13 @@ function! s:on_TextChangedP() abort
 
   if session.preview isnot 0
     let [row, col] = s:preview_pos()
-    let dimensions = {
+    let bounds = {
     \   'row': row,
     \   'col': col,
     \   'width': session.preview_width,
     \   'height': session.preview_height,
     \ }
-    call luis#preview_candidate(session, session.preview, dimensions)
+    call luis#preview_candidate(session, session.preview, bounds)
   endif
 endfunction
 

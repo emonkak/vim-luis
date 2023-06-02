@@ -18,7 +18,7 @@ function! s:PreviewWindow.close() abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.dimensions() abort dict
+function! s:PreviewWindow.bounds() abort dict
   if s:is_valid_window(self.window)
     let [row, col] = nvim_win_get_position(self.window)
     let width = nvim_win_get_width(self.window)
@@ -33,14 +33,14 @@ function! s:PreviewWindow.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
+function! s:PreviewWindow.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
     noautocmd call nvim_win_set_buf(self.window, a:bufnr)
-    call s:set_dimensions(self.window, a:dimensions)
+    call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
     \   a:bufnr,
-    \   a:dimensions,
+    \   a:bounds,
     \   a:hints,
     \   self.float_config
     \ )
@@ -56,7 +56,7 @@ function! s:PreviewWindow.open_buffer(bufnr, dimensions, hints) abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
+function! s:PreviewWindow.open_text(lines, bounds, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = nvim_create_buf(v:false, v:true)
     call s:initialize_preview_buffer(s:preview_bufnr)
@@ -66,11 +66,11 @@ function! s:PreviewWindow.open_text(lines, dimensions, hints) abort dict
 
   if s:is_valid_window(self.window)
     noautocmd call nvim_win_set_buf(self.window, s:preview_bufnr)
-    call s:set_dimensions(self.window, a:dimensions)
+    call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
     \   s:preview_bufnr,
-    \   a:dimensions,
+    \   a:bounds,
     \   a:hints,
     \   self.float_config
     \ )
@@ -94,7 +94,7 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && nvim_win_is_valid(a:win)
 endfunction
 
-function! s:open_window(bufnr, dimensions, hints, override_config) abort
+function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config = {
   \    'border': 'single',
   \    'focusable': 0,
@@ -109,10 +109,10 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
   endif
 
   let config.relative = 'editor'
-  let config.row = a:dimensions.row
-  let config.col = a:dimensions.col
-  let config.width = a:dimensions.width
-  let config.height = a:dimensions.height
+  let config.row = a:bounds.row
+  let config.col = a:bounds.col
+  let config.width = a:bounds.width
+  let config.height = a:bounds.height
   let config.noautocmd = v:true
 
   let preview = nvim_open_win(a:bufnr, v:false, config)
@@ -124,12 +124,12 @@ function! s:open_window(bufnr, dimensions, hints, override_config) abort
   return preview
 endfunction
 
-function! s:set_dimensions(win, dimensions) abort
+function! s:set_bounds(win, bounds) abort
   call nvim_win_set_config(a:win, {
   \   'relative': 'editor',
-  \   'row': a:dimensions.row,
-  \   'col': a:dimensions.col,
-  \   'width': a:dimensions.width,
-  \   'height': a:dimensions.height,
+  \   'row': a:bounds.row,
+  \   'col': a:bounds.col,
+  \   'width': a:bounds.width,
+  \   'height': a:bounds.height,
   \ })
 endfunction
