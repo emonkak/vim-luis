@@ -11,13 +11,10 @@ function! s:action_open_x(candidate, context) abort
 endfunction
 
 function! s:do_open(action_name, candidate, context) abort
-  let error = luis#do_action(
-  \   a:action_name,
-  \   a:candidate,
-  \   extend({ 'kind': a:context.kind.prototype }, a:context, 'keep')
-  \ )
-  if error isnot 0
-    return error
+  let Action = a:context.kind.prototype.action_table[a:action_name]
+  let result = Action(a:action_name, a:candidate, a:context)
+  if result isnot 0
+    return result
   endif
   if has_key(a:candidate.user_data, 'tagstack_index')
     let index = a:candidate.user_data.tagstack_index

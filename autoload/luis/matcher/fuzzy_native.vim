@@ -28,7 +28,7 @@ function! s:Matcher.normalize_candidate(candidate, index, context) abort dict
 endfunction
 
 function! s:Matcher.sort_candidates(candidates, context) abort dict
-  return sort(a:candidates, 's:compare', a:context)
+  return sort(a:candidates, 's:compare', a:context.session.comparer)
 endfunction
 
 function! s:compare(first, second) abort dict
@@ -37,5 +37,5 @@ function! s:compare(first, second) abort dict
   \      : a:first.luis_match_positions != a:second.luis_match_positions
   \        && a:first.luis_match_score != a:second.luis_match_score
   \      ? a:second.luis_match_score - a:first.luis_match_score
-  \      : self.comparer.compare_candidates(a:first, a:second)
+  \      : self.compare_candidates(a:first, a:second)
 endfunction

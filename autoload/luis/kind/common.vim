@@ -110,14 +110,14 @@ function! s:open_with_split(direction, candidate, context) abort
     return v:exception
   endtry
 
-  let error = luis#do_action('open', a:candidate, a:context)
-  if error isnot 0
+  let result = luis#do_action('open', a:candidate, a:context)
+  if result isnot 0
     " Undo the last :split.
     close
     execute 'tabnext' original_tabpagenr
     execute original_curwinnr 'wincmd w'
     execute original_winrestcmd
-    return error
+    return result
   endif
 
   return 0

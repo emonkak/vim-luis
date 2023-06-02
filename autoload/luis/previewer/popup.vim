@@ -6,23 +6,16 @@ if !exists('s:preview_bufnr')
   let s:preview_bufnr = -1
 endif
 
-function! luis#preview#popup#new(...) abort
-  let preview = copy(s:PreviewWindow)
+function! luis#previewer#popup#new(...) abort
+  let preview = copy(s:Previewer)
   let preview.popup_config = get(a:000, 0, {})
   let preview.window = -1
   return preview
 endfunction
 
-let s:PreviewWindow = {}
+let s:Previewer = {}
 
-function! s:PreviewWindow.close() abort dict
-  if s:is_valid_window(self.window)
-    call popup_close(self.window)
-    let self.window = -1
-  endif
-endfunction
-
-function! s:PreviewWindow.bounds() abort dict
+function! s:Previewer.bounds() abort dict
   if s:is_valid_window(self.window)
     let pos = popup_getpos(self.window)
     return {
@@ -36,11 +29,22 @@ function! s:PreviewWindow.bounds() abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.is_active() abort dict
+function! s:Previewer.close() abort dict
+  if s:is_valid_window(self.window)
+    call popup_close(self.window)
+    let self.window = -1
+  endif
+endfunction
+
+function! s:Previewer.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:PreviewWindow.open_buffer(bufnr, bounds, hints) abort dict
+function! s:Previewer.is_available() abort dict
+  return exists('*popup_create')
+endfunction
+
+function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
     call popup_close(self.window)
   endif
@@ -62,7 +66,7 @@ function! s:PreviewWindow.open_buffer(bufnr, bounds, hints) abort dict
   endif
 endfunction
 
-function! s:PreviewWindow.open_text(lines, bounds, hints) abort dict
+function! s:Previewer.open_text(lines, bounds, hints) abort dict
   if !bufexists(s:preview_bufnr)
     let s:preview_bufnr = bufadd('')
     call s:initialize_preview_buffer(s:preview_bufnr)

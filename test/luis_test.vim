@@ -346,7 +346,7 @@ endfunction
 function! s:test_preview_candidate__with_buffer_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let [preview, preview_spies] = SpyDict(CreateMockPreviewWindow(1))
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer(1, 1))
 
   " With existent buffer
   let candidate = {
@@ -359,29 +359,29 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
   let bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
-  call luis#preview_candidate(session, preview, bounds)
+  call luis#preview_candidate(session, previewer, bounds)
 
   call assert_equal(1, session_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], source_spies.on_preview.last_args())
   call assert_equal(1, hook_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, preview_spies.open_buffer.call_count())
+  call assert_equal(1, previewer_spies.open_buffer.call_count())
   call assert_equal(
   \   [
   \     candidate.user_data.preview_bufnr,
   \     bounds,
   \     { 'cursor': candidate.user_data.preview_cursor }
   \   ],
-  \   preview_spies.open_buffer.last_args()
+  \   previewer_spies.open_buffer.last_args()
   \ )
-  call assert_equal(0, preview_spies.close.call_count())
+  call assert_equal(0, previewer_spies.close.call_count())
 
   " With non-existent buffer
   let candidate = {
@@ -393,21 +393,21 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
   let bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
-  call luis#preview_candidate(session, preview, bounds)
+  call luis#preview_candidate(session, previewer, bounds)
 
   call assert_equal(1, session_spies.guess_candidate.call_count())
   call assert_equal(2, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], source_spies.on_preview.last_args())
   call assert_equal(2, hook_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, preview_spies.open_buffer.call_count())
-  call assert_equal(1, preview_spies.close.call_count())
+  call assert_equal(1, previewer_spies.open_buffer.call_count())
+  call assert_equal(1, previewer_spies.close.call_count())
 endfunction
 
 function! s:test_preview_candidate__with_file_preview() abort
@@ -417,7 +417,7 @@ function! s:test_preview_candidate__with_file_preview() abort
 
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let [preview, preview_spies] = SpyDict(CreateMockPreviewWindow(1))
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreview(1, 1))
 
   filetype on
 
@@ -433,29 +433,29 @@ function! s:test_preview_candidate__with_file_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-    call luis#preview_candidate(session, preview, bounds)
+    call luis#preview_candidate(session, previewer, bounds)
 
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(1, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], source_spies.on_preview.last_args())
     call assert_equal(1, hook_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(1, preview_spies.open_text.call_count())
+    call assert_equal(1, previewer_spies.open_text.call_count())
     call assert_equal(
     \   [
     \     ['1', '2', '3', '4'],
     \     bounds,
     \     { 'filetype': 'help' },
     \   ],
-    \   preview_spies.open_text.last_args()
+    \   previewer_spies.open_text.last_args()
     \ )
-    call assert_equal(0, preview_spies.close.call_count())
+    call assert_equal(0, previewer_spies.close.call_count())
 
     " Without filetype (Auto detection)
     let candidate = {
@@ -467,29 +467,29 @@ function! s:test_preview_candidate__with_file_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
 
-    call luis#preview_candidate(session, preview, bounds)
+    call luis#preview_candidate(session, previewer, bounds)
 
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(2, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], source_spies.on_preview.last_args())
     call assert_equal(2, hook_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, preview_spies.open_text.call_count())
+    call assert_equal(2, previewer_spies.open_text.call_count())
     call assert_equal(
     \   [
     \     ["echo 'hello, world!'"],
     \     bounds,
     \     { 'filetype': 'vim' },
     \   ],
-    \   preview_spies.open_text.last_args()
+    \   previewer_spies.open_text.last_args()
     \ )
-    call assert_equal(0, preview_spies.close.call_count())
+    call assert_equal(0, previewer_spies.close.call_count())
 
     " With non-existent file
     let candidate = {
@@ -501,21 +501,21 @@ function! s:test_preview_candidate__with_file_preview() abort
     let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
     let bounds = { 'row': 3, 'col': 4, 'width': 5, 'height': 6 }
 
-    call luis#preview_candidate(session, preview, bounds)
+    call luis#preview_candidate(session, previewer, bounds)
 
     call assert_equal(1, session_spies.guess_candidate.call_count())
     call assert_equal(3, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], source_spies.on_preview.last_args())
     call assert_equal(3, hook_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
-    \   { 'session': session, 'preview': preview },
+    \   { 'session': session },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, preview_spies.open_text.call_count())
-    call assert_equal(1, preview_spies.close.call_count())
+    call assert_equal(2, previewer_spies.open_text.call_count())
+    call assert_equal(1, previewer_spies.close.call_count())
   finally
     filetype off
   endtry
@@ -524,32 +524,32 @@ endfunction
 function! s:test_preview_candidate__with_no_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let [preview, preview_spies] = SpyDict(CreateMockPreviewWindow(1))
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreview(1, 1))
 
   let candidate = { 'word': '', 'user_data': {} }
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
   let bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-  call luis#preview_candidate(session, preview, bounds)
+  call luis#preview_candidate(session, previewer, bounds)
 
   call assert_equal(1, session_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], source_spies.on_preview.last_args())
   call assert_equal(1, hook_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, preview_spies.close.call_count())
+  call assert_equal(1, previewer_spies.close.call_count())
 endfunction
 
 function! s:test_preview_candidate__with_text_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let [preview, preview_spies] = SpyDict(CreateMockPreviewWindow(1))
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreview(1, 1))
 
   let candidate = {
   \   'word': 'foo',
@@ -561,29 +561,29 @@ function! s:test_preview_candidate__with_text_preview() abort
   let [session, session_spies] = SpyDict(CreateMockSession(source, hook, candidate, 1))
   let bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
 
-  call luis#preview_candidate(session, preview, bounds)
+  call luis#preview_candidate(session, previewer, bounds)
 
   call assert_equal(1, session_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], source_spies.on_preview.last_args())
   call assert_equal(1, hook_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
-  \   { 'session': session, 'preview': preview },
+  \   { 'session': session },
   \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, preview_spies.open_text.call_count())
+  call assert_equal(1, previewer_spies.open_text.call_count())
   call assert_equal(
   \   [
   \     candidate.user_data.preview_lines,
   \     bounds,
   \     { 'title': candidate.user_data.preview_title }
   \   ],
-  \   preview_spies.open_text.last_args()
+  \   previewer_spies.open_text.last_args()
   \ )
-  call assert_equal(0, preview_spies.close.call_count())
+  call assert_equal(0, previewer_spies.close.call_count())
 endfunction
 
 function! s:test_quit__with_active_session() abort

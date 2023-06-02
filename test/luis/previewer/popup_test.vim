@@ -1,6 +1,6 @@
 function! s:test_definition() abort
-  let preview = luis#preview#popup#new()
-  call assert_true(luis#validations#validate_preview(preview))
+  let previewer = luis#previewer#popup#new()
+  call assert_true(luis#validations#validate_preview(previewer))
 endfunction
 
 function! s:test_open_buffer__open_twice() abort
@@ -16,38 +16,39 @@ function! s:test_open_buffer__open_twice() abort
   let bufnr_2 = bufnr('%')
 
   try
-    let preview = luis#preview#popup#new()
+    let previewer = luis#previewer#popup#new()
 
-    call assert_false(preview.is_active())
+    call assert_true(previewer.is_available())
+    call assert_false(previewer.is_active())
 
     let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-    silent call preview.open_buffer(bufnr_1, bounds, {})
+    silent call previewer.open_buffer(bufnr_1, bounds, {})
 
-    let preview_winnr_1 = preview.window
-    let preview_bufnr_1 = winbufnr(preview.window)
+    let preview_winnr_1 = previewer.window
+    let preview_bufnr_1 = winbufnr(previewer.window)
 
-    call assert_true(preview.is_active())
+    call assert_true(previewer.is_active())
     call assert_notequal(0, preview_winnr_1)
     call assert_equal(bufnr_1, preview_bufnr_1)
-    call assert_equal(bounds, preview.bounds())
+    call assert_equal(bounds, previewer.bounds())
     call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
     let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-    silent call preview.open_buffer(bufnr_2, bounds, { 'cursor': [10, 1] })
+    silent call previewer.open_buffer(bufnr_2, bounds, { 'cursor': [10, 1] })
 
-    let preview_winnr_2 = preview.window
-    let preview_bufnr_2 = winbufnr(preview.window)
+    let preview_winnr_2 = previewer.window
+    let preview_bufnr_2 = winbufnr(previewer.window)
 
-    call assert_true(preview.is_active())
+    call assert_true(previewer.is_active())
     call assert_notequal(0, preview_winnr_2)
     call assert_notequal(preview_winnr_1, preview_winnr_2)
     call assert_equal(bufnr_2, preview_bufnr_2)
-    call assert_equal(bounds, preview.bounds())
+    call assert_equal(bounds, previewer.bounds())
     call assert_equal(10, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
-    call preview.close()
+    call previewer.close()
 
-    call assert_false(preview.is_active())
+    call assert_false(previewer.is_active())
   finally
     silent execute 'bwipeout!' bufnr_1 bufnr_2 
   endtry
@@ -62,41 +63,41 @@ function! s:test_open_text__after_open_buffer() abort
   let bufnr = bufnr('%')
 
   try
-    let preview = luis#preview#popup#new()
+    let previewer = luis#previewer#popup#new()
 
-    call assert_false(preview.is_active())
+    call assert_false(previewer.is_active())
 
     let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-    call preview.open_buffer(bufnr, bounds, {})
+    call previewer.open_buffer(bufnr, bounds, {})
 
-    let preview_winnr_1 = preview.window
-    let preview_bufnr_1 = winbufnr(preview.window)
+    let preview_winnr_1 = previewer.window
+    let preview_bufnr_1 = winbufnr(previewer.window)
 
-    call assert_true(preview.is_active())
+    call assert_true(previewer.is_active())
     call assert_notequal(0, preview_winnr_1)
     call assert_equal(bufnr, preview_bufnr_1)
-    call assert_equal(bounds, preview.bounds())
+    call assert_equal(bounds, previewer.bounds())
     call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
     let lines = ['foo', 'bar', 'baz']
     let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-    call preview.open_text(lines, bounds, {})
+    call previewer.open_text(lines, bounds, {})
 
-    let preview_winnr_2 = preview.window
-    let preview_bufnr_2 = winbufnr(preview.window)
+    let preview_winnr_2 = previewer.window
+    let preview_bufnr_2 = winbufnr(previewer.window)
 
-    call assert_true(preview.is_active())
+    call assert_true(previewer.is_active())
     call assert_notequal(0, preview_winnr_2)
     call assert_notequal(preview_winnr_1, preview_winnr_2)
     call assert_notequal(0, preview_bufnr_2)
     call assert_notequal(preview_bufnr_1, preview_bufnr_2)
     call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
-    call assert_equal(bounds, preview.bounds())
+    call assert_equal(bounds, previewer.bounds())
     call assert_equal(1, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
-    call preview.close()
+    call previewer.close()
 
-    call assert_false(preview.is_active())
+    call assert_false(previewer.is_active())
 
     execute preview_bufnr_2 'bwipeout!'
   finally
@@ -109,43 +110,43 @@ function! s:test_open_text__after_unload_preview_buffer() abort
     return 'popup_create() function is required.'
   endif
 
-  let preview = luis#preview#popup#new()
+  let previewer = luis#previewer#popup#new()
 
-  call assert_false(preview.is_active())
+  call assert_false(previewer.is_active())
 
   let lines = ['foo', 'bar', 'baz']
   let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview.open_text(lines, bounds, {})
+  call previewer.open_text(lines, bounds, {})
 
-  let preview_winnr_1 = preview.window
-  let preview_bufnr_1 = winbufnr(preview.window)
+  let preview_winnr_1 = previewer.window
+  let preview_bufnr_1 = winbufnr(previewer.window)
 
-  call assert_true(preview.is_active())
+  call assert_true(previewer.is_active())
   call assert_notequal(0, preview_winnr_1)
   call assert_notequal(0, preview_bufnr_1)
   call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
-  call assert_equal(bounds, preview.bounds())
+  call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
   execute preview_bufnr_1 'bunload!'
 
   let lines = ['qux', 'quux', 'corge']
   let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview.open_text(lines, bounds, {})
+  call previewer.open_text(lines, bounds, {})
 
-  let preview_winnr_2 = preview.window
-  let preview_bufnr_2 = winbufnr(preview.window)
+  let preview_winnr_2 = previewer.window
+  let preview_bufnr_2 = winbufnr(previewer.window)
 
-  call assert_true(preview.is_active())
+  call assert_true(previewer.is_active())
   call assert_equal(preview_winnr_1, preview_winnr_2)
   call assert_equal(preview_bufnr_1, preview_bufnr_2)
   call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
-  call assert_equal(bounds, preview.bounds())
+  call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
-  call preview.close()
+  call previewer.close()
 
-  call assert_false(preview.is_active())
+  call assert_false(previewer.is_active())
 
   execute preview_bufnr_1 'bwipeout!'
 endfunction
@@ -155,41 +156,41 @@ function! s:test_open_text__open_twice() abort
     return 'popup_create() function is required.'
   endif
 
-  let preview = luis#preview#popup#new()
+  let previewer = luis#previewer#popup#new()
 
-  call assert_false(preview.is_active())
+  call assert_false(previewer.is_active())
 
   let lines = ['foo', 'bar', 'baz']
   let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
-  call preview.open_text(lines, bounds, {})
+  call previewer.open_text(lines, bounds, {})
 
-  let preview_winnr_1 = preview.window
-  let preview_bufnr_1 = winbufnr(preview.window)
+  let preview_winnr_1 = previewer.window
+  let preview_bufnr_1 = winbufnr(previewer.window)
 
-  call assert_true(preview.is_active())
+  call assert_true(previewer.is_active())
   call assert_notequal(0, preview_winnr_1)
   call assert_notequal(0, preview_bufnr_1)
   call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
-  call assert_equal(bounds, preview.bounds())
+  call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_winnr_1), 0, {}), 'topline'))
 
   let lines = ['qux', 'quux', 'corge']
   let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call preview.open_text(lines, bounds, {})
+  call previewer.open_text(lines, bounds, {})
 
-  let preview_winnr_2 = preview.window
-  let preview_bufnr_2 = winbufnr(preview.window)
+  let preview_winnr_2 = previewer.window
+  let preview_bufnr_2 = winbufnr(previewer.window)
 
-  call assert_true(preview.is_active())
+  call assert_true(previewer.is_active())
   call assert_equal(preview_winnr_1, preview_winnr_2)
   call assert_equal(preview_bufnr_1, preview_bufnr_2)
   call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
-  call assert_equal(bounds, preview.bounds())
+  call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_winnr_2), 0, {}), 'topline'))
 
-  call preview.close()
+  call previewer.close()
 
-  call assert_false(preview.is_active())
+  call assert_false(previewer.is_active())
 
   execute preview_bufnr_1 'bwipeout!'
 endfunction
