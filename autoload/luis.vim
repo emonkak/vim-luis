@@ -10,11 +10,11 @@ endif
 
 if !exists('g:luis#default_previewer')
   let g:luis#default_previewer = has('nvim')
-  \                          ? luis#previewer#floats#new()
-  \                          : luis#previewer#popup#new()
+  \                            ? luis#previewer#floats#new()
+  \                            : luis#previewer#popup#new()
 endif
 
-let s:SCHEMA_FINDER = {
+let s:SCHEMA_UI = {
 \   'type': 'struct',
 \   'properties': {
 \     'is_active': {
@@ -524,6 +524,7 @@ function! luis#take_action(session, action_name) abort
     echohl ErrorMsg
     echomsg result
     echohl NONE
+    return 0
   endif
 
   return 1
@@ -534,7 +535,7 @@ function! luis#validate_comparer(comparer) abort
 endfunction
 
 function! luis#validate_ui(ui) abort
-  return s:do_validate(s:SCHEMA_FINDER, a:ui, 'UI')
+  return s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
 endfunction
 
 function! luis#validate_hook(hook) abort

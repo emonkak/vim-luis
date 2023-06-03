@@ -119,13 +119,13 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config.height = a:bounds.height
   let config.noautocmd = v:true
 
-  let preview = nvim_open_win(a:bufnr, v:false, config)
+  let window = nvim_open_win(a:bufnr, v:false, config)
 
-  call nvim_win_set_option(preview, 'foldenable', v:false)
-  call nvim_win_set_option(preview, 'scrolloff', 0)
-  call nvim_win_set_option(preview, 'signcolumn', 'no')
+  call nvim_win_set_option(window, 'foldenable', v:false)
+  call nvim_win_set_option(window, 'scrolloff', 0)
+  call nvim_win_set_option(window, 'signcolumn', 'no')
 
-  return preview
+  return window
 endfunction
 
 function! s:set_bounds(win, bounds) abort

@@ -89,7 +89,7 @@ function! s:test_collect_candidates() abort
   \   { 'word': 'foobar' },
   \   { 'word': 'foobarbaz' },
   \ ]
-  let [finder, finder_spies] = SpyDict(CreateMockUI())
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
   let [source, source_spies] = SpyDict(CreateMockSource({
   \   'candidates': candidates,
   \ }))
@@ -97,7 +97,7 @@ function! s:test_collect_candidates() abort
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': matcher,
   \   'comparer': comparer,
@@ -144,7 +144,7 @@ function! s:test_collect_candidates() abort
   \   [candidates[0], 0, expected_context],
   \   [candidates[1], 1, expected_context],
   \   [candidates[2], 2, expected_context],
-  \ ], finder_spies.normalize_candidate.args())
+  \ ], ui_spies.normalize_candidate.args())
   call assert_equal(1, matcher_spies.sort_candidates.call_count())
   call assert_equal(
   \   [candidates, expected_context],
@@ -175,7 +175,7 @@ function! s:test_do_action__with_defined_action() abort
   let kind = CreateMockKind()
   let kind.action_table.default  = action_spy.to_funcref()
   let session = {
-  \   'finder': CreateMockUI(),
+  \   'ui': CreateMockUI(),
   \   'source': CreateMockSource(),
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -195,7 +195,7 @@ endfunction
 function! s:test_do_action__with_undefined_action() abort
   let kind = CreateMockKind()
   let session = {
-  \   'finder': CreateMockUI(),
+  \   'ui': CreateMockUI(),
   \   'source': CreateMockSource(),
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -228,12 +228,12 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \   }
   \ }
   let preview_bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'preview_bounds': preview_bounds,
   \ }))
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -242,7 +242,7 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \ }
 
   call assert_true(luis#preview_candidate(session))
-  call assert_equal(1, finder_spies.guess_candidate.call_count())
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
@@ -272,12 +272,12 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \   }
   \ }
   let preview_bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'preview_bounds': preview_bounds,
   \ }))
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -286,7 +286,7 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \ }
 
   call assert_false(luis#preview_candidate(session))
-  call assert_equal(1, finder_spies.guess_candidate.call_count())
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
   call assert_equal(2, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
@@ -325,12 +325,12 @@ function! s:test_preview_candidate__with_file_preview() abort
     \   }
     \ }
     let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
-    let [finder, finder_spies] = SpyDict(CreateMockUI({
+    let [ui, ui_spies] = SpyDict(CreateMockUI({
     \   'candidate': candidate,
     \   'preview_bounds': preview_bounds,
     \ }))
     let session = {
-    \   'finder': finder,
+    \   'ui': ui,
     \   'source': source,
     \   'matcher': CreateMockMatcher(),
     \   'comparer': CreateMockComparer(),
@@ -339,7 +339,7 @@ function! s:test_preview_candidate__with_file_preview() abort
     \ }
 
     call assert_true(luis#preview_candidate(session))
-    call assert_equal(1, finder_spies.guess_candidate.call_count())
+    call assert_equal(1, ui_spies.guess_candidate.call_count())
     call assert_equal(1, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
@@ -369,12 +369,12 @@ function! s:test_preview_candidate__with_file_preview() abort
     \   }
     \ }
     let preview_bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
-    let [finder, finder_spies] = SpyDict(CreateMockUI({
+    let [ui, ui_spies] = SpyDict(CreateMockUI({
     \   'candidate': candidate,
     \   'preview_bounds': preview_bounds,
     \ }))
     let session = {
-    \   'finder': finder,
+    \   'ui': ui,
     \   'source': source,
     \   'matcher': CreateMockMatcher(),
     \   'comparer': CreateMockComparer(),
@@ -383,7 +383,7 @@ function! s:test_preview_candidate__with_file_preview() abort
     \ }
 
     call assert_true(luis#preview_candidate(session))
-    call assert_equal(1, finder_spies.guess_candidate.call_count())
+    call assert_equal(1, ui_spies.guess_candidate.call_count())
     call assert_equal(2, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
@@ -413,12 +413,12 @@ function! s:test_preview_candidate__with_file_preview() abort
     \   }
     \ }
     let preview_bounds = { 'row': 3, 'col': 4, 'width': 5, 'height': 6 }
-    let [finder, finder_spies] = SpyDict(CreateMockUI({
+    let [ui, ui_spies] = SpyDict(CreateMockUI({
     \   'candidate': candidate,
     \   'preview_bounds': preview_bounds,
     \ }))
     let session = {
-    \   'finder': finder,
+    \   'ui': ui,
     \   'source': source,
     \   'matcher': CreateMockMatcher(),
     \   'comparer': CreateMockComparer(),
@@ -427,7 +427,7 @@ function! s:test_preview_candidate__with_file_preview() abort
     \ }
 
     call assert_false(luis#preview_candidate(session))
-    call assert_equal(1, finder_spies.guess_candidate.call_count())
+    call assert_equal(1, ui_spies.guess_candidate.call_count())
     call assert_equal(3, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
@@ -455,12 +455,12 @@ function! s:test_preview_candidate__with_no_preview() abort
 
   let candidate = { 'word': '', 'user_data': {} }
   let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'preview_bounds': preview_bounds,
   \ }))
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -469,7 +469,7 @@ function! s:test_preview_candidate__with_no_preview() abort
   \ }
 
   call assert_false(luis#preview_candidate(session))
-  call assert_equal(1, finder_spies.guess_candidate.call_count())
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
@@ -499,12 +499,12 @@ function! s:test_preview_candidate__with_text_preview() abort
   \   }
   \ }
   let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'preview_bounds': preview_bounds,
   \ }))
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -513,7 +513,7 @@ function! s:test_preview_candidate__with_text_preview() abort
   \ }
 
   call assert_true(luis#preview_candidate(session))
-  call assert_equal(1, finder_spies.guess_candidate.call_count())
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
   call assert_equal(1, source_spies.on_preview.call_count())
   call assert_equal([
   \   candidate,
@@ -537,11 +537,11 @@ function! s:test_preview_candidate__with_text_preview() abort
 endfunction
 
 function! s:test_quit__with_active_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -550,7 +550,7 @@ function! s:test_quit__with_active_ui() abort
   \ }
 
   call assert_true(luis#quit(session))
-  call assert_equal(1, finder_spies.quit.call_count())
+  call assert_equal(1, ui_spies.quit.call_count())
   call assert_equal(0, source_spies.on_source_enter.call_count())
   call assert_equal(1, source_spies.on_source_leave.call_count())
   call assert_equal(
@@ -568,11 +568,11 @@ function! s:test_quit__with_active_ui() abort
 endfunction
 
 function! s:test_quit__with_inactive_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -585,7 +585,7 @@ function! s:test_quit__with_inactive_ui() abort
   redir END
 
   call assert_match('luis: Not active', OUTPUT)
-  call assert_equal(0, finder_spies.quit.call_count())
+  call assert_equal(0, ui_spies.quit.call_count())
   call assert_equal(0, source_spies.on_source_enter.call_count())
   call assert_equal(0, source_spies.on_source_leave.call_count())
   call assert_equal(0, hook_spies.on_source_enter.call_count())
@@ -593,11 +593,11 @@ function! s:test_quit__with_inactive_ui() abort
 endfunction
 
 function! s:test_restart__with_active_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -611,7 +611,7 @@ function! s:test_restart__with_active_ui() abort
 
   call assert_match('luis: Already active', OUTPUT)
   call assert_equal(0, session)
-  call assert_equal(0, finder_spies.start.call_count())
+  call assert_equal(0, ui_spies.start.call_count())
   call assert_equal(0, source_spies.on_source_enter.call_count())
   call assert_equal(0, source_spies.on_source_leave.call_count())
   call assert_equal(0, hook_spies.on_source_enter.call_count())
@@ -619,11 +619,11 @@ function! s:test_restart__with_active_ui() abort
 endfunction
 
 function! s:test_restart__with_inactive_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -633,7 +633,7 @@ function! s:test_restart__with_inactive_ui() abort
 
   call assert_true(luis#restart(session))
 
-  call assert_equal(1, finder_spies.start.call_count())
+  call assert_equal(1, ui_spies.start.call_count())
   call assert_equal(1, source_spies.on_source_enter.call_count())
   call assert_equal(
   \   [{ 'session': session }],
@@ -651,7 +651,7 @@ function! s:test_restart__with_inactive_ui() abort
 endfunction
 
 function! s:test_start__with_active_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 1 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let matcher = CreateMockMatcher()
   let comparer = CreateMockComparer()
@@ -659,7 +659,7 @@ function! s:test_start__with_active_ui() abort
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
   redir => OUTPUT
-  silent let session = luis#start(finder, source, {
+  silent let session = luis#start(ui, source, {
   \   'matcher': matcher,
   \   'comparer': comparer,
   \   'previewer': previewer,
@@ -669,7 +669,7 @@ function! s:test_start__with_active_ui() abort
 
   call assert_match('luis: Already active', OUTPUT)
   call assert_equal(0, session)
-  call assert_equal(0, finder_spies.start.call_count())
+  call assert_equal(0, ui_spies.start.call_count())
   call assert_equal(0, source_spies.on_source_enter.call_count())
   call assert_equal(0, source_spies.on_source_leave.call_count())
   call assert_equal(0, hook_spies.on_source_enter.call_count())
@@ -677,7 +677,7 @@ function! s:test_start__with_active_ui() abort
 endfunction
 
 function! s:test_start__with_inactive_ui() abort
-  let [finder, finder_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({ 'is_active': 0 }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let matcher = CreateMockMatcher()
   let comparer = CreateMockComparer()
@@ -685,7 +685,7 @@ function! s:test_start__with_inactive_ui() abort
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
   " With parameters
-  let session = luis#start(finder, source, {
+  let session = luis#start(ui, source, {
   \   'matcher': matcher,
   \   'comparer': comparer,
   \   'previewer': previewer,
@@ -693,14 +693,14 @@ function! s:test_start__with_inactive_ui() abort
   \ })
 
   call assert_equal({
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': matcher,
   \   'comparer': comparer,
   \   'previewer': previewer,
   \   'hook': hook,
   \ }, session)
-  call assert_equal(1, finder_spies.start.call_count())
+  call assert_equal(1, ui_spies.start.call_count())
   call assert_equal(1, source_spies.on_source_enter.call_count())
   call assert_equal(
   \   [{ 'session': session }],
@@ -717,17 +717,17 @@ function! s:test_start__with_inactive_ui() abort
   call assert_equal(0, hook_spies.on_source_leave.call_count())
 
   " Without parameters
-  let session = luis#start(finder, source)
+  let session = luis#start(ui, source)
 
   call assert_equal({
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': g:luis#default_matcher,
   \   'comparer': g:luis#default_comparer,
   \   'previewer': g:luis#default_previewer,
   \   'hook': {},
   \ }, session)
-  call assert_equal(2, finder_spies.start.call_count())
+  call assert_equal(2, ui_spies.start.call_count())
   call assert_equal(2, source_spies.on_source_enter.call_count())
   call assert_equal(
   \   [{ 'session': session }],
@@ -741,14 +741,14 @@ endfunction
 
 function! s:test_take_action__choose_action() abort
   let candidate = { 'word': 'VIM', 'user_data': {} }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'is_active': 1
   \ }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -766,7 +766,7 @@ function! s:test_take_action__choose_action() abort
 
   let expected_context = { 'kind': kind, 'session': session }
 
-  call assert_equal(1, finder_spies.quit.call_count())
+  call assert_equal(1, ui_spies.quit.call_count())
 
   call assert_equal(1, source_spies.on_action.call_count())
   call assert_equal([candidate, expected_context], source_spies.on_action.last_args())
@@ -795,14 +795,14 @@ endfunction
 
 function! s:test_take_action__do_default_action() abort
   let candidate = { 'word': 'VIM', 'user_data': {} }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'is_active': 1,
   \ }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -818,7 +818,7 @@ function! s:test_take_action__do_default_action() abort
 
   let expected_context = { 'kind': kind, 'session': session }
 
-  call assert_equal(1, finder_spies.quit.call_count())
+  call assert_equal(1, ui_spies.quit.call_count())
 
   call assert_equal(1, source_spies.on_action.call_count())
   call assert_equal([candidate, expected_context], source_spies.on_action.last_args())
@@ -845,19 +845,73 @@ function! s:test_take_action__do_default_action() abort
   call assert_equal(0, action_spy.last_return_value())
 endfunction
 
-function! s:test_take_action__with_candidate_kind() abort
-  let action_spy = Spy({ candidate, context -> 0 })
-  let kind = CreateMockKind()
-  let kind.action_table.default  = action_spy.to_funcref()
-  let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
-  let [finder, finder_spies] = SpyDict(CreateMockUI({
+function! s:test_take_action__no_such_action() abort
+  let candidate = { 'word': 'VIM', 'user_data': {} }
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'is_active': 1,
   \ }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
   let session = {
-  \   'finder': finder,
+  \   'ui': ui,
+  \   'source': source,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': hook,
+  \ }
+
+  redir => OUTPUT
+  silent call assert_false(luis#take_action(session, 'XXX'))
+  redir END
+
+  let expected_context = { 'kind': source.default_kind, 'session': session }
+
+  call assert_match("No such action: 'XXX'", OUTPUT)
+
+  call assert_equal(1, ui_spies.quit.call_count())
+
+  call assert_equal(1, source_spies.on_action.call_count())
+  call assert_equal([candidate, expected_context], source_spies.on_action.last_args())
+  call assert_equal(source, source_spies.on_action.last_self())
+  call assert_equal(1, source_spies.on_source_leave.call_count())
+  call assert_equal(
+  \   [{ 'session': session }],
+  \   source_spies.on_source_leave.last_args()
+  \ )
+  call assert_equal(source, source_spies.on_source_leave.last_self())
+  call assert_equal(1, source_spies.on_source_leave.call_count())
+  call assert_equal(
+  \   [{ 'session': session }],
+  \   source_spies.on_source_leave.last_args()
+  \ )
+  call assert_equal(source, source_spies.on_source_leave.last_self())
+
+  call assert_equal(1, hook_spies.on_action.call_count())
+  call assert_equal([candidate, expected_context], hook_spies.on_action.last_args())
+  call assert_equal(hook, hook_spies.on_action.last_self())
+  call assert_equal(1, hook_spies.on_source_leave.call_count())
+  call assert_equal(
+  \   [{ 'session': session }],
+  \   hook_spies.on_source_leave.last_args()
+  \ )
+  call assert_equal(hook, hook_spies.on_source_leave.last_self())
+endfunction
+
+function! s:test_take_action__with_candidate_kind() abort
+  let action_spy = Spy({ candidate, context -> 0 })
+  let kind = CreateMockKind()
+  let kind.action_table.default  = action_spy.to_funcref()
+  let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': candidate,
+  \   'is_active': 1,
+  \ }))
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let session = {
+  \   'ui': ui,
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -869,7 +923,7 @@ function! s:test_take_action__with_candidate_kind() abort
 
   let expected_context = { 'kind': kind, 'session': session }
 
-  call assert_equal(1, finder_spies.quit.call_count())
+  call assert_equal(1, ui_spies.quit.call_count())
 
   call assert_equal(1, source_spies.on_action.call_count())
   call assert_equal([candidate, expected_context], source_spies.on_action.last_args())

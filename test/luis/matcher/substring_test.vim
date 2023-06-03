@@ -60,7 +60,7 @@ function! s:test_sort_candidates() abort
   \ ]
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let session = {
-  \   'finder': CreateMockUI(),
+  \   'ui': CreateMockUI(),
   \   'source': CreateMockSource(),
   \   'matcher': CreateMockMatcher(),
   \   'comparer': comparer,

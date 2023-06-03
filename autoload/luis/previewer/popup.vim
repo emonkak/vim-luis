@@ -139,14 +139,14 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config.maxwidth = a:bounds.width
   let config.maxheight = a:bounds.height
 
-  let preview = popup_create(a:bufnr, config)
+  let window = popup_create(a:bufnr, config)
 
-  call setwinvar(preview, '&foldenable', 0)
-  call setwinvar(preview, '&scrolloff', 0)
-  call setwinvar(preview, '&signcolumn', 'no')
-  call setwinvar(preview, '&wincolor', 'Normal')
+  call setwinvar(window, '&foldenable', 0)
+  call setwinvar(window, '&scrolloff', 0)
+  call setwinvar(window, '&signcolumn', 'no')
+  call setwinvar(window, '&wincolor', 'Normal')
 
-  return preview
+  return window
 endfunction
 
 function! s:set_bounds(win, bounds) abort

@@ -71,17 +71,16 @@ function! luis#ui#pmenu#_omnifunc(findstart, base) abort
     return a:findstart ? 0 : []
   endif
 
-  let session = b:luis_session
-  let ui = session.ui
-
   if a:findstart
+    let ui = b:luis_session.ui
     let ui.last_candidates = []
     " To determine whether the content of the current pattern is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let candidates = luis#collect_candidates(session, pattern)
+    let candidates = luis#collect_candidates(b:luis_session, pattern)
+    let ui = b:luis_session.ui
     let ui.last_candidates = candidates
     return candidates
   endif
@@ -135,7 +134,7 @@ function! s:UI.normalize_candidate(candidate, index, context) abort
 endfunction
 
 function! s:UI.quit() abort dict
-  " Assumption: The current buffer is the luis buffer.
+  " Assumption: The current buffer is the UI buffer.
   " We have to check b:luis_sessoin to avoid unnecessary
   " :close'ing, because s:UI.quit() may be called recursively.
   unlet b:luis_session
@@ -188,7 +187,7 @@ function! s:UI.start(session) abort dict
   set completeopt=menu,menuone,noselect
   set noequalalways
 
-  " Reset the content of the luis buffer.
+  " Reset the content of the UI buffer.
   " BUGS: To avoid unexpected behavior caused by automatic completion of the
   "       prompt, append the prompt and {initial-pattern} at this timing.
   "       Automatic completion is implemented by feedkeys() and starting
@@ -272,7 +271,7 @@ function! s:initialize_ui_buffer() abort
   setlocal undolevels=-1
   silent file `=s:BUFFER_NAME`
 
-  augroup plugin-luis-pmenu
+  augroup plugin-luis-pmenu-ui
     autocmd!
     autocmd WinLeave <buffer>  call s:on_WinLeave()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()

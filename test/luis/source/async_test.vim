@@ -18,7 +18,7 @@ function! s:test_gather_candidates() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -40,7 +40,7 @@ function! s:test_gather_candidates() abort
   endfor
 
   call assert_equal(1, refresh_candidates_spy.call_count())
-  call assert_equal(session.finder, refresh_candidates_spy.last_self())
+  call assert_equal(session.ui, refresh_candidates_spy.last_self())
 
   let candidates = source.gather_candidates(({ 'pattern': '00' }))
   call assert_equal([
@@ -83,7 +83,7 @@ function! s:test_gather_candidates__to_candidate() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -105,7 +105,7 @@ function! s:test_gather_candidates__to_candidate() abort
   endfor
 
   call assert_equal(1, refresh_candidates_spy.call_count())
-  call assert_equal(session.finder, refresh_candidates_spy.last_self())
+  call assert_equal(session.ui, refresh_candidates_spy.last_self())
 
   let candidates = source.gather_candidates(({ 'pattern': '1' }))
   call assert_equal([
@@ -144,7 +144,7 @@ function! s:test_gather_candidates__debounce_time() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
   \   'source': source,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
@@ -166,7 +166,7 @@ function! s:test_gather_candidates__debounce_time() abort
   endfor
 
   call assert_equal(1, refresh_candidates_spy.call_count())
-  call assert_equal(session.finder, refresh_candidates_spy.last_self())
+  call assert_equal(session.ui, refresh_candidates_spy.last_self())
 
   let candidates = source.gather_candidates({ 'pattern': '00' })
   call assert_equal([
