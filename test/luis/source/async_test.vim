@@ -17,14 +17,14 @@ function! s:test_gather_candidates() abort
   let source = luis#source#async#new('files', kind, command)
 
   let refresh_candidates_spy = Spy({ -> 0 })
-  let session = luis#session#new(
-  \   { 'refresh_candidates':  refresh_candidates_spy.to_funcref(),},
-  \   source,
-  \   CreateMockMatcher(),
-  \   CreateMockComparer(),
-  \   CreateMockPreviewer(),
-  \   CreateMockHook(),
-  \ )
+  let session = {
+  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'source': source,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
 
   call source.on_source_enter({ 'session': session })
 
@@ -82,14 +82,14 @@ function! s:test_gather_candidates__to_candidate() abort
   \ )
 
   let refresh_candidates_spy = Spy({ -> 0 })
-  let session = luis#session#new(
-  \   { 'refresh_candidates':  refresh_candidates_spy.to_funcref(),},
-  \   source,
-  \   CreateMockMatcher(),
-  \   CreateMockComparer(),
-  \   CreateMockPreviewer(),
-  \   CreateMockHook(),
-  \ )
+  let session = {
+  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'source': source,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
 
   call source.on_source_enter({ 'session': session })
 
@@ -143,14 +143,14 @@ function! s:test_gather_candidates__debounce_time() abort
   \ )
 
   let refresh_candidates_spy = Spy({ -> 0 })
-  let session = luis#session#new(
-  \   { 'refresh_candidates':  refresh_candidates_spy.to_funcref(),},
-  \   source,
-  \   CreateMockMatcher(),
-  \   CreateMockComparer(),
-  \   CreateMockPreviewer(),
-  \   CreateMockHook(),
-  \ )
+  let session = {
+  \   'finder': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'source': source,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
 
   call source.on_source_enter({ 'session': session })
 

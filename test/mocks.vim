@@ -7,7 +7,7 @@ function! CreateMockComparer() abort
   \ }
 endfunction
 
-function! CreateMockFinder(...) abort
+function! CreateMockUI(...) abort
   let overrides = get(a:000, 0, {})
   return {
   \   'guess_candidate': { -> get(overrides, 'candidate', {}) },

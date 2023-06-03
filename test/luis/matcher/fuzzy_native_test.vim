@@ -138,14 +138,14 @@ function! s:test_sort_candidates() abort
   \ ]
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
-  let session = luis#session#new(
-  \   CreateMockFinder(),
-  \   CreateMockSource(),
-  \   CreateMockMatcher(),
-  \   comparer,
-  \   CreateMockPreviewer(),
-  \   CreateMockHook()
-  \ )
+  let session = {
+  \   'finder': CreateMockUI(),
+  \   'source': CreateMockSource(),
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': comparer,
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
   let context = { 'session': session }
   call assert_equal(
   \   [cs1[0], cs1[1], cs1[3], cs1[2]],
@@ -154,14 +154,14 @@ function! s:test_sort_candidates() abort
   call assert_true(comparer_spies.compare_candidates.called())
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
-  let session = luis#session#new(
-  \   CreateMockFinder(),
-  \   CreateMockSource(),
-  \   CreateMockMatcher(),
-  \   comparer,
-  \   CreateMockPreviewer(),
-  \   CreateMockHook()
-  \ )
+  let session = {
+  \   'finder': CreateMockUI(),
+  \   'source': CreateMockSource(),
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': comparer,
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
   let context = { 'session': session }
   call assert_equal(
   \   [cs2[3], cs2[2], cs2[0], cs2[1]],

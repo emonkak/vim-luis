@@ -7,8 +7,8 @@ let s:PROMPT = '>'
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
 let s:BUFFER_NAME = has('win32') || has('win64')
-\                 ? '[luis-pmenu-finder]'
-\                 : '*luis-pmenu-finder*'
+\                 ? '[luis-pmenu-ui]'
+\                 : '*luis-pmenu-ui*'
 
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
@@ -19,7 +19,7 @@ if !exists('s:ui_bufnr')
   let s:ui_bufnr = -1
 endif
 
-function! luis#finder#pmenu#define_default_key_mappings() abort
+function! luis#ui#pmenu#define_default_key_mappings() abort
   nmap <buffer> <C-c>  <Plug>(luis-quit-session)
   nmap <buffer> <C-i>  <Plug>(luis-choose-action)
   nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
@@ -48,48 +48,48 @@ function! luis#finder#pmenu#define_default_key_mappings() abort
                             \ : '<Plug>(luis-delete-backward-component)'
 endfunction
 
-function! luis#finder#pmenu#new(...) abort
+function! luis#ui#pmenu#new(...) abort
   let options = get(a:000, 0, {})
-  let finder = copy(s:Finder)
-  let finder.initial_pattern = get(options, 'initial_pattern', '')
-  let finder.is_inserted_by_acc = 0
-  let finder.last_candidates = []
-  let finder.last_column = -1
-  let finder.last_pattern_raw = ''
-  let finder.original_backspace = &backspace
-  let finder.original_completeopt = &completeopt
-  let finder.original_equalalways = &equalalways
-  let finder.original_window = 0
-  let finder.preview_height = get(options, 'preview_height', &previewheight)
-  let finder.preview_width = get(options, 'preview_width', 80)
-  let finder.selected_index = -1
-  return finder
+  let ui = copy(s:UI)
+  let ui.initial_pattern = get(options, 'initial_pattern', '')
+  let ui.is_inserted_by_acc = 0
+  let ui.last_candidates = []
+  let ui.last_column = -1
+  let ui.last_pattern_raw = ''
+  let ui.original_backspace = &backspace
+  let ui.original_completeopt = &completeopt
+  let ui.original_equalalways = &equalalways
+  let ui.original_window = 0
+  let ui.preview_height = get(options, 'preview_height', &previewheight)
+  let ui.preview_width = get(options, 'preview_width', 80)
+  let ui.selected_index = -1
+  return ui
 endfunction
 
-function! luis#finder#pmenu#_omnifunc(findstart, base) abort
+function! luis#ui#pmenu#_omnifunc(findstart, base) abort
   if !exists('b:luis_session')
     return a:findstart ? 0 : []
   endif
 
   let session = b:luis_session
-  let finder = session.finder
+  let ui = session.ui
 
   if a:findstart
-    let finder.last_candidates = []
+    let ui.last_candidates = []
     " To determine whether the content of the current pattern is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
   else
     let pattern = s:remove_prompt(a:base)
-    let candidates = session.collect_candidates(pattern)
-    let finder.last_candidates = candidates
+    let candidates = luis#collect_candidates(session, pattern)
+    let ui.last_candidates = candidates
     return candidates
   endif
 endfunction
 
-let s:Finder = {}
+let s:UI = {}
 
-function! s:Finder.guess_candidate() abort dict
+function! s:UI.guess_candidate() abort dict
   if has_key(v:completed_item, 'user_data')
   \  && v:completed_item.user_data isnot ''
     return s:clone_candidate(v:completed_item)
@@ -120,13 +120,13 @@ function! s:Finder.guess_candidate() abort dict
   \ }
 endfunction
 
-function! s:Finder.is_active() abort dict
+function! s:UI.is_active() abort dict
   return bufexists(s:ui_bufnr)
   \      && bufwinnr(s:ui_bufnr) != -1
   \      && getbufvar(s:ui_bufnr, 'luis_session', 0) isnot 0
 endfunction
 
-function! s:Finder.normalize_candidate(candidate, index, context) abort
+function! s:UI.normalize_candidate(candidate, index, context) abort
   let a:candidate.equal = 1
   if s:USER_DATA_CAN_ONLY_BE_STRING
     let a:candidate.user_data = json_encode(a:candidate.user_data)
@@ -134,10 +134,10 @@ function! s:Finder.normalize_candidate(candidate, index, context) abort
   return a:candidate
 endfunction
 
-function! s:Finder.quit() abort dict
+function! s:UI.quit() abort dict
   " Assumption: The current buffer is the luis buffer.
   " We have to check b:luis_sessoin to avoid unnecessary
-  " :close'ing, because s:Finder.quit() may be called recursively.
+  " :close'ing, because s:UI.quit() may be called recursively.
   unlet b:luis_session
 
   close
@@ -149,18 +149,18 @@ function! s:Finder.quit() abort dict
   call win_gotoid(self.original_window)
 endfunction
 
-function! s:Finder.refresh_candidates() abort dict
+function! s:UI.refresh_candidates() abort dict
   if self.is_active() && mode() =~# 'i'
     call feedkeys(s:KEYS_TO_START_COMPLETION, 'n')
   endif
 endfunction
 
-function! s:Finder.start(session) abort dict
-  " Assumption: a:session.finder is self.
+function! s:UI.start(session) abort dict
+  " Assumption: a:session.ui is self.
 
   let self.original_window = win_getid()
 
-  " Open or create the finder buffer.
+  " Open or create the ui buffer.
   if bufexists(s:ui_bufnr)
     let is_loaded = bufloaded(s:ui_bufnr)
     topleft split
@@ -175,7 +175,7 @@ function! s:Finder.start(session) abort dict
   endif
   2 wincmd _
 
-  " Remember the session in the buffer for event handlers.
+  " Remember the session in this buffer for event handlers.
   let b:luis_session = a:session
 
   " Set some options.
@@ -215,7 +215,7 @@ function! s:Finder.start(session) abort dict
   call feedkeys('A' . typeahead_buffer, 'n')
 endfunction
 
-function! s:Finder.preview_bounds() abort
+function! s:UI.preview_bounds() abort
   let pum_pos = pum_getpos()
   if !empty(pum_pos)
     let row = float2nr(pum_pos.row + pum_pos.height)
@@ -268,7 +268,7 @@ function! s:initialize_ui_buffer() abort
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal omnifunc=luis#finder#pmenu#_omnifunc
+  setlocal omnifunc=luis#ui#pmenu#_omnifunc
   setlocal undolevels=-1
   silent file `=s:BUFFER_NAME`
 
@@ -284,15 +284,15 @@ function! s:initialize_ui_buffer() abort
 
   nnoremap <buffer> <expr> <silent> <SID>(choose-action)
          \ exists('b:luis_session')
-         \ ? ":<C-u>call b:luis_session.take_action('')<CR>"
+         \ ? ":<C-u>call luis#take_action(b:luis_session, '')<CR>"
          \ : ''
   nnoremap <buffer> <expr> <silent> <SID>(do-default-action)
          \ exists('b:luis_session')
-         \ ? ":<C-u>call b:luis_session.take_action('default')<CR>"
+         \ ? ":<C-u>call luis#take_action(b:luis_session, 'default')<CR>"
          \ : ''
   nnoremap <buffer> <expr> <silent> <SID>(quit-session)
          \ exists('b:luis_session')
-         \ ? ':<C-u>call b:luis_session.quit()<CR>'
+         \ ? ':<C-u>call luis#quit(b:luis_session)<CR>'
          \ : ''
   inoremap <buffer> <expr> <SID>(accept-completion)
   \        pumvisible() ? '<C-y>' : ''
@@ -328,15 +328,15 @@ function! s:initialize_ui_buffer() abort
   inoremap <buffer> <script> <Plug>(luis-delete-backward-component)
   \        <SID>(delete-backward-component)
 
-  setfiletype luis-pmenu
+  setfiletype luis-pmenu-ui
 
-  if !exists('#FileType#luis-pmenu') && !exists('b:did_ftplugin')
-    call luis#finder#pmenu#define_default_key_mappings()
+  if !exists('#FileType#luis-pmenu-ui') && !exists('b:did_ftplugin')
+    call luis#ui#pmenu#define_default_key_mappings()
   endif
 endfunction
 
 function! s:keys_to_complete(session) abort
-  let finder = a:session.finder
+  let ui = a:session.ui
   let cursor_lnum = line('.')
   let cursor_column = col('.')
   let line = getline('.')
@@ -352,11 +352,11 @@ function! s:keys_to_complete(session) abort
   elseif cursor_column <= len(s:PROMPT)
     " Move the cursor out of the prompt if it is in the prompt.
     let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
-  elseif len(line) < cursor_column && cursor_column != finder.last_column
+  elseif len(line) < cursor_column && cursor_column != ui.last_column
     let sep = line[-1:]
     " New character is inserted. Let's complete automatically.
-    if !finder.is_inserted_by_acc
-    \  && finder.selected_index == -1
+    if !ui.is_inserted_by_acc
+    \  && ui.selected_index == -1
     \  && len(s:PROMPT) + 2 <= len(line)
     \  && has_key(a:session.source, 'is_special_char')
     \  && a:session.source.is_special_char(sep)
@@ -372,7 +372,7 @@ function! s:keys_to_complete(session) abort
       let pattern = s:remove_prompt(line)
       let acc_text = luis#acc_text(
       \   pattern,
-      \   finder.last_candidates,
+      \   ui.last_candidates,
       \   a:session.source,
       \ )
       if acc_text != ''
@@ -380,21 +380,21 @@ function! s:keys_to_complete(session) abort
         " show the completion menu.
         call setline('.', acc_text)
         let keys = "\<End>" . sep
-        let finder.is_inserted_by_acc = 1
+        let ui.is_inserted_by_acc = 1
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let finder.is_inserted_by_acc = 0
+        let ui.is_inserted_by_acc = 0
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let finder.is_inserted_by_acc = 0
+      let ui.is_inserted_by_acc = 0
     endif
   else
     let keys = ''
   endif
 
-  let finder.last_column = cursor_column
-  let finder.last_pattern_raw = line
+  let ui.last_column = cursor_column
+  let ui.last_pattern_raw = line
   return keys
 endfunction
 
@@ -443,10 +443,10 @@ function! s:on_InsertEnter() abort
     return
   endif
 
-  let finder = b:luis_session.finder
-  let finder.is_inserted_by_acc = 0
-  let finder.last_column = -1
-  let finder.last_pattern_raw = ''
+  let ui = b:luis_session.ui
+  let ui.is_inserted_by_acc = 0
+  let ui.last_column = -1
+  let ui.last_pattern_raw = ''
 
   call feedkeys(s:keys_to_complete(b:luis_session), 'n')
 endfunction
@@ -456,21 +456,19 @@ function! s:on_TextChangedP() abort
     return
   endif
 
-  let session = b:luis_session
-  let finder = b:luis_session.finder
-
   let complete_info = complete_info(['selected'])
   if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS && complete_info.selected == -1
-    call feedkeys(s:keys_to_complete(session), 'n')
+    call feedkeys(s:keys_to_complete(b:luis_session), 'n')
   endif
 
+  let ui = b:luis_session.ui
   " BUGS: complete_info() may return incorrect selected item index. Therefore,
   "       we can only use it to determine whether the selected item exists or
   "       not.
   "       https://github.com/vim/vim/issues/12230
-  let finder.selected_index = complete_info.selected
+  let ui.selected_index = complete_info.selected
 
-  call session.preview_candidate()
+  call luis#preview_candidate(b:luis_session)
 endfunction
 
 function! s:on_WinLeave() abort
@@ -478,7 +476,7 @@ function! s:on_WinLeave() abort
     return
   endif
 
-  call b:luis_session.quit()
+  call luis#quit(b:luis_session)
 endfunction
 
 function! s:pattern_is_empty() abort

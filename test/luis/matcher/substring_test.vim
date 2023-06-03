@@ -59,14 +59,14 @@ function! s:test_sort_candidates() abort
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \ ]
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
-  let session = luis#session#new(
-  \   CreateMockFinder(),
-  \   CreateMockSource(),
-  \   CreateMockMatcher(),
-  \   comparer,
-  \   CreateMockPreviewer(),
-  \   CreateMockHook()
-  \ )
+  let session = {
+  \   'finder': CreateMockUI(),
+  \   'source': CreateMockSource(),
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': comparer,
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': CreateMockHook(),
+  \ }
   let context = { 'session': session }
 
   call assert_equal([
