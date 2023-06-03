@@ -24,6 +24,9 @@ let s:SCHEMA_UI = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
+\     'preview_bounds': {
+\       'type': v:t_func,
+\     },
 \     'quit': {
 \       'type': v:t_func,
 \     },

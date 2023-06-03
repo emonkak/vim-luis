@@ -30,4 +30,4 @@ highlight default link luisChooseMessage  NONE
 highlight default link luisChoosePrompt  Statement
 highlight default link luisChooseKind  Type
 
-let b:current_syntax = 'luis-pmenu'
+let b:current_syntax = 'luis-popupmenu-ui'

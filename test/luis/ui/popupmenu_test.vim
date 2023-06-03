@@ -2,7 +2,7 @@ silent runtime! test/mocks.vim
 silent runtime! test/spy.vim
 
 function! s:test_guess_candidate__from_completed_item() abort
-  let ui = luis#ui#pmenu#new({})
+  let ui = luis#ui#popupmenu#new({})
 
   try
     let candidate = {
@@ -26,7 +26,7 @@ function! s:test_guess_candidate__from_completed_item() abort
 endfunction
 
 function! s:test_guess_candidate__from_first_candidate() abort
-  let ui = luis#ui#pmenu#new({})
+  let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'ui': ui,
   \   'source': CreateMockSource(),
@@ -45,7 +45,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -62,7 +62,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -73,7 +73,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_selected_candidate() abort
-  let ui = luis#ui#pmenu#new({})
+  let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'ui': ui,
   \   'source': CreateMockSource(),
@@ -92,7 +92,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -109,7 +109,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -120,7 +120,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_default_candidate() abort
-  let ui = luis#ui#pmenu#new({})
+  let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'ui': ui,
   \   'source': CreateMockSource(),
@@ -139,7 +139,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -153,7 +153,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -164,7 +164,7 @@ function! s:test_guess_candidate__from_default_candidate() abort
 endfunction
 
 function! s:test_refresh_candidates() abort
-  let [ui, ui_spies] = SpyDict(luis#ui#pmenu#new({}))
+  let [ui, ui_spies] = SpyDict(luis#ui#popupmenu#new({}))
   let session = {
   \   'ui': ui,
   \   'source': CreateMockSource(),
@@ -183,7 +183,7 @@ function! s:test_refresh_candidates() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -203,7 +203,7 @@ function! s:test_refresh_candidates() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -214,7 +214,7 @@ function! s:test_refresh_candidates() abort
 endfunction
 
 function! s:test_start__without_initial_pattern() abort
-  let ui = luis#ui#pmenu#new({})
+  let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'ui': ui,
   \   'source': CreateMockSource(),
@@ -233,7 +233,7 @@ function! s:test_start__without_initial_pattern() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -241,7 +241,7 @@ function! s:test_start__without_initial_pattern() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -253,7 +253,7 @@ function! s:test_start__without_initial_pattern() abort
 
     call assert_equal('A', s:consume_keys())
     call assert_equal(ui_bufnr, bufnr('%'))
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -261,7 +261,7 @@ function! s:test_start__without_initial_pattern() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -272,7 +272,7 @@ function! s:test_start__without_initial_pattern() abort
 
     call assert_equal('A', s:consume_keys())
     call assert_equal(ui_bufnr, bufnr('%'))
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -280,7 +280,7 @@ function! s:test_start__without_initial_pattern() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -291,7 +291,7 @@ function! s:test_start__without_initial_pattern() abort
 endfunction
 
 function! s:test_start__with_initial_pattern() abort
-  let ui = luis#ui#pmenu#new({
+  let ui = luis#ui#popupmenu#new({
   \   'initial_pattern': 'VIM',
   \ })
   let session = {
@@ -312,7 +312,7 @@ function! s:test_start__with_initial_pattern() abort
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -320,7 +320,7 @@ function! s:test_start__with_initial_pattern() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
@@ -331,7 +331,7 @@ function! s:test_start__with_initial_pattern() abort
     " Reuse existing luis buffer.
     call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('A', s:consume_keys())
-    call assert_equal('luis-pmenu-ui', &l:filetype)
+    call assert_equal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(['Source: mock_source', '>VIM'], getline(1, line('$')))
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
@@ -339,7 +339,7 @@ function! s:test_start__with_initial_pattern() abort
 
     call ui.quit()
 
-    call assert_notequal('luis-pmenu-ui', &l:filetype)
+    call assert_notequal('luis-popupmenu-ui', &l:filetype)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())

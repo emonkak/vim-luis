@@ -7,8 +7,8 @@ let s:PROMPT = '>'
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
 let s:BUFFER_NAME = has('win32') || has('win64')
-\                 ? '[luis-pmenu-ui]'
-\                 : '*luis-pmenu-ui*'
+\                 ? '[luis-popupmenu-ui]'
+\                 : '*luis-popupmenu-ui*'
 
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
@@ -19,7 +19,7 @@ if !exists('s:ui_bufnr')
   let s:ui_bufnr = -1
 endif
 
-function! luis#ui#pmenu#define_default_key_mappings() abort
+function! luis#ui#popupmenu#define_default_key_mappings() abort
   nmap <buffer> <C-c>  <Plug>(luis-quit-session)
   nmap <buffer> <C-i>  <Plug>(luis-choose-action)
   nmap <buffer> <C-m>  <Plug>(luis-do-default-action)
@@ -48,7 +48,7 @@ function! luis#ui#pmenu#define_default_key_mappings() abort
                             \ : '<Plug>(luis-delete-backward-component)'
 endfunction
 
-function! luis#ui#pmenu#new(...) abort
+function! luis#ui#popupmenu#new(...) abort
   let options = get(a:000, 0, {})
   let ui = copy(s:UI)
   let ui.initial_pattern = get(options, 'initial_pattern', '')
@@ -66,7 +66,7 @@ function! luis#ui#pmenu#new(...) abort
   return ui
 endfunction
 
-function! luis#ui#pmenu#_omnifunc(findstart, base) abort
+function! luis#ui#popupmenu#_omnifunc(findstart, base) abort
   if !exists('b:luis_session')
     return a:findstart ? 0 : []
   endif
@@ -235,6 +235,8 @@ function! s:clone_candidate(candidate) abort
   let candidate = copy(a:candidate)
   if type(candidate.user_data) is v:t_string
     let candidate.user_data = json_decode(a:candidate.user_data)
+  else
+    let candidate.user_data = copy(candidate.user_data)
   endif
   return candidate
 endfunction
@@ -267,11 +269,11 @@ function! s:initialize_ui_buffer() abort
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal omnifunc=luis#ui#pmenu#_omnifunc
+  setlocal omnifunc=luis#ui#popupmenu#_omnifunc
   setlocal undolevels=-1
   silent file `=s:BUFFER_NAME`
 
-  augroup plugin-luis-pmenu-ui
+  augroup plugin-luis-popupmenu-ui
     autocmd!
     autocmd WinLeave <buffer>  call s:on_WinLeave()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
@@ -327,10 +329,10 @@ function! s:initialize_ui_buffer() abort
   inoremap <buffer> <script> <Plug>(luis-delete-backward-component)
   \        <SID>(delete-backward-component)
 
-  setfiletype luis-pmenu-ui
+  setfiletype luis-popupmenu-ui
 
-  if !exists('#FileType#luis-pmenu-ui') && !exists('b:did_ftplugin')
-    call luis#ui#pmenu#define_default_key_mappings()
+  if !exists('#FileType#luis-popupmenu-ui') && !exists('b:did_ftplugin')
+    call luis#ui#popupmenu#define_default_key_mappings()
   endif
 endfunction
 
@@ -463,8 +465,7 @@ function! s:on_TextChangedP() abort
   let ui = b:luis_session.ui
   " BUGS: complete_info() may return incorrect selected item index. Therefore,
   "       we can only use it to determine whether the selected item exists or
-  "       not.
-  "       https://github.com/vim/vim/issues/12230
+  "       not. See https://github.com/vim/vim/issues/12230
   let ui.selected_index = complete_info.selected
 
   call luis#preview_candidate(b:luis_session)

@@ -2,7 +2,7 @@ function! s:test_syntax() abort
   silent syntax enable
 
   enew
-  setfiletype luis-pmenu-ui
+  setfiletype luis-popupmenu-ui
   call setline(1, ['Source: buffer', '>vim'])
 
   try
