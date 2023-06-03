@@ -15,8 +15,8 @@ let s:USER_DATA_CAN_ONLY_BE_STRING =
 
 let s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS = has('patch-8.1.1123')
 
-if !exists('s:bufnr')
-  let s:bufnr = -1
+if !exists('s:ui_bufnr')
+  let s:ui_bufnr = -1
 endif
 
 function! luis#finder#pmenu#define_default_key_mappings() abort
@@ -121,9 +121,9 @@ function! s:Finder.guess_candidate() abort dict
 endfunction
 
 function! s:Finder.is_active() abort dict
-  return bufexists(s:bufnr)
-  \      && bufwinnr(s:bufnr) != -1
-  \      && getbufvar(s:bufnr, 'luis_session', 0) isnot 0
+  return bufexists(s:ui_bufnr)
+  \      && bufwinnr(s:ui_bufnr) != -1
+  \      && getbufvar(s:ui_bufnr, 'luis_session', 0) isnot 0
 endfunction
 
 function! s:Finder.normalize_candidate(candidate, index, context) abort
@@ -161,16 +161,16 @@ function! s:Finder.start(session) abort dict
   let self.original_window = win_getid()
 
   " Open or create the finder buffer.
-  if bufexists(s:bufnr)
-    let is_loaded = bufloaded(s:bufnr)
+  if bufexists(s:ui_bufnr)
+    let is_loaded = bufloaded(s:ui_bufnr)
     topleft split
-    silent execute s:bufnr 'buffer'
+    silent execute s:ui_bufnr 'buffer'
     if !is_loaded
       call s:initialize_ui_buffer()
     endif
   else
     topleft new
-    let s:bufnr = bufnr('%')
+    let s:ui_bufnr = bufnr('%')
     call s:initialize_ui_buffer()
   endif
   2 wincmd _
@@ -370,9 +370,10 @@ function! s:keys_to_complete(session) abort
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
       let pattern = s:remove_prompt(line)
-      let acc_text = a:session.acc_text(
+      let acc_text = luis#acc_text(
       \   pattern,
       \   finder.last_candidates,
+      \   a:session.source,
       \ )
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly

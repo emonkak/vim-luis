@@ -12,7 +12,7 @@ endfunction
 
 function! s:do_open(action_name, candidate, context) abort
   let Action = a:context.kind.prototype.action_table[a:action_name]
-  let result = Action(a:action_name, a:candidate, a:context)
+  let result = Action(a:candidate, a:context)
   if result isnot 0
     return result
   endif

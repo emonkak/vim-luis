@@ -58,7 +58,7 @@ function! s:test_filter_candidates() abort
 endfunction
 
 function! s:test_matcher_definition() abort
-  call assert_true(luis#validations#validate_matcher(s:matcher))
+  call assert_true(luis#validate_matcher(s:matcher))
 endfunction
 
 function! s:test_normalize_candidate() abort
@@ -138,7 +138,15 @@ function! s:test_sort_candidates() abort
   \ ]
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
-  let context = { 'comparer': comparer }
+  let session = luis#session#new(
+  \   CreateMockFinder(),
+  \   CreateMockSource(),
+  \   CreateMockMatcher(),
+  \   comparer,
+  \   CreateMockPreviewer(),
+  \   CreateMockHook()
+  \ )
+  let context = { 'session': session }
   call assert_equal(
   \   [cs1[0], cs1[1], cs1[3], cs1[2]],
   \   s:matcher.sort_candidates(copy(cs1), context)
@@ -146,19 +154,18 @@ function! s:test_sort_candidates() abort
   call assert_true(comparer_spies.compare_candidates.called())
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
-  let context = { 'comparer': comparer }
+  let session = luis#session#new(
+  \   CreateMockFinder(),
+  \   CreateMockSource(),
+  \   CreateMockMatcher(),
+  \   comparer,
+  \   CreateMockPreviewer(),
+  \   CreateMockHook()
+  \ )
+  let context = { 'session': session }
   call assert_equal(
   \   [cs2[3], cs2[2], cs2[0], cs2[1]],
   \   s:matcher.sort_candidates(copy(cs2), context)
   \ )
   call assert_true(comparer_spies.compare_candidates.called())
-endfunction
-
-function! s:default_comparer(first, second) abort
-  if a:first.word < a:second.word
-    return -1
-  elseif a:first.word > a:second.word
-    return 1
-  endif
-  return 0
 endfunction

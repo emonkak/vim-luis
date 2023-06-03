@@ -11,112 +11,6 @@ endfunction
 
 let s:Session = {}
 
-function! s:Session.acc_text(pattern, candidates) abort dict
-  " ACC = Automatic Component Completion
-  let sep = a:pattern[-1:]
-  let components = split(a:pattern, sep, 1)
-
-  if len(components) < 2
-    echoerr 'luis: Assumption on ACC is failed: ' . string(components)
-    return ''
-  endif
-
-  " Find a candidate which has the same components but the last 2 ones of
-  " components. Because components[-1] is always empty and
-  " components[-2] is almost imperfect name of a component.
-  "
-  " Example:
-  "
-  " (a) a:pattern ==# 'usr/share/m/',
-  "     components ==# ['usr', 'share', 'm', '']
-  "
-  "     The 1st candidate prefixed with 'usr/share/' will be used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completed text will be 'usr/share/man'.
-  "
-  " (b) a:pattern ==# 'u/'
-  "     components ==# ['u', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr'.
-  "
-  " (c) a:pattern ==# 'm/'
-  "     components ==# ['m', '']
-  "
-  "     The 1st candidate is alaways used for ACC.
-  "     If 'usr/share/man/man1/' is found in this way,
-  "     the completion text will be 'usr/share/man'.
-  "     Because user seems to want to complete till the component which
-  "     matches to 'm'.
-  for candidate in a:candidates
-    let candidate_components = split(candidate.word, '\V' . sep, 1)
-
-    if len(components) == 2
-      " OK - the case (b) or (c)
-    elseif len(components) - 2 <= len(candidate_components)
-      for i in range(len(components) - 2)
-        if components[i] != candidate_components[i]
-          break
-        endif
-      endfor
-      if components[i] != candidate_components[i]
-        continue
-      endif
-      " OK - the case (a)
-    else
-      continue
-    endif
-
-    if has_key(self.source, 'is_valid_for_acc')
-    \  && !self.source.is_valid_for_acc(candidate)
-      continue
-    endif
-
-    " Find the index of the last component to be completed.
-    "
-    " For example, with candidate ==# 'usr/share/man/man1':
-    "   If components ==# ['u', '']:
-    "     c == 2 - 2
-    "     i == 0
-    "     t ==# 'usr/share/man/man1'
-    "            ^
-    "   If components ==# ['m', '']:
-    "     c == 2 - 2
-    "     i == 10
-    "     t ==# 'usr/share/man/man1'
-    "                      ^
-    "   If components ==# ['usr', 'share', 'm', '']:
-    "     c == 4 - 2
-    "     i == 0
-    "     t ==# 'man/man1'
-    "            ^
-    " Prefix components are all of components but the last two ones.
-    let count_of_prefix = len(components) - 2
-    " Tail of candidate.word without 'prefix' component in components.
-    let tail = join(candidate_components[count_of_prefix:], sep)
-    " Pattern for the partially typed component = components[-2].
-    let pattern = '\c' . s:make_skip_regexp(components[-2])
-
-    let i = matchend(tail, pattern)
-    if i < 0
-      continue  " Try next one
-    endif
-
-    let j = stridx(tail, sep, i)
-    if j >= 0
-      " Several candidate_components are matched for ACC.
-      let tail_index = -(len(tail) - j + 1)
-      return candidate.word[:tail_index]
-    else
-      " All of candidate_components are matched for ACC.
-      return candidate.word
-    endif
-  endfor
-
-  return ''
-endfunction
-
 function! s:Session.collect_candidates(pattern) abort dict
   let context = { 'pattern': a:pattern, 'session': self }
   let normalizers = []
@@ -204,7 +98,7 @@ function! s:Session.preview_candidate() abort
         let lines = readfile(path, '', bounds.height)
         let hints = s:preview_hints_from_candidate(candidate)
         if !has_key(hints, 'filetype')
-          let filetype = s:detect_filetype(path, lines)
+          let filetype = luis#detect_filetype(path, lines)
           if filetype != ''
             let hints.filetype = filetype
           endif
@@ -249,6 +143,8 @@ function! s:Session.quit() abort
   endif
 
   call self.finder.quit()
+
+  return 1
 endfunction
 
 function! s:Session.start() abort dict
@@ -270,6 +166,8 @@ function! s:Session.start() abort dict
   if has_key(self.source, 'on_source_enter')
     call self.source.on_source_enter(context)
   endif
+
+  return 1
 endfunction
 
 function! s:Session.take_action(action_name) abort
@@ -391,29 +289,6 @@ function! s:composite_key_table(kind) abort
   return key_table
 endfunction
 
-function! s:detect_filetype(path, lines) abort
-  if has('nvim')
-    let _ =<< trim END
-    vim.filetype.match({
-      filename = vim.api.nvim_eval('a:path'),
-      contents = vim.api.nvim_eval('a:lines'),
-    }) or ''
-END
-    return luaeval(join(_, ''))
-  else
-    let temp_win = popup_create(a:lines, { 'hidden': 1 })
-    let temp_bufnr = winbufnr(temp_win)
-    try
-      let command = 'doautocmd filetypedetect BufNewFile '
-      \           . fnameescape(a:path)
-      call win_execute(temp_win, command)
-      return getbufvar(temp_bufnr, '&filetype')
-    finally
-      call popup_close(temp_win)
-    endtry
-  endif
-endfunction
-
 function! s:find_action(kind, action_name) abort
   let kind = a:kind
 
@@ -505,16 +380,6 @@ function! s:list_key_bindings(key_table) abort
       echon repeat(' ', max_label_width - len(_))
     endfor
   endfor
-endfunction
-
-function! s:make_skip_regexp(s) abort
-  " 'abc' ==> '\Va*b*c'
-  " '\!/' ==> '\V\\*!*/'
-  " Here '*' means '\.\{-}'
-  let [init, last] = [a:s[:-2], a:s[-1:]]
-  return '\V'
-  \    . substitute(escape(init, '\'), '\%(\\\\\|[^\\]\)\zs', '\\.\\{-}', 'g')
-  \    . escape(last, '\')
 endfunction
 
 function! s:preview_hints_from_candidate(candidate) abort

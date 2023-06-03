@@ -93,7 +93,7 @@ function! s:Spy.to_funcref() abort dict
   return wrapper.call
 endfunction
 
-function! s:test_Spy() abort
+function! s:test_Spy__without_dict() abort
   let spy = Spy({ name -> 'Hello ' . name . '!' })
   call assert_false(spy.called())
   call assert_equal(0, spy.call_count())

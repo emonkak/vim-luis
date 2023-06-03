@@ -48,18 +48,26 @@ function! s:test_filter_candidates() abort
 endfunction
 
 function! s:test_matcher_definition() abort
-  call assert_true(luis#validations#validate_matcher(s:matcher))
+  call assert_true(luis#validate_matcher(s:matcher))
 endfunction
 
 function! s:test_sort_candidates() abort
-  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let cs = [
   \   { 'word': 'foobarbaz', 'luis_sort_priority': 0 },
   \   { 'word': 'foobar', 'luis_sort_priority': 0 },
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },
   \   { 'word': 'foo', 'luis_sort_priority': 0 },
   \ ]
-  let context = { 'comparer': comparer }
+  let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
+  let session = luis#session#new(
+  \   CreateMockFinder(),
+  \   CreateMockSource(),
+  \   CreateMockMatcher(),
+  \   comparer,
+  \   CreateMockPreviewer(),
+  \   CreateMockHook()
+  \ )
+  let context = { 'session': session }
 
   call assert_equal([
   \   { 'word': 'FOOBAR', 'luis_sort_priority': 0 },

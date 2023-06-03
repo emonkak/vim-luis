@@ -25,6 +25,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#tags#new([])
-  call assert_true(luis#validations#validate_source(source))
+  call assert_true(luis#validate_source(source))
   call assert_equal('tags', source.name)
 endfunction

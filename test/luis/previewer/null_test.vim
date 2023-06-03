@@ -3,6 +3,11 @@ function! s:test_close() abort
   call previewer.close()
 endfunction
 
+function! s:test_definition() abort
+  let previewer = luis#previewer#null#import()
+  call assert_true(luis#validate_previewer(previewer))
+endfunction
+
 function! s:test_bounds() abort
   let previewer = luis#previewer#null#import()
   call assert_equal(

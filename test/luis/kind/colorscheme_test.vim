@@ -16,6 +16,6 @@ function! s:test_action_open__invalid_colorscheme() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#validations#validate_kind(s:kind))
+  call assert_equal(1, luis#validate_kind(s:kind))
   call assert_equal('colorscheme', s:kind.name)
 endfunction

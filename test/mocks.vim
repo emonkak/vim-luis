@@ -7,10 +7,17 @@ function! CreateMockComparer() abort
   \ }
 endfunction
 
-function! CreateMockFinder(candidate, is_active) abort
+function! CreateMockFinder(...) abort
+  let overrides = get(a:000, 0, {})
   return {
-  \   'guess_candidate': { -> a:candidate },
-  \   'is_active': { -> a:is_active },
+  \   'guess_candidate': { -> get(overrides, 'candidate', {}) },
+  \   'preview_bounds': { -> get(overrides, 'preview_bounds', {
+  \     'row': 0,
+  \     'col': 0,
+  \     'width': 0,
+  \     'height': 0,
+  \   })},
+  \   'is_active': { -> get(overrides, 'is_active', 0) },
   \   'normalize_candidate': { candidate, index, context -> candidate },
   \   'quit': { -> 0 },
   \   'refresh_candidates': { -> 0 },
@@ -48,10 +55,11 @@ function! CreateMockMatcher() abort
   \ }
 endfunction
 
-function! CreateMockPreviewer(is_available, is_active) abort
+function! CreateMockPreviewer(...) abort
+  let overrides = get(a:000, 0, {})
   return {
-  \   'is_available': { -> a:is_available },
-  \   'is_active': { -> a:is_active },
+  \   'is_available': { -> get(overrides, 'is_available', 0) },
+  \   'is_active': { -> get(overrides, 'is_active', 0) },
   \   'open_buffer': { bufnr, bounds, options -> 0 },
   \   'open_text': { lines, bounds, options -> 0 },
   \   'close': { -> 0 },
@@ -59,25 +67,26 @@ function! CreateMockPreviewer(is_available, is_active) abort
 endfunction
 
 function! CreateMockSource(...) abort
-  let options = get(a:000, 0, {})
-  let candidates = get(options, 'candidates', [])
+  let overrides = get(a:000, 0, {})
   let source = {
-  \   'gather_candidates': { context -> candidates },
-  \   'is_valid_for_acc': { candidate -> get(candidate, 'is_valid_for_acc', 1) },
+  \   'gather_candidates': { context -> get(overrides, 'candidates', []) },
   \   'name': 'mock_source',
   \   'on_action': { candidate, context -> 0 },
   \   'on_preview': { candidate, context -> 0 },
   \   'on_source_enter': { context -> 0 },
   \   'on_source_leave': { context -> 0 },
   \ }
-  let source.default_kind = has_key(options, 'default_kind')
-  \                       ? options.default_kind
+  let source.default_kind = has_key(overrides, 'default_kind')
+  \                       ? overrides.default_kind
   \                       : CreateMockKind()
-  if has_key(options, 'comparer')
-    let source.comparer = options.comparer
+  if has_key(overrides, 'comparer')
+    let source.comparer = overrides.comparer
   endif
-  if has_key(options, 'matcher')
-    let source.matcher = options.matcher
+  if has_key(overrides, 'matcher')
+    let source.matcher = overrides.matcher
+  endif
+  if has_key(overrides, 'is_valid_for_acc')
+    let source.is_valid_for_acc = overrides.is_valid_for_acc
   endif
   return source
 endfunction

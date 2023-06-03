@@ -48,7 +48,7 @@ function! s:test_action_open_x__no_file() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#validations#validate_kind(s:kind))
+  call assert_true(luis#validate_kind(s:kind))
   call assert_equal('file', s:kind.name)
 endfunction
 
