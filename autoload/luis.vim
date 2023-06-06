@@ -448,7 +448,9 @@ function! luis#preview_candidate(session) abort
     if filereadable(path)
       try
         let bounds = a:session.ui.preview_bounds()
-        let lines = readfile(path, '', bounds.height)
+        " Read one extra line to avoid syntax errors. e.g., JSON trailing
+        " comma.
+        let lines = readfile(path, '', bounds.height + 1)
         let hints = s:preview_hints_from_candidate(candidate)
         if !has_key(hints, 'filetype')
           let filetype = luis#detect_filetype(path, lines)
