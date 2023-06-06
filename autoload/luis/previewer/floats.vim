@@ -77,9 +77,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \ )
   endif
 
-  call nvim_buf_set_lines(self.preview_bufnr, 0, -1, v:false, a:lines)
-
   let filetype = get(a:hints, 'filetype', '')
+  call nvim_buf_set_lines(self.preview_bufnr, 0, -1, v:false, a:lines)
   call nvim_buf_set_option(self.preview_bufnr, 'filetype', filetype)
 endfunction
 

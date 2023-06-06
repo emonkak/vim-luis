@@ -93,10 +93,9 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \ )
   endif
 
+  let filetype = get(a:hints, 'filetype', '')
   call deletebufline(self.preview_bufnr, 1, '$')
   call setbufline(self.preview_bufnr, 1, a:lines)
-
-  let filetype = get(a:hints, 'filetype', '')
   call setbufvar(self.preview_bufnr, '&filetype', filetype)
 endfunction
 
