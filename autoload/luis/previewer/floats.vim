@@ -1,12 +1,9 @@
-if !exists('s:preview_bufnr')
-  let s:preview_bufnr = -1
-endif
-
 function! luis#previewer#floats#new(...) abort
-  let preview = copy(s:Previewer)
-  let preview.float_config = get(a:000, 0, {})
-  let preview.window = -1
-  return preview
+  let previewer = copy(s:Previewer)
+  let previewer.float_config = get(a:000, 0, {})
+  let previewer.preview_bufnr = -1
+  let previewer.window = -1
+  return previewer
 endfunction
 
 let s:Previewer = {}
@@ -61,29 +58,29 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
 endfunction
 
 function! s:Previewer.open_text(lines, bounds, hints) abort dict
-  if !bufexists(s:preview_bufnr)
-    let s:preview_bufnr = nvim_create_buf(v:false, v:true)
-    call s:initialize_preview_buffer(s:preview_bufnr)
-  elseif !bufloaded(s:preview_bufnr)
-    call s:initialize_preview_buffer(s:preview_bufnr)
+  if !bufexists(self.preview_bufnr)
+    let self.preview_bufnr = nvim_create_buf(v:false, v:true)
+    call s:initialize_preview_buffer(self.preview_bufnr)
+  elseif !bufloaded(self.preview_bufnr)
+    call s:initialize_preview_buffer(self.preview_bufnr)
   endif
 
   if s:is_valid_window(self.window)
-    noautocmd call nvim_win_set_buf(self.window, s:preview_bufnr)
+    noautocmd call nvim_win_set_buf(self.window, self.preview_bufnr)
     call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
-    \   s:preview_bufnr,
+    \   self.preview_bufnr,
     \   a:bounds,
     \   a:hints,
     \   self.float_config
     \ )
   endif
 
-  call nvim_buf_set_lines(s:preview_bufnr, 0, -1, v:false, a:lines)
+  call nvim_buf_set_lines(self.preview_bufnr, 0, -1, v:false, a:lines)
 
   let filetype = get(a:hints, 'filetype', '')
-  call nvim_buf_set_option(s:preview_bufnr, 'filetype', filetype)
+  call nvim_buf_set_option(self.preview_bufnr, 'filetype', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

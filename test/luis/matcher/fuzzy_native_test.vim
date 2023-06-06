@@ -139,12 +139,14 @@ function! s:test_sort_candidates() abort
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let session = {
-  \   'ui': CreateMockUI(),
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': CreateMockUI(),
   \   'matcher': CreateMockMatcher(),
   \   'comparer': comparer,
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
   let context = { 'session': session }
   call assert_equal(
@@ -155,12 +157,14 @@ function! s:test_sort_candidates() abort
 
   let [comparer, comparer_spies] = SpyDict(CreateMockComparer())
   let session = {
-  \   'ui': CreateMockUI(),
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': CreateMockUI(),
   \   'matcher': CreateMockMatcher(),
   \   'comparer': comparer,
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
   let context = { 'session': session }
   call assert_equal(

@@ -2,15 +2,12 @@ let s:BORDER_ASCII = ['-', '|', '_', '|', '+', '+', '+', '+']
 
 let s:BORDER_UNICODE = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
 
-if !exists('s:preview_bufnr')
-  let s:preview_bufnr = -1
-endif
-
 function! luis#previewer#popup#new(...) abort
-  let preview = copy(s:Previewer)
-  let preview.popup_config = get(a:000, 0, {})
-  let preview.window = -1
-  return preview
+  let previewer = copy(s:Previewer)
+  let previewer.popup_config = get(a:000, 0, {})
+  let previewer.preview_bufnr = -1
+  let previewer.window = -1
+  return previewer
 endfunction
 
 let s:Previewer = {}
@@ -67,21 +64,21 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
 endfunction
 
 function! s:Previewer.open_text(lines, bounds, hints) abort dict
-  if !bufexists(s:preview_bufnr)
-    let s:preview_bufnr = bufadd('')
-    call s:initialize_preview_buffer(s:preview_bufnr)
-  elseif !bufloaded(s:preview_bufnr)
-    call s:initialize_preview_buffer(s:preview_bufnr)
+  if !bufexists(self.preview_bufnr)
+    let self.preview_bufnr = bufadd('')
+    call s:initialize_preview_buffer(self.preview_bufnr)
+  elseif !bufloaded(self.preview_bufnr)
+    call s:initialize_preview_buffer(self.preview_bufnr)
   endif
 
   if s:is_valid_window(self.window)
-    if winbufnr(self.window) == s:preview_bufnr
+    if winbufnr(self.window) == self.preview_bufnr
       " Reuse window.
       call s:set_bounds(self.window, a:bounds)
     else
       call popup_close(self.window)
       let self.window = s:open_window(
-      \   s:preview_bufnr,
+      \   self.preview_bufnr,
       \   a:bounds,
       \   a:hints,
       \   self.popup_config
@@ -89,18 +86,18 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     endif
   else
     let self.window = s:open_window(
-    \   s:preview_bufnr,
+    \   self.preview_bufnr,
     \   a:bounds,
     \   a:hints,
     \   self.popup_config
     \ )
   endif
 
-  call deletebufline(s:preview_bufnr, 1, '$')
-  call setbufline(s:preview_bufnr, 1, a:lines)
+  call deletebufline(self.preview_bufnr, 1, '$')
+  call setbufline(self.preview_bufnr, 1, a:lines)
 
   let filetype = get(a:hints, 'filetype', '')
-  call setbufvar(s:preview_bufnr, '&filetype', filetype)
+  call setbufvar(self.preview_bufnr, '&filetype', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

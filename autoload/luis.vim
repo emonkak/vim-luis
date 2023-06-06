@@ -1,5 +1,5 @@
-if !exists('g:luis#default_comparer')
-  let g:luis#default_comparer = luis#comparer#default#import()
+if !exists('g:luis#default_ui')
+  let g:luis#default_ui = luis#ui#popupmenu#new()
 endif
 
 if !exists('g:luis#default_matcher')
@@ -8,10 +8,18 @@ if !exists('g:luis#default_matcher')
   \                          : luis#matcher#fuzzy#import()
 endif
 
+if !exists('g:luis#default_comparer')
+  let g:luis#default_comparer = luis#comparer#default#import()
+endif
+
 if !exists('g:luis#default_previewer')
   let g:luis#default_previewer = has('nvim')
   \                            ? luis#previewer#floats#new()
   \                            : luis#previewer#popup#new()
+endif
+
+if !exists('s:session_id')
+  let s:session_id = 1
 endif
 
 let s:SCHEMA_UI = {
@@ -351,6 +359,48 @@ function! luis#do_action(action_name, candidate, context) abort
   return Action(a:candidate, a:context)
 endfunction
 
+function! luis#new_session(source, ...) abort
+  let options = get(a:000, 0, {})
+  let ui = get(options, 'ui', g:luis#default_ui)
+  let matcher = get(
+  \   options,
+  \   'matcher',
+  \   get(a:source, 'matcher', g:luis#default_matcher)
+  \ )
+  let comparer = get(
+  \   options,
+  \   'comparer',
+  \   get(a:source, 'comparer', g:luis#default_comparer)
+  \ )
+  let previewer = get(options, 'previewer', g:luis#default_previewer)
+  let hook = get(options, 'hook', {})
+  let initial_pattern = get(options, 'initial_pattern', '')
+
+  \ if !luis#validate_source(a:source)
+  \    || !luis#validate_ui(ui)
+  \    || !luis#validate_matcher(matcher)
+  \    || !luis#validate_comparer(comparer)
+  \    || !luis#validate_previewer(previewer)
+  \    || !luis#validate_hook(hook)
+    return 0
+  endif
+
+  let session = {
+  \   'id': s:session_id,
+  \   'source': a:source,
+  \   'ui': ui,
+  \   'matcher': matcher,
+  \   'comparer': comparer,
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': initial_pattern,
+  \ }
+
+  let s:session_id += 1
+
+  return session
+endfunction
+
 function! luis#preview_candidate(session) abort
   let previewer = a:session.previewer
   if !previewer.is_available()
@@ -436,7 +486,7 @@ function! luis#quit(session) abort
   return 1
 endfunction
 
-function! luis#restart(session) abort
+function! luis#start(session) abort
   if a:session.ui.is_active()
     echohl ErrorMsg
     echo 'luis: Already active'
@@ -447,51 +497,6 @@ function! luis#restart(session) abort
   call s:start_session(a:session)
 
   return 1
-endfunction
-
-function! luis#start(ui, source, ...) abort
-  if a:ui.is_active()
-    echohl ErrorMsg
-    echo 'luis: Already active'
-    echohl NONE
-    return 0
-  endif
-
-  let options = get(a:000, 0, {})
-  let matcher = get(
-  \   options,
-  \   'matcher',
-  \   get(a:source, 'matcher', g:luis#default_matcher)
-  \ )
-  let comparer = get(
-  \   options,
-  \   'comparer',
-  \   get(a:source, 'comparer', g:luis#default_comparer)
-  \ )
-  let previewer = get(options, 'previewer', g:luis#default_previewer)
-  let hook = get(options, 'hook', {})
-
-  if !luis#validate_ui(a:ui)
-  \  || !luis#validate_source(a:source)
-  \  || !luis#validate_matcher(matcher)
-  \  || !luis#validate_comparer(comparer)
-  \  || !luis#validate_previewer(previewer)
-  \  || !luis#validate_hook(hook)
-    return 0
-  endif
-
-  let session = {
-  \    'ui': a:ui,
-  \    'source': a:source,
-  \    'matcher': matcher,
-  \    'comparer': comparer,
-  \    'previewer': previewer,
-  \    'hook': hook,
-  \ }
-
-  call s:start_session(session)
-
-  return session
 endfunction
 
 function! luis#take_action(session, action_name) abort
@@ -537,10 +542,6 @@ function! luis#validate_comparer(comparer) abort
   return s:do_validate(s:SCHEMA_COMPARER, a:comparer, 'Comparer')
 endfunction
 
-function! luis#validate_ui(ui) abort
-  return s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
-endfunction
-
 function! luis#validate_hook(hook) abort
   return s:do_validate(s:SCHEMA_HOOK, a:hook, 'UI')
 endfunction
@@ -573,6 +574,10 @@ endfunction
 
 function! luis#validate_source(source) abort
   return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
+endfunction
+
+function! luis#validate_ui(ui) abort
+  return s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
 endfunction
 
 function! s:choose_action(kind, candidate) abort

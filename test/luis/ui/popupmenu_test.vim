@@ -28,12 +28,14 @@ endfunction
 function! s:test_guess_candidate__from_first_candidate() abort
   let ui = luis#ui#popupmenu#new({})
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call assert_false(ui.is_active())
@@ -75,12 +77,14 @@ endfunction
 function! s:test_guess_candidate__from_selected_candidate() abort
   let ui = luis#ui#popupmenu#new({})
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call assert_false(ui.is_active())
@@ -122,12 +126,14 @@ endfunction
 function! s:test_guess_candidate__from_default_candidate() abort
   let ui = luis#ui#popupmenu#new({})
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call assert_false(ui.is_active())
@@ -166,12 +172,14 @@ endfunction
 function! s:test_refresh_candidates() abort
   let [ui, ui_spies] = SpyDict(luis#ui#popupmenu#new({}))
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call assert_false(ui.is_active())
@@ -214,14 +222,16 @@ function! s:test_refresh_candidates() abort
 endfunction
 
 function! s:test_start__without_initial_pattern() abort
-  let ui = luis#ui#popupmenu#new({})
+  let ui = luis#ui#popupmenu#new()
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call assert_false(ui.is_active())
@@ -246,7 +256,6 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
-
 
     " Reuse the existing luis buffer.
     call ui.start(session)
@@ -291,16 +300,16 @@ function! s:test_start__without_initial_pattern() abort
 endfunction
 
 function! s:test_start__with_initial_pattern() abort
-  let ui = luis#ui#popupmenu#new({
-  \   'initial_pattern': 'VIM',
-  \ })
+  let ui = luis#ui#popupmenu#new()
   let session = {
-  \   'ui': ui,
+  \   'id': 1,
   \   'source': CreateMockSource(),
+  \   'ui': ui,
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': 'VIM',
   \ }
 
   call assert_false(ui.is_active())
@@ -317,6 +326,9 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+
+    " `last_pattern_raw` is not set, so set it manually.
+    let ui.last_pattern_raw = '>VIM'
 
     call ui.quit()
 

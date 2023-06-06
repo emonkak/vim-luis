@@ -97,7 +97,7 @@ function! s:on_nvim_stdout(source, session, job, data, event) abort
 
   let a:source.last_line = a:data[-1]
 
-  if is_eof
+  if is_eof && a:session.ui.is_active()
     call a:session.ui.refresh_candidates()
   endif
 endfunction
@@ -124,7 +124,7 @@ function! s:on_vim_stdout(source, session, job, message) abort
     endif
   endfor
 
-  if is_eof
+  if is_eof && a:session.ui.is_active()
     call a:session.ui.refresh_candidates()
   endif
 endfunction

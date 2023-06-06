@@ -18,12 +18,17 @@ function! s:test_gather_candidates() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'id': 1,
   \   'source': source,
+  \   'ui': {
+  \     'refresh_candidates': refresh_candidates_spy.to_funcref(),
+  \     'is_active': { -> 1 },
+  \   },
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call source.on_source_enter({ 'session': session })
@@ -83,12 +88,17 @@ function! s:test_gather_candidates__to_candidate() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'id': 1,
   \   'source': source,
+  \   'ui': {
+  \     'refresh_candidates': refresh_candidates_spy.to_funcref(),
+  \     'is_active': { -> 1 },
+  \   },
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call source.on_source_enter({ 'session': session })
@@ -144,12 +154,17 @@ function! s:test_gather_candidates__debounce_time() abort
 
   let refresh_candidates_spy = Spy({ -> 0 })
   let session = {
-  \   'ui': { 'refresh_candidates': refresh_candidates_spy.to_funcref() },
+  \   'id': 1,
   \   'source': source,
+  \   'ui': {
+  \     'refresh_candidates': refresh_candidates_spy.to_funcref(),
+  \     'is_active': { -> 1 },
+  \   },
   \   'matcher': CreateMockMatcher(),
   \   'comparer': CreateMockComparer(),
   \   'previewer': CreateMockPreviewer(),
   \   'hook': CreateMockHook(),
+  \   'initial_pattern': '',
   \ }
 
   call source.on_source_enter({ 'session': session })

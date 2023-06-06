@@ -6,18 +6,10 @@ let s:PROMPT = '>'
 
 let s:KEYS_TO_START_COMPLETION = "\<C-x>\<C-o>"
 
-let s:BUFFER_NAME = has('win32') || has('win64')
-\                 ? '[luis-popupmenu-ui]'
-\                 : '*luis-popupmenu-ui*'
-
 let s:USER_DATA_CAN_ONLY_BE_STRING =
 \ has('patch-8.0.1493') && !(has('patch-8.2.0084') || has('nvim-0.5.0'))
 
 let s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS = has('patch-8.1.1123')
-
-if !exists('s:ui_bufnr')
-  let s:ui_bufnr = -1
-endif
 
 function! luis#ui#popupmenu#define_default_key_mappings() abort
   nmap <buffer> <C-c>  <Plug>(luis-quit-session)
@@ -51,11 +43,17 @@ endfunction
 function! luis#ui#popupmenu#new(...) abort
   let options = get(a:000, 0, {})
   let ui = copy(s:UI)
-  let ui.initial_pattern = get(options, 'initial_pattern', '')
+  let ui.buffer_name = has_key(options, 'buffer_name')
+  \                  ? options.buffer_name
+  \                  : has('win32') || has('win64')
+  \                  ? '[luis-popupmenu-ui]'
+  \                  : '*luis-popupmenu-ui*'
+  let ui.bufnr = -1
   let ui.is_inserted_by_acc = 0
   let ui.last_candidates = []
   let ui.last_column = -1
   let ui.last_pattern_raw = ''
+  let ui.last_session_id = -1
   let ui.original_backspace = &backspace
   let ui.original_completeopt = &completeopt
   let ui.original_equalalways = &equalalways
@@ -120,9 +118,9 @@ function! s:UI.guess_candidate() abort dict
 endfunction
 
 function! s:UI.is_active() abort dict
-  return bufexists(s:ui_bufnr)
-  \      && bufwinnr(s:ui_bufnr) != -1
-  \      && getbufvar(s:ui_bufnr, 'luis_session', 0) isnot 0
+  return bufexists(self.bufnr)
+  \      && bufwinnr(self.bufnr) != -1
+  \      && getbufvar(self.bufnr, 'luis_session', 0) isnot 0
 endfunction
 
 function! s:UI.normalize_candidate(candidate, index, context) abort
@@ -131,6 +129,23 @@ function! s:UI.normalize_candidate(candidate, index, context) abort
     let a:candidate.user_data = json_encode(a:candidate.user_data)
   endif
   return a:candidate
+endfunction
+
+function! s:UI.preview_bounds() abort
+  let pum_pos = pum_getpos()
+  if !empty(pum_pos)
+    let row = float2nr(pum_pos.row + pum_pos.height)
+    let col = float2nr(pum_pos.col)
+  else
+    let row = s:LNUM_END
+    let col = 0
+  endif
+  return {
+  \   'row': row,
+  \   'col': col,
+  \   'width': self.preview_width,
+  \   'height': self.preview_height,
+  \ }
 endfunction
 
 function! s:UI.quit() abort dict
@@ -160,17 +175,17 @@ function! s:UI.start(session) abort dict
   let self.original_window = win_getid()
 
   " Open or create the ui buffer.
-  if bufexists(s:ui_bufnr)
-    let is_loaded = bufloaded(s:ui_bufnr)
+  if bufexists(self.bufnr)
+    let is_loaded = bufloaded(self.bufnr)
     topleft split
-    silent execute s:ui_bufnr 'buffer'
+    silent execute self.bufnr 'buffer'
     if !is_loaded
-      call s:initialize_ui_buffer()
+      call s:initialize_ui_buffer(self.buffer_name)
     endif
   else
     topleft new
-    let s:ui_bufnr = bufnr('%')
-    call s:initialize_ui_buffer()
+    let self.bufnr = bufnr('%')
+    call s:initialize_ui_buffer(self.buffer_name)
   endif
   2 wincmd _
 
@@ -194,9 +209,15 @@ function! s:UI.start(session) abort dict
   "       Insert mode is also implemented by feedkeys(). These feedings must
   "       be done carefully.
   silent % delete _
-  let pattern = self.last_pattern_raw != ''
-  \           ? self.last_pattern_raw
-  \           : s:PROMPT . self.initial_pattern
+  if a:session.id == self.last_session_id
+    " Restore the previous pattern when starting the same session as last time.
+    let pattern = self.last_pattern_raw != ''
+    \           ? self.last_pattern_raw
+    \           : s:PROMPT
+  else
+    let pattern = s:PROMPT . a:session.initial_pattern
+    let self.last_session_id = a:session.id
+  endif
   call setline(s:LNUM_STATUS, 'Source: ' . a:session.source.name)
   call setline(s:LNUM_PATTERN, pattern)
   execute 'normal!' s:LNUM_PATTERN . 'G'
@@ -212,23 +233,6 @@ function! s:UI.start(session) abort dict
   "       example, typed character, mapped character, etc.
   let typeahead_buffer = s:consume_typeahead_buffer()
   call feedkeys('A' . typeahead_buffer, 'n')
-endfunction
-
-function! s:UI.preview_bounds() abort
-  let pum_pos = pum_getpos()
-  if !empty(pum_pos)
-    let row = float2nr(pum_pos.row + pum_pos.height)
-    let col = float2nr(pum_pos.col)
-  else
-    let row = s:LNUM_END
-    let col = 0
-  endif
-  return {
-  \   'row': row,
-  \   'col': col,
-  \   'width': self.preview_width,
-  \   'height': self.preview_height,
-  \ }
 endfunction
 
 function! s:clone_candidate(candidate) abort
@@ -264,14 +268,14 @@ function! s:contains_prompt(s) abort
   return len(s:PROMPT) <= len(a:s) && a:s[:len(s:PROMPT) - 1] ==# s:PROMPT
 endfunction
 
-function! s:initialize_ui_buffer() abort
+function! s:initialize_ui_buffer(buffer_name) abort
   setlocal bufhidden=hide
   setlocal buftype=nofile
   setlocal nobuflisted
   setlocal noswapfile
   setlocal omnifunc=luis#ui#popupmenu#_omnifunc
   setlocal undolevels=-1
-  silent file `=s:BUFFER_NAME`
+  silent file `=a:buffer_name`
 
   augroup plugin-luis-popupmenu-ui
     autocmd!
