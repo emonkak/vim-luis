@@ -245,11 +245,6 @@ function! s:clone_candidate(candidate) abort
   return candidate
 endfunction
 
-function! s:complete_prompt() abort
-  call setline('.', s:PROMPT . getline('.'))
-  return
-endfunction
-
 function! s:consume_typeahead_buffer() abort
   let buffer = ''
 
@@ -342,22 +337,25 @@ endfunction
 
 function! s:keys_to_complete(session) abort
   let ui = a:session.ui
-  let cursor_lnum = line('.')
-  let cursor_column = col('.')
-  let line = getline('.')
+  let lnum = line('.')
+  let column = col('.')
+  let line = getline(lnum)
 
   " The order of the following conditions are important.
-  if cursor_lnum < s:LNUM_PATTERN
+  if lnum < s:LNUM_PATTERN
     " Fix the cursor position if it is above the pattern line.
-    let keys = repeat("\<Down>", s:LNUM_PATTERN - cursor_lnum)
+    let keys = repeat("\<Down>", s:LNUM_PATTERN - lnum)
+  elseif lnum > s:LNUM_PATTERN
+    " Delete all lines until the pattern line.
+    let keys = repeat("\<Up>", (lnum - s:LNUM_PATTERN - 1)) . "\<C-o>dG"
   elseif !s:contains_prompt(line)
     " Complete the prompt if it doesn't exist for some reasons.
     let keys = repeat("\<Right>", len(s:PROMPT))
-    call s:complete_prompt()
-  elseif cursor_column <= len(s:PROMPT)
+    call setline(lnum, s:PROMPT . line)
+  elseif column <= len(s:PROMPT)
     " Move the cursor out of the prompt if it is in the prompt.
-    let keys = repeat("\<Right>", len(s:PROMPT) - cursor_column + 1)
-  elseif len(line) < cursor_column && cursor_column != ui.last_column
+    let keys = repeat("\<Right>", len(s:PROMPT) - column + 1)
+  elseif len(line) < column && column != ui.last_column
     let sep = line[-1:]
     " New character is inserted. Let's complete automatically.
     if !ui.is_inserted_by_acc
@@ -383,7 +381,7 @@ function! s:keys_to_complete(session) abort
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
-        call setline('.', acc_text)
+        call setline(lnum, acc_text)
         let keys = "\<End>" . sep
         let ui.is_inserted_by_acc = 1
       else
@@ -398,7 +396,7 @@ function! s:keys_to_complete(session) abort
     let keys = ''
   endif
 
-  let ui.last_column = cursor_column
+  let ui.last_column = column
   let ui.last_pattern_raw = line
   return keys
 endfunction
