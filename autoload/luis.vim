@@ -337,7 +337,7 @@ function! luis#detect_filetype(path, lines) abort
     }) or ''
 END
     return luaeval(join(_, ''))
-  else
+  elseif exists('*popup_create')
     let temp_win = popup_create(a:lines, { 'hidden': 1 })
     let temp_bufnr = winbufnr(temp_win)
     try
@@ -347,6 +347,19 @@ END
       return getbufvar(temp_bufnr, '&filetype')
     finally
       call popup_close(temp_win)
+    endtry
+  else
+    let original_lazyredraw = &lazyredraw
+    set lazyredraw
+    noautocmd new
+    setlocal buftype=nofile noswapfile bufhidden=wipe nobuflisted undolevels=-1
+    try
+      execute 'doautocmd <nomodeline> filetypedetect BufNewFile'
+      \       fnameescape(a:path)
+      return &filetype
+    finally
+      noautocmd close
+      let &lazyredraw = original_lazyredraw
     endtry
   endif
 endfunction

@@ -153,12 +153,7 @@ function! s:test_collect_candidates() abort
 endfunction
 
 function! s:test_detect_filetype() abort
-  if !has('nvim') && !exists('*popup_create')
-    return 'popup_create() function is required.'
-  endif
-
-  filetype on
-
+  silent filetype on
   try
     call assert_equal('', luis#detect_filetype('foo', []))
     call assert_equal('c', luis#detect_filetype('foo.c', []))
