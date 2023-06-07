@@ -341,7 +341,7 @@ END
     let temp_win = popup_create(a:lines, { 'hidden': 1 })
     let temp_bufnr = winbufnr(temp_win)
     try
-      let command = 'doautocmd filetypedetect BufNewFile '
+      let command = 'doautocmd <nomodeline> filetypedetect BufNewFile '
       \           . fnameescape(a:path)
       call win_execute(temp_win, command)
       return getbufvar(temp_bufnr, '&filetype')
