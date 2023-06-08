@@ -2,7 +2,7 @@
 
 set -o errexit -o nounset
 
-source="$("${@}")"
+output="$("${@}")"
 
 while read -r sequence pattern
 do
@@ -12,6 +12,6 @@ do
     then
       echo "${sequence}" "${line}"
     fi
-  done <<< "${source}"
+  done <<< "${output}"
   echo "${sequence}"
 done
