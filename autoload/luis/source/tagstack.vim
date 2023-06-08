@@ -16,14 +16,18 @@ endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  let items = gettagstack(self.window).items
+  let tagstack = gettagstack(self.window)
 
-  for i in range(len(items))
-    let item = items[i]
+  for i in range(len(tagstack.items))
+    let item = tagstack.items[i]
+    if !bufexists(item.bufnr)
+      continue
+    endif
     let bufname = bufname(item.bufnr)
     call add(candidates, {
     \   'word': item.tagname,
     \   'menu': bufname . ':' . item.from[1] . ':' . item.from[2],
+    \   'kind': tagstack.curidx == i + 1 ? '*' : '',
     \   'dup': 1,
     \   'user_data': {
     \     'tagstack_index': i + 1,

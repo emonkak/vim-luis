@@ -23,6 +23,8 @@ function! s:test_gather_candidates() abort
   silent tag! usr_03.txt
   let bufnr_3 = bufnr('%')
 
+  silent pop!
+
   try
     let source = luis#source#tagstack#new(window)
 
@@ -33,6 +35,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'usr_01.txt',
     \     'menu': 'usr_01.txt:1:1',
+    \     'kind': '',
     \     'user_data': {
     \       'buffer_nr': bufnr_1,
     \       'buffer_cursor': [1, 1],
@@ -46,6 +49,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'usr_02.txt',
     \     'menu': 'usr_01.txt:1:1',
+    \     'kind': '',
     \     'user_data': {
     \       'buffer_nr': bufnr_1,
     \       'buffer_cursor': [1, 1],
@@ -59,6 +63,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'usr_03.txt',
     \     'menu': 'usr_02.txt:1:1',
+    \     'kind': '*',
     \     'user_data': {
     \       'buffer_nr': bufnr_2,
     \       'buffer_cursor': [1, 1],
