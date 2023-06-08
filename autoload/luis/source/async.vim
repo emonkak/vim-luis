@@ -141,7 +141,7 @@ function! s:process_line(source, line) abort
   else
     let rest = join(components[1:], ' ')
     let candidate = a:source.to_candidate(rest)
-    if candidate isnot 0
+    if type(candidate) is v:t_dict
       call add(a:source.pending_candidates, candidate)
     endif
     return 0
