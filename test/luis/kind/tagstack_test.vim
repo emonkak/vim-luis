@@ -5,7 +5,7 @@ function! s:test_action_open() abort
     return 'settagstack() function is required.'
   endif
   call s:do_test_open(0, 'open', {})
-  call s:do_test_open('Vim(buffer):E37:', 'open', {
+  call s:do_test_open('^E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })

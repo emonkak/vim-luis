@@ -2,7 +2,7 @@ let s:kind = luis#kind#tag#import()
 
 function! s:test_action_open() abort
   call s:do_test_open(0, 'open', {})
-  call s:do_test_open('Vim(tag):E37:', 'open', {
+  call s:do_test_open('^E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -13,7 +13,7 @@ function! s:test_action_open__invalid_tag() abort
 
   let Action = s:kind.action_table.open
   let _ = Action({ 'word': 'VIM' }, {})
-  call assert_match('Vim(tag):E\%(426\|433\):', _)
+  call assert_match('^E\%(426\|433\):', _)
 
   if exists('*settagstack')
     call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
@@ -37,7 +37,7 @@ function! s:test_action_open_x__invalid_tag() abort
 
   let Action = s:kind.action_table['open!']
   let _ = Action({ 'word': 'VIM' }, {})
-  call assert_match('Vim(tag):E\%(426\|433\):', _)
+  call assert_match('^E\%(426\|433\):', _)
 
   if exists('*settagstack')
     call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })

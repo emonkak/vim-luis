@@ -2,7 +2,7 @@ let s:kind = luis#kind#buffer#import()
 
 function! s:test_action_delete() abort
   call s:do_test_delete(0, 1, 0, 0, 'delete', {})
-  call s:do_test_delete('Vim(bdelete):E89:', 1, 1, 1, 'delete', {
+  call s:do_test_delete('^E516:', 1, 1, 1, 'delete', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -17,7 +17,7 @@ endfunction
 
 function! s:test_action_open() abort
   call s:do_test_open(0, 'open', {})
-  call s:do_test_open('Vim(buffer):E37:', 'open', {
+  call s:do_test_open('^E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -45,7 +45,7 @@ endfunction
 
 function! s:test_action_unload() abort
   call s:do_test_delete(0, 1, 1, 0, 'unload', {})
-  call s:do_test_delete('Vim(bunload):E89:', 1, 1, 1, 'unload', {
+  call s:do_test_delete('^E515:', 1, 1, 1, 'unload', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -60,7 +60,7 @@ endfunction
 
 function! s:test_action_wipeout() abort
   call s:do_test_delete(0, 0, 0, 0, 'wipeout', {})
-  call s:do_test_delete('Vim(bwipeout):E89:', 1, 1, 1, 'wipeout', {
+  call s:do_test_delete('^E517:', 1, 1, 1, 'wipeout', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })

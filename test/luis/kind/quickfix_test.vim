@@ -46,7 +46,7 @@ function! s:test_action_open() abort
     \   },
     \ }
     silent let _ = Action(candidate, {})
-    call assert_match('Vim(cc):E37:', _)
+    call assert_match('^E37:', _)
     call assert_equal(bufnr, bufnr('%'))
   finally
     silent execute 'bwipeout!' bufnr_A bufnr_B bufnr 

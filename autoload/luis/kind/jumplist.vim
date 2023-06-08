@@ -9,15 +9,15 @@ function! s:action_open(candidate, context) abort
   let location = a:candidate.user_data.jumplist_location
   let current_location = getjumplist()[1]
   let offset = location - current_location
-  try
-    if offset < 0
-      execute 'normal!' (-offset . "\<C-o>")
-    elseif offset > 0
-      execute 'normal!' (offset . "\<C-i>")
-    endif
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  if offset < 0
+    silent! execute 'normal!' (-offset . "\<C-o>")
+  elseif offset > 0
+    silent! execute 'normal!' (offset . "\<C-i>")
+  endif
+  if v:errmsg != ''
+    return v:errmsg
+  endif
 endfunction
 
 let s:Kind = {

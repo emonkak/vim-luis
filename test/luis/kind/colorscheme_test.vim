@@ -12,7 +12,7 @@ endfunction
 function! s:test_action_open__invalid_colorscheme() abort
   let Action = s:kind.action_table.open
   silent let _ = Action({ 'word': 'XXX' }, {})
-  call assert_match('Vim(colorscheme):E185:', _)
+  call assert_match('^E185:', _)
 endfunction
 
 function! s:test_kind_definition() abort

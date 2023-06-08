@@ -502,7 +502,7 @@ function! s:do_test_split_without_enough_room(action_name, orientation) abort
     let Action = s:kind.prototype.action_table[a:action_name]
     let context = { 'kind': s:kind }
     silent let _ = Action({ 'word': 'XXX' }, context)
-    call assert_match('Vim(split):E36:', _)
+    call assert_match('^E36:', _)
 
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(original_last_winnr, winnr('$'))

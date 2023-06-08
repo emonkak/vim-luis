@@ -3,11 +3,11 @@ function! luis#kind#colorscheme#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  try
-    execute 'colorscheme' a:candidate.word
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! execute 'colorscheme' a:candidate.word
+  if v:errmsg != ''
+    return v:errmsg
+  endif
   return 0
 endfunction
 

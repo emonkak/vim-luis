@@ -104,11 +104,11 @@ function! s:open_with_split(direction, candidate, context) abort
   let original_curwinnr = winnr()
   let original_winrestcmd = winrestcmd()
 
-  try
-    execute a:direction 'split'
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! execute a:direction 'split'
+  if v:errmsg != ''
+    return v:errmsg
+  endif
 
   let result = luis#do_action('open', a:candidate, a:context)
   if result isnot 0

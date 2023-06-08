@@ -3,12 +3,12 @@ let s:kind = luis#kind#file#import()
 function! s:test_action_cd() abort
   call s:do_test_cd(0, 'cd', '/', [])
   call s:do_test_cd(0, 'cd', tempname(), [])
-  call s:do_test_cd('Vim(cd):E344:', 'cd', tempname() . '/', [])
+  call s:do_test_cd('^E472:', 'cd', tempname() . '/', [])
 endfunction
 
 function! s:test_action_lcd() abort
   call s:do_test_cd(0, 'lcd', '/', [0])
-  call s:do_test_cd('Vim(lcd):E344:', 'lcd', tempname() . '/', [0])
+  call s:do_test_cd('^E472:', 'lcd', tempname() . '/', [0])
 endfunction
 
 function! s:test_action_tcd() abort
@@ -16,12 +16,12 @@ function! s:test_action_tcd() abort
     return ':tcd comamnd is required.'
   endif
   call s:do_test_cd(0, 'tcd', '/', [-1, 0])
-  call s:do_test_cd('Vim(tcd):E344:', 'tcd', tempname() . '/', [-1, 0])
+  call s:do_test_cd('^E472:', 'tcd', tempname() . '/', [-1, 0])
 endfunction
 
 function! s:test_action_open() abort
   call s:do_test_open(0, 'open', {})
-  call s:do_test_open('Vim(edit):E37:', 'open', {
+  call s:do_test_open('^E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })

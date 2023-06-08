@@ -42,15 +42,15 @@ function! s:do_command(command, candidate) abort
     return 'There is no corresponding buffer to candidate: '
     \      . string(a:candidate.word)
   endif
-  try
-    execute bufnr a:command
-    if has_key(a:candidate.user_data, 'buffer_cursor')
-      call cursor(a:candidate.user_data.buffer_cursor)
-      normal! zvzt
-    endif
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! execute bufnr a:command
+  if v:errmsg != ''
+    return v:errmsg
+  endif
+  if has_key(a:candidate.user_data, 'buffer_cursor')
+    call cursor(a:candidate.user_data.buffer_cursor)
+    normal! zvzt
+  endif
   return 0
 endfunction
 

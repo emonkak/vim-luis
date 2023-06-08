@@ -18,13 +18,13 @@ function! s:do_open(command, candidate) abort
   let original_switchbuf = &switchbuf
   let &switchbuf = ''
 
-  try
-    execute a:command a:candidate.user_data.quickfix_nr
-  catch
-    return v:exception
-  finally
-    let &switchbuf = original_switchbuf
-  endtry
+  let v:errmsg = ''
+  silent! execute a:command a:candidate.user_data.quickfix_nr
+  if v:errmsg != ''
+    return v:errmsg
+  endif
+
+  let &switchbuf = original_switchbuf
 
   return 0
 endfunction

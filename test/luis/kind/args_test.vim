@@ -74,7 +74,7 @@ function! s:test_action_open__invalid_index() abort
     \  'word': 'foo',
     \  'user_data': { 'args_index': 9 },
     \ }
-    silent call assert_match('Vim(argument):E16:', Action(candidate, {}))
+    silent call assert_match('^E16:', Action(candidate, {}))
   finally
     argdelete *
     silent %bwipeout

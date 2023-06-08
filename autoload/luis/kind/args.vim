@@ -14,11 +14,11 @@ function! s:do_command(command, candidate) abort
   if !has_key(a:candidate.user_data, 'args_index')
     return 'No argument chosen'
   endif
-  try
-    execute (a:candidate.user_data.args_index + 1) a:command
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! execute (a:candidate.user_data.args_index + 1) a:command
+  if v:errmsg != ''
+    return v:errmsg
+  endif
   return 0
 endfunction
 

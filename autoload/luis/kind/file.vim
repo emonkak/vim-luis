@@ -4,31 +4,31 @@ endfunction
 
 function! s:action_cd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  try
-    cd `=fnamemodify(path, ':p:h')`
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! cd `=fnamemodify(path, ':p:h')`
+  if v:errmsg != ''
+    return v:errmsg
+  endif
   return 0
 endfunction
 
 function! s:action_lcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  try
-    lcd `=fnamemodify(path, ':p:h')`
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! lcd `=fnamemodify(path, ':p:h')`
+  if v:errmsg != ''
+    return v:errmsg
+  endif
   return 0
 endfunction
 
 function! s:action_tcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  try
-    tcd `=fnamemodify(path, ':p:h')`
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! tcd `=fnamemodify(path, ':p:h')`
+  if v:errmsg != ''
+    return v:errmsg
+  endif
   return 0
 endfunction
 
@@ -45,15 +45,15 @@ function! s:do_open(command, candidate) abort
   if path == ''
     return 'No file chosen'
   endif
-  try
-    execute a:command '`=fnamemodify(path, ":.")`'
-    if has_key(a:candidate.user_data, 'file_cursor')
-      call cursor(a:candidate.user_data.file_cursor)
-      normal! zvzt
-    endif
-  catch
-    return v:exception
-  endtry
+  let v:errmsg = ''
+  silent! execute a:command fnamemodify(path, ':.')
+  if v:errmsg != ''
+    return v:errmsg
+  endif
+  if has_key(a:candidate.user_data, 'file_cursor')
+    call cursor(a:candidate.user_data.file_cursor)
+    normal! zvzt
+  endif
   return 0
 endfunction
 

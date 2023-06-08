@@ -2,25 +2,34 @@ silent runtime! test/mocks.vim
 silent runtime! test/spy.vim
 
 function! s:test_guess_candidate__from_completed_item() abort
+  let v:errmsg = ''
+  silent! let v:completed_item = {}
+  if v:errmsg =~# '^E46:'
+    return 'v:completed_item must be writable.'
+  endif
+
   let ui = luis#ui#popupmenu#new({})
 
-  try
-    let candidate = {
-    \   'word': 'VIM',
-    \   'user_data': {},
-    \ }
-    let v:completed_item = copy(candidate)
-    call assert_equal(candidate, ui.guess_candidate())
+  let v:completed_item = {
+  \   'word': 'VIM',
+  \   'user_data': {},
+  \ }
+  let candidate = ui.guess_candidate()
+  call assert_equal(v:completed_item, candidate)
+  call assert_true(v:completed_item isnot candidate)
 
-    " Decode user_data as JSON if it is a string.
-    let v:completed_item = { 'word': 'VIM', 'user_data': '{"file_path": "/VIM"}' }
-    call assert_equal({
-    \   'word': 'VIM',
-    \   'user_data': { 'file_path': '/VIM' },
-    \ }, ui.guess_candidate())
-  catch 'Vim(let):E46:'
-    return 'v:completed_item must be writable.'
-  endtry
+  " Decode user_data as JSON if it is a string.
+  let v:completed_item = {
+  \   'word': 'VIM',
+  \   'user_data': '{"file_path": "/VIM"}',
+  \ }
+  let expected_candidate = {
+  \   'word': 'VIM',
+  \   'user_data': { 'file_path': '/VIM' },
+  \ }
+  let candidate = ui.guess_candidate()
+  call assert_equal(expected_candidate, candidate)
+  call assert_true(expected_candidate isnot candidate)
 
   let v:completed_item = {}
 endfunction
@@ -60,7 +69,9 @@ function! s:test_guess_candidate__from_first_candidate() abort
     \ ]
     let ui.last_pattern_raw = '>'
 
-    call assert_equal(ui.last_candidates[0], ui.guess_candidate())
+    let candidate = ui.guess_candidate()
+    call assert_equal(ui.last_candidates[0], candidate)
+    call assert_true(ui.last_candidates[0] isnot candidate)
 
     call ui.quit()
 
@@ -109,7 +120,9 @@ function! s:test_guess_candidate__from_selected_candidate() abort
     \ ]
     call setline(line('.'), 'bar')
 
-    call assert_equal(ui.last_candidates[1], ui.guess_candidate())
+    let candidate = ui.guess_candidate()
+    call assert_equal(ui.last_candidates[1], candidate)
+    call assert_true(ui.last_candidates[1] isnot candidate)
 
     call ui.quit()
 
