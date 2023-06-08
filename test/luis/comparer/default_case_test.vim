@@ -1,4 +1,4 @@
-let s:comparer = luis#comparer#default#import()
+let s:comparer = luis#comparer#default_case#import()
 
 function! s:test_compare_candidates() abort
   call assert_equal(

@@ -9,7 +9,7 @@ if !exists('g:luis#default_matcher')
 endif
 
 if !exists('g:luis#default_comparer')
-  let g:luis#default_comparer = luis#comparer#default#import()
+  let g:luis#default_comparer = luis#comparer#default_case#import()
 endif
 
 if !exists('g:luis#default_previewer')
