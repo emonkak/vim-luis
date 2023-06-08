@@ -1,4 +1,4 @@
-#!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -E -s -S "$0" <(IFS=$\'\n\'; echo "$*")'
+#!/bin/env -S bash -c '${VIMPROG-vim} -u NONE -i NONE -N -n -X -e -s -S "$0" <(IFS=$\'\n\'; echo "$*")'
 
 function! s:run(package_dir) abort
   set nohidden noswapfile
