@@ -244,6 +244,10 @@ function! s:test_action_cancel() abort
 endfunction
 
 function! s:test_action_ex() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let Action = s:kind.prototype.action_table.ex
 
   let _ = Action({ 'word': 'vim' }, {})

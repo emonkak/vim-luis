@@ -704,6 +704,10 @@ function! s:test_start__with_inactive_ui() abort
 endfunction
 
 function! s:test_take_action__choose_action() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let candidate = { 'word': 'VIM', 'user_data': {} }
   let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,

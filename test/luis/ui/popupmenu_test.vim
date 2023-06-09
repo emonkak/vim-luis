@@ -35,6 +35,10 @@ function! s:test_guess_candidate__from_completed_item() abort
 endfunction
 
 function! s:test_guess_candidate__from_first_candidate() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'id': 1,
@@ -86,6 +90,10 @@ function! s:test_guess_candidate__from_first_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_selected_candidate() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'id': 1,
@@ -137,6 +145,10 @@ function! s:test_guess_candidate__from_selected_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__from_default_candidate() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let ui = luis#ui#popupmenu#new({})
   let session = {
   \   'id': 1,
@@ -183,6 +195,10 @@ function! s:test_guess_candidate__from_default_candidate() abort
 endfunction
 
 function! s:test_refresh_candidates() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let [ui, ui_spies] = SpyDict(luis#ui#popupmenu#new({}))
   let session = {
   \   'id': 1,
@@ -235,6 +251,10 @@ function! s:test_refresh_candidates() abort
 endfunction
 
 function! s:test_start__without_initial_pattern() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let ui = luis#ui#popupmenu#new()
   let session = {
   \   'id': 1,
@@ -313,6 +333,10 @@ function! s:test_start__without_initial_pattern() abort
 endfunction
 
 function! s:test_start__with_initial_pattern() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
   let ui = luis#ui#popupmenu#new()
   let session = {
   \   'id': 1,
