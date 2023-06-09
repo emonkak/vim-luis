@@ -67,7 +67,7 @@ function! s:Spy.last_return_value() abort dict
 endfunction
 
 function! s:Spy.last_self() abort dict
-  return len(self._calls) > 0 ? self._calls[-1].self : v:none
+  return len(self._calls) > 0 ? self._calls[-1].self : v:null
 endfunction
 
 function! s:Spy.return_values() abort dict
