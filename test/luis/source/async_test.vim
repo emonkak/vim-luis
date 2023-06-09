@@ -1,7 +1,7 @@
 silent runtime! test/spy.vim
 silent runtime! test/mock.vim
 
-function! s:test_gather_candidates() abort
+function! s:test_gather_candidates__without_options() abort
   if !has('patch-8.0.0018')
     " When using ":sleep", channel input is not handled.
     return 'patch-8.0.0018 is required.'
@@ -64,7 +64,7 @@ function! s:test_gather_candidates() abort
   call source.on_source_leave({})
 endfunction
 
-function! s:test_gather_candidates__to_candidate() abort
+function! s:test_gather_candidates__with_to_candidate() abort
   if !has('patch-8.0.0018')
     return 'patch-8.0.0018 is required.'
   endif
@@ -130,7 +130,7 @@ function! s:test_gather_candidates__to_candidate() abort
   call source.on_source_leave({})
 endfunction
 
-function! s:test_gather_candidates__debounce_time() abort
+function! s:test_gather_candidates__with_debounce_time() abort
   if !has('patch-8.0.0018')
     return 'patch-8.0.0018 is required.'
   endif
