@@ -631,7 +631,7 @@ function! s:choose_action(kind, candidate) abort
 
   " Take user input.
   let k = s:get_key()
-  redraw  " clear the menu message lines to avoid hit-enter prompt.
+  redrawstatus  " clear the menu message lines to avoid hit-enter prompt.
 
   " Return the action bound to the key k.
   if has_key(key_table, k)
