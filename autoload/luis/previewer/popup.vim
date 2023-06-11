@@ -37,10 +37,6 @@ function! s:Previewer.is_active() abort dict
   return s:is_valid_window(self.window)
 endfunction
 
-function! s:Previewer.is_available() abort dict
-  return exists('*popup_create')
-endfunction
-
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
     call popup_close(self.window)

@@ -58,7 +58,6 @@ endfunction
 function! CreateMockPreviewer(...) abort
   let overrides = get(a:000, 0, {})
   return {
-  \   'is_available': { -> get(overrides, 'is_available', 0) },
   \   'is_active': { -> get(overrides, 'is_active', 0) },
   \   'open_buffer': { bufnr, bounds, options -> 0 },
   \   'open_text': { lines, bounds, options -> 0 },

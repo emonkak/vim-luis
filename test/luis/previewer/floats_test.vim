@@ -9,7 +9,6 @@ function! s:test_open_text__after_unload_open_buffer() abort
   endif
 
   let previewer = luis#previewer#floats#new()
-  call assert_true(previewer.is_available())
   call assert_false(previewer.is_active())
 
   let lines = ['foo', 'bar', 'baz']

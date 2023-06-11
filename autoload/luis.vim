@@ -13,9 +13,11 @@ if !exists('g:luis#default_comparer')
 endif
 
 if !exists('g:luis#default_previewer')
-  let g:luis#default_previewer = has('nvim')
+  let g:luis#default_previewer = exists('*popup_create')
+  \                            ? luis#previewer#popup#new()
+  \                            : exists('*nvim_open_win')
   \                            ? luis#previewer#floats#new()
-  \                            : luis#previewer#popup#new()
+  \                            : luis#previewer#null#import()
 endif
 
 if !exists('s:session_id')
@@ -171,9 +173,6 @@ let s:SCHEMA_PREVIEWER = {
 \       'type': v:t_func,
 \     },
 \     'is_active': {
-\       'type': v:t_func,
-\     },
-\     'is_available': {
 \       'type': v:t_func,
 \     },
 \     'open_buffer': {
@@ -416,10 +415,6 @@ endfunction
 
 function! luis#preview_candidate(session) abort
   let previewer = a:session.previewer
-  if !previewer.is_available()
-    return 0
-  endif
-
   let candidate = a:session.ui.guess_candidate()
   let context = { 'session': a:session }
 
@@ -817,9 +812,7 @@ function! s:quit_session(session) abort
     call a:session.hook.on_source_leave(context)
   endif
 
-  if a:session.previewer.is_available()
-    call a:session.previewer.close()
-  endif
+  call a:session.previewer.close()
 
   call a:session.ui.quit()
 endfunction

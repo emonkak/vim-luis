@@ -15,10 +15,6 @@ function! s:Previewer.is_active() abort dict
   return 0
 endfunction
 
-function! s:Previewer.is_available() abort dict
-  return 0
-endfunction
-
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
 endfunction
 

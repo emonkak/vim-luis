@@ -16,11 +16,6 @@ function! s:test_bounds() abort
   \ )
 endfunction
 
-function! s:test_is_available() abort
-  let previewer = luis#previewer#null#import()
-  call assert_false(previewer.is_available())
-endfunction
-
 function! s:test_is_active() abort
   let previewer = luis#previewer#null#import()
   call assert_false(previewer.is_active())

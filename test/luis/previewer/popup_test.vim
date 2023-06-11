@@ -18,7 +18,6 @@ function! s:test_open_buffer__open_twice() abort
   try
     let previewer = luis#previewer#popup#new()
 
-    call assert_true(previewer.is_available())
     call assert_false(previewer.is_active())
 
     let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }

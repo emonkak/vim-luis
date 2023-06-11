@@ -210,7 +210,6 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
   \   'is_active': 0,
-  \   'is_available': 1,
   \ }))
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
@@ -304,7 +303,6 @@ function! s:test_preview_candidate__with_file_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
   \   'is_active': 0,
-  \   'is_available': 1,
   \ }))
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
@@ -444,7 +442,6 @@ function! s:test_preview_candidate__with_no_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
   \   'is_active': 0,
-  \   'is_available': 1,
   \ }))
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
@@ -482,7 +479,6 @@ function! s:test_preview_candidate__with_text_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
   \   'is_active': 0,
-  \   'is_available': 1,
   \ }))
   let [hook, hook_spies] = SpyDict(CreateMockHook())
 
