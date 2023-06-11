@@ -444,7 +444,7 @@ function! luis#preview_candidate(session) abort
 
   if has_key(candidate.user_data, 'preview_bufnr')
     let bufnr = candidate.user_data.preview_bufnr
-    if bufloaded(bufnr)
+    if bufexists(bufnr)
       let bounds = a:session.ui.preview_bounds()
       let hints = s:preview_hints_from_candidate(candidate)
       call previewer.open_buffer(

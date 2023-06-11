@@ -36,7 +36,7 @@ endfunction
 
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
-    noautocmd call nvim_win_set_buf(self.window, a:bufnr)
+    call nvim_win_set_buf(self.window, a:bufnr)
     call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
@@ -66,7 +66,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   endif
 
   if s:is_valid_window(self.window)
-    noautocmd call nvim_win_set_buf(self.window, self.preview_bufnr)
+    call nvim_win_set_buf(self.window, self.preview_bufnr)
     call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
@@ -113,7 +113,6 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config.col = a:bounds.col
   let config.width = a:bounds.width
   let config.height = a:bounds.height
-  let config.noautocmd = v:true
 
   let window = nvim_open_win(a:bufnr, v:false, config)
 

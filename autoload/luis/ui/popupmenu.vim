@@ -87,8 +87,7 @@ endfunction
 let s:UI = {}
 
 function! s:UI.guess_candidate() abort dict
-  if has_key(v:completed_item, 'user_data')
-  \  && v:completed_item.user_data isnot ''
+  if get(v:completed_item, 'user_data', '') isnot ''
     return s:clone_candidate(v:completed_item)
   endif
 
@@ -274,12 +273,15 @@ function! s:initialize_ui_buffer(buffer_name) abort
 
   augroup plugin-luis-popupmenu-ui
     autocmd!
-    autocmd WinLeave <buffer>  call s:on_WinLeave()
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
+    autocmd TextChangedI <buffer>  call s:on_TextChangedI()
     if exists('#TextChangedP')
+      " Enable the ++nested option to allow executing autocmd on the buffer
+      " during preview.
       autocmd TextChangedP <buffer> ++nested  call s:on_TextChangedP()
     endif
+    autocmd WinLeave <buffer>  call s:on_WinLeave()
   augroup END
 
   nnoremap <buffer> <expr> <silent> <SID>(choose-action)
@@ -452,6 +454,17 @@ function! s:on_InsertEnter() abort
   let ui.last_pattern_raw = ''
 
   call feedkeys(s:keys_to_complete(b:luis_session), 'n')
+endfunction
+
+function! s:on_TextChangedI() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
+  let ui = b:luis_session.ui
+  let ui.selected_index = -1
+
+  call luis#preview_candidate(b:luis_session)
 endfunction
 
 function! s:on_TextChangedP() abort
