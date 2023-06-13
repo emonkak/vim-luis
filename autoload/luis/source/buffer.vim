@@ -21,10 +21,10 @@ function! s:Source.on_source_enter(context) abort dict
       let word = '[No Name]'
       let dup = 1
     else
-      let word = fnamemodify(bufinfo.name, ':~:.')
+      let word = bufname(bufinfo.bufnr)
       let dup = 0
       let sort_priority += 1
-      if word ==# bufinfo.name
+      if word !=# bufinfo.name
         let sort_priority += 1
       endif
       if getbufvar(bufinfo.bufnr, '&buftype') == ''
