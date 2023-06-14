@@ -28,8 +28,8 @@ function! s:test_kind_definition() abort
 endfunction
 
 function! s:do_test_open(expected_result, action_name, buf_options) abort
-  let original_cwd = getcwd()
-  cd $VIMRUNTIME/doc
+  new
+  lcd $VIMRUNTIME/doc
 
   let winnr = winnr()
   let tag_bufnrs = []
@@ -52,7 +52,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   call assert_equal(4, tagstack.curidx)
   call assert_equal(3, tagstack.length)
 
-  new
+  enew
   let bufnr = bufnr('%')
   for [key, value] in items(a:buf_options)
     call setbufvar(bufnr, key, value)
@@ -90,7 +90,7 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
     \   gettagstack(winnr)
     \ )
   finally
+    close!
     silent %bwipeout!
-    cd `=original_cwd`
   endtry
 endfunction

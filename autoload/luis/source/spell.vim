@@ -1,4 +1,4 @@
-function! luis#source#spell#new() abort
+function! luis#source#spell#import() abort
   return s:Source
 endfunction
 

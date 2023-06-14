@@ -15,7 +15,6 @@ function! s:test_action_delete() abort
     \   'user_data': { 'history_name': 'cmd', 'history_index': 1 },
     \ }
     let _ = Action(candidate, {})
-
     call assert_equal(0, _)
     call assert_equal('', histget('cmd', 1))
   finally

@@ -7,6 +7,7 @@ function! s:test_action_open() abort
   try
     let Action = s:kind.action_table.open
     silent let _ = Action({ 'word': ' Vim' }, {})
+    call assert_equal(0, _)
     call assert_equal(['Hello Vim!'], getline(1, line('$')))
   finally
     silent bwipeout!
@@ -20,6 +21,7 @@ function! s:test_action_open_x() abort
   try
     let Action = s:kind.action_table['open!']
     silent let _ = Action({ 'word': ' Vim' }, {})
+    call assert_equal(0, _)
     call assert_equal(['Hello! Vim'], getline(1, line('$')))
   finally
     silent bwipeout!
