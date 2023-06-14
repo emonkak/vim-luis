@@ -1,3 +1,3 @@
-Foo()	foo.vim	/*function! Foo()*/
-Bar()	bar.vim	/*function! Bar()*/
-Baz()	baz.vim	/*function! Baz()*/
+Bar	bar.vim	/*function! Bar()*
+Baz	baz.vim	/*function! Baz()*
+Foo	foo.vim	/*function! Foo()*
