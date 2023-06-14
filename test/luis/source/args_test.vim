@@ -33,7 +33,7 @@ function! s:test_gather_candidates__filled_list() abort
     \     'word': 'A',
     \     'kind': '',
     \     'user_data': {
-    \       'args_index': 0,
+    \       'argument_index': 0,
     \       'preview_bufnr': bufnr_A,
     \     },
     \     'luis_sort_priority': 0,
@@ -42,7 +42,7 @@ function! s:test_gather_candidates__filled_list() abort
     \     'word': 'B',
     \     'kind': '',
     \     'user_data': {
-    \       'args_index': 1,
+    \       'argument_index': 1,
     \       'preview_bufnr': bufnr_B,
     \     },
     \     'luis_sort_priority': -1,
@@ -51,7 +51,7 @@ function! s:test_gather_candidates__filled_list() abort
     \     'word': 'C',
     \     'kind': '*',
     \     'user_data': {
-    \       'args_index': 2,
+    \       'argument_index': 2,
     \       'preview_bufnr': bufnr_C,
     \     },
     \     'luis_sort_priority': -2,

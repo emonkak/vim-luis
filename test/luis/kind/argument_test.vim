@@ -1,4 +1,4 @@
-let s:kind = luis#kind#args#import()
+let s:kind = luis#kind#argument#import()
 
 function! s:test_action_argdelete() abort
   argadd foo bar baz
@@ -7,7 +7,7 @@ function! s:test_action_argdelete() abort
 
   try
     let Action = s:kind.action_table.argdelete
-    let _ = Action({ 'word': 'bar', 'user_data': { 'args_index': 1 } }, {})
+    let _ = Action({ 'word': 'bar', 'user_data': { 'argument_index': 1 } }, {})
     call assert_equal(0, _)
     call assert_equal(2, argc())
     call assert_equal(['foo', 'baz'], argv())
@@ -37,21 +37,21 @@ function! s:test_action_open() abort
   try
     let candidate = {
     \  'word': 'foo',
-    \  'user_data': { 'args_index': 0 },
+    \  'user_data': { 'argument_index': 0 },
     \ }
     silent call assert_equal(0, Action(candidate, {}))
     call assert_equal('foo', bufname('%'))
 
     let candidate = {
     \  'word': 'bar',
-    \  'user_data': { 'args_index': 1 },
+    \  'user_data': { 'argument_index': 1 },
     \ }
     silent call assert_equal(0, Action(candidate, {}))
     call assert_equal('bar', bufname('%'))
 
     let candidate = {
     \  'word': 'baz',
-    \  'user_data': { 'args_index': 2 },
+    \  'user_data': { 'argument_index': 2 },
     \ }
     silent call assert_equal(0, Action(candidate, {}))
     call assert_equal('baz', bufname('%'))
@@ -72,7 +72,7 @@ function! s:test_action_open__invalid_index() abort
   try
     let candidate = {
     \  'word': 'foo',
-    \  'user_data': { 'args_index': 9 },
+    \  'user_data': { 'argument_index': 9 },
     \ }
     silent call assert_match('^E16:', Action(candidate, {}))
   finally
@@ -83,5 +83,5 @@ endfunction
 
 function! s:test_kind_definition() abort
   call assert_true(luis#validate_kind(s:kind))
-  call assert_equal('args', s:kind.name)
+  call assert_equal('argument', s:kind.name)
 endfunction

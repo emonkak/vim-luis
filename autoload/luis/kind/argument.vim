@@ -1,4 +1,4 @@
-function! luis#kind#args#import() abort
+function! luis#kind#argument#import() abort
   return s:Kind
 endfunction
 
@@ -11,11 +11,11 @@ function! s:action_argdelete(candidate, context) abort
 endfunction
 
 function! s:do_command(command, candidate) abort
-  if !has_key(a:candidate.user_data, 'args_index')
+  if !has_key(a:candidate.user_data, 'argument_index')
     return 'No argument chosen'
   endif
   let v:errmsg = ''
-  silent! execute (a:candidate.user_data.args_index + 1) a:command
+  silent! execute (a:candidate.user_data.argument_index + 1) a:command
   if v:errmsg != ''
     return v:errmsg
   endif
@@ -23,7 +23,7 @@ function! s:do_command(command, candidate) abort
 endfunction
 
 let s:Kind = {
-\   'name': 'args',
+\   'name': 'argument',
 \   'action_table': {
 \     'open': function('s:action_open'),
 \     'argdelete': function('s:action_argdelete'),

@@ -6,7 +6,7 @@ endfunction
 
 let s:Source = {
 \   'name': 'args',
-\   'default_kind': luis#kind#args#import(),
+\   'default_kind': luis#kind#argument#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -18,7 +18,7 @@ function! s:Source.on_source_enter(context) abort dict
   let self.cached_candidates = map(argv(), '{
   \   "word": v:val,
   \   "kind": v:key == argidx ? "*" : "",
-  \   "user_data": { "args_index": v:key, "preview_bufnr": bufnr(v:val) },
+  \   "user_data": { "argument_index": v:key, "preview_bufnr": bufnr(v:val) },
   \   "luis_sort_priority": -v:key,
   \ }')
 endfunction
