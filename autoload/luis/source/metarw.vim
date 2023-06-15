@@ -15,9 +15,9 @@ function! s:Source.gather_candidates(context) abort dict
   let candidates = []
 
   for path in metarw#{scheme}#complete(pattern, pattern, 0)[0]
-    let path_without_scheme = matchstr(path, '^' . scheme . ':\zs.*$')
+    let path_without_scheme = matchstr(path, '^\h\w*:\zs.*$')
     call add(candidates, {
-    \   'word': substitute(path_without_scheme, '[:/]$', '', ''),
+    \   'word': s:trim_separator(path_without_scheme),
     \   'abbr': path_without_scheme,
     \   'user_data': {
     \     'file_path': path,
@@ -42,4 +42,8 @@ endfunction
 
 function! s:path_separator() abort
   return exists('+shellslash') && !&shellslash ? '\' : '/'
+endfunction
+
+function! s:trim_separator(path) abort
+  return substitute(a:path, '[:/]$', '', '')
 endfunction
