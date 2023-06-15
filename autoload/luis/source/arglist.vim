@@ -1,11 +1,11 @@
-function! luis#source#args#new() abort
+function! luis#source#arglist#new() abort
   let source = copy(s:Source)
   let source.cached_candidates = []
   return source
 endfunction
 
 let s:Source = {
-\   'name': 'args',
+\   'name': 'arglist',
 \   'default_kind': luis#kind#argument#import(),
 \ }
 

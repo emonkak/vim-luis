@@ -1,5 +1,5 @@
 function! s:test_gather_candidates__empty_list() abort
-  let source = luis#source#args#new()
+  let source = luis#source#arglist#new()
 
   call source.on_source_enter({})
 
@@ -23,7 +23,7 @@ function! s:test_gather_candidates__filled_list() abort
   call assert_equal(3, len(uniq([bufnr_A, bufnr_B, bufnr_C])))
 
   try
-    let source = luis#source#args#new()
+    let source = luis#source#arglist#new()
 
     call source.on_source_enter({})
 
@@ -66,6 +66,7 @@ function! s:test_gather_candidates__filled_list() abort
 endfunction
 
 function! s:test_source_definition() abort
-  let source = luis#source#args#new()
+  let source = luis#source#arglist#new()
   call assert_true(luis#validate_source(source))
+  call assert_equal('arglist', source.name)
 endfunction
