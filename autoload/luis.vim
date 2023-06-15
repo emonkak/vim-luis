@@ -1,5 +1,5 @@
-if !exists('g:luis#default_ui')
-  let g:luis#default_ui = luis#ui#popupmenu#new()
+if !exists('g:luis#default_comparer')
+  let g:luis#default_comparer = luis#comparer#default_case#import()
 endif
 
 if !exists('g:luis#default_matcher')
@@ -8,16 +8,16 @@ if !exists('g:luis#default_matcher')
   \                          : luis#matcher#fuzzy#import()
 endif
 
-if !exists('g:luis#default_comparer')
-  let g:luis#default_comparer = luis#comparer#default_case#import()
-endif
-
 if !exists('g:luis#default_previewer')
   let g:luis#default_previewer = exists('*popup_create')
   \                            ? luis#previewer#popup#new()
   \                            : exists('*nvim_open_win')
   \                            ? luis#previewer#floats#new()
   \                            : luis#previewer#null#import()
+endif
+
+if !exists('g:luis#default_ui')
+  let g:luis#default_ui = luis#ui#popupmenu#new()
 endif
 
 if !exists('s:session_id')
