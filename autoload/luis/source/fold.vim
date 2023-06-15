@@ -22,7 +22,7 @@ function! s:Source.on_source_enter(context) abort dict
   set lazyredraw
   " Back to the original buffer.
   noautocmd call win_gotoid(self.window)
-  " Duplite the original buffer.
+  " Duplicate the original buffer.
   split
 
   let bufnr = bufnr('%')
