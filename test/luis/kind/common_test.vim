@@ -1,3 +1,6 @@
+silent runtime! test/spy.vim
+silent runtime! test/mocks.vim
+
 function! s:action_open(candidate, context) abort
   edit `=a:candidate.word`
   return 0
@@ -295,14 +298,19 @@ function! s:test_action_left() abort
 endfunction
 
 function! s:test_action_open() abort
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
+  let [source, source_spies] = SpyDict(CreateMockSource({ 'default_kind': s:kind }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \ })
+
   for Action in [
   \   s:kind.action_table['open'],
   \   s:kind.prototype.action_table['open!'],
   \   s:kind.prototype.action_table['default'],
   \ ]
-    let candidate = { 'word': tempname() }
-    let context = { 'kind': s:kind }
-    silent let _ = Action(candidate, context)
+    let candidate = { 'word': tempname(), 'user_data': {} }
+    silent let _ = Action(candidate, { 'session': session })
     call assert_equal(0, _)
     call assert_equal(candidate.word, bufname('%'))
     silent execute 'bwipeout' candidate.word
@@ -340,15 +348,20 @@ function! s:test_action_put_x() abort
 endfunction
 
 function! s:test_action_reselect() abort
-  let [session, session_spies] = SpyDict({
-  \   'start': { -> 0 },
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let session = luis#new_session(source, {
+  \   'ui': ui,
   \ })
 
   let Action = s:kind.prototype.action_table.reselect
-  let _ = Action({ 'word': 'XXX' }, { 'session': session })
+  let _ = Action({ 'word': 'VIM' }, { 'session': session })
+
   call assert_equal(0, _)
-  call assert_equal(1, session_spies.start.call_count())
-  call assert_equal(session, session_spies.start.last_self())
+  call assert_equal(1, ui_spies.start.call_count())
+  call assert_equal([session], ui_spies.start.last_args())
+  call assert_equal(1, source_spies.on_source_enter.call_count())
+  call assert_equal([{ 'session': session }], source_spies.on_source_enter.last_args())
 endfunction
 
 function! s:test_action_right() abort
@@ -462,6 +475,12 @@ function! s:consume_keys() abort
 endfunction
 
 function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_tabpagenr, action_name, hsplit_modifier, vsplit_modifier) abort
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
+  let [source, source_spies] = SpyDict(CreateMockSource({ 'default_kind': s:kind }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \ })
+
   let original_bufnr = bufnr('%')
 
   execute a:hsplit_modifier 'new'
@@ -471,12 +490,11 @@ function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_ta
   call assert_equal(3, winnr('$'))
 
   try
-    let candidate = { 'word': tempname() }
+    let candidate = { 'word': tempname(), 'user_data': {} }
     let Action = s:kind.prototype.action_table[a:action_name]
-    let context = { 'kind': s:kind }
-    silent let _ = Action(candidate, context)
-    call assert_equal(0, _)
+    silent let _ = Action(candidate, { 'session': session })
 
+    call assert_equal(0, _)
     call assert_equal(candidate.word, bufname('%'))
     call assert_equal(a:expected_winnr, winnr())
     call assert_equal(a:expected_neighbor_windows, s:neighbor_windows())
@@ -493,6 +511,12 @@ function! s:do_test_split(expected_winnr, expected_neighbor_windows, expected_ta
 endfunction
 
 function! s:do_test_split_without_enough_room(action_name, orientation) abort
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
+  let [source, source_spies] = SpyDict(CreateMockSource({ 'default_kind': s:kind }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \ })
+
   let v:errmsg = ''
   while v:errmsg == ''
     silent! execute a:orientation 'new'
@@ -504,10 +528,9 @@ function! s:do_test_split_without_enough_room(action_name, orientation) abort
 
   try
     let Action = s:kind.prototype.action_table[a:action_name]
-    let context = { 'kind': s:kind }
-    silent let _ = Action({ 'word': 'XXX' }, context)
-    call assert_match('^E36:', _)
+    silent let _ = Action({ 'word': 'VIM', 'user_data': {} }, { 'session': session })
 
+    call assert_match('^E36:', _)
     call assert_equal(original_bufnr, bufnr('%'))
     call assert_equal(original_last_winnr, winnr('$'))
   finally
@@ -520,6 +543,12 @@ function! s:do_test_split_without_enough_room(action_name, orientation) abort
 endfunction
 
 function! s:do_test_tab(expected_tabpagenr, action_name) abort
+  let [ui, ui_spies] = SpyDict(CreateMockUI())
+  let [source, source_spies] = SpyDict(CreateMockSource({ 'default_kind': s:kind }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \ })
+
   let original_bufnr = bufnr('%')
   let original_window = win_getid()
 
@@ -533,11 +562,10 @@ function! s:do_test_tab(expected_tabpagenr, action_name) abort
 
   try
     let Action = s:kind.prototype.action_table[a:action_name]
-    let candidate = { 'word': tempname() }
-    let context = { 'kind': s:kind }
-    silent let _ = Action(candidate, context)
-    call assert_equal(0, _)
+    let candidate = { 'word': tempname(), 'user_data': {} }
+    silent let _ = Action(candidate, { 'session': session })
 
+    call assert_equal(0, _)
     call assert_equal(candidate.word, bufname('%'))
     call assert_equal(a:expected_tabpagenr, tabpagenr())
     call assert_equal(4, tabpagenr('$'))

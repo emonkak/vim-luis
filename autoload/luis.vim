@@ -363,12 +363,40 @@ END
   endif
 endfunction
 
-function! luis#do_action(action_name, candidate, context) abort
-  let Action = s:find_action(a:context.kind, a:action_name)
-  if Action is 0
-    return 'No such action: ' . string(a:action_name)
+function! luis#do_action(session, action_name, candidate) abort
+  let kind = get(a:candidate.user_data, 'kind', a:session.source.default_kind)
+  let action_name = a:action_name ==# '*'
+  \               ? s:choose_action(kind, a:candidate)
+  \               : a:action_name
+
+  if action_name == ''
+    return 0
   endif
-  return Action(a:candidate, a:context)
+
+  let Action = s:find_action(kind, action_name)
+  if Action is 0
+    return 'No such action: ' . string(action_name)
+  endif
+
+  let context = {
+  \   'action': Action,
+  \   'action_name': action_name,
+  \   'kind': kind,
+  \   'session': a:session,
+  \ }
+
+  if has_key(a:session.source, 'on_action')
+    call a:session.source.on_action(a:candidate, context)
+  endif
+
+  if has_key(a:session.hook, 'on_action')
+    call a:session.hook.on_action(a:candidate, context)
+  endif
+
+  " Maybe action has been modified by a callback.
+  let Action = context.action
+
+  return Action(a:candidate, context)
 endfunction
 
 function! luis#new_session(source, ...) abort
@@ -511,36 +539,14 @@ endfunction
 
 function! luis#take_action(session, action_name) abort
   let candidate = a:session.ui.guess_candidate()
-  let kind = s:kind_from_candidate(candidate, a:session.source.default_kind)
-  let action_name = a:action_name != ''
-  \               ? a:action_name
-  \               : s:choose_action(kind, candidate)
 
-  " Close the luis window, because some kind of actions does something on the
+  " Close the UI window, because some kind of actions does something on the
   " current buffer/window and user expects that such actions do something on
-  " the buffer/window which was the current one until the luis buffer became
+  " the buffer/window which was the current one until the UI buffer became
   " active.
   call s:quit_session(a:session)
 
-  if action_name == ''
-    " In these cases, error messages are already noticed by other functions.
-    return 0
-  endif
-
-  let context = {
-  \   'kind': kind,
-  \   'session': a:session,
-  \ }
-
-  if has_key(a:session.source, 'on_action')
-    call a:session.source.on_action(candidate, context)
-  endif
-
-  if has_key(a:session.hook, 'on_action')
-    call a:session.hook.on_action(candidate, context)
-  endif
-
-  let result = luis#do_action(action_name, candidate, context)
+  let result = luis#do_action(a:session, a:action_name, candidate)
   if result isnot 0
     echohl ErrorMsg
     echomsg result
@@ -637,7 +643,7 @@ function! s:choose_action(kind, candidate) abort
   else
     echo 'The key' string(k) 'is not associated with any action'
     \    '-- nothing happened.'
-    return 0
+    return ''
   endif
 endfunction
 
@@ -711,12 +717,6 @@ function! s:get_key() abort
   else
     return k1
   endif
-endfunction
-
-function! s:kind_from_candidate(candidate, default_kind) abort
-  return has_key(a:candidate.user_data, 'kind')
-  \      ? a:candidate.user_data.kind
-  \      : a:default_kind
 endfunction
 
 function! s:list_key_bindings(key_table) abort

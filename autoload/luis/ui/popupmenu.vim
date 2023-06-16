@@ -286,7 +286,7 @@ function! s:initialize_ui_buffer(buffer_name) abort
 
   nnoremap <buffer> <expr> <silent> <SID>(choose-action)
          \ exists('b:luis_session')
-         \ ? ":<C-u>call luis#take_action(b:luis_session, '')<CR>"
+         \ ? ":<C-u>call luis#take_action(b:luis_session, '*')<CR>"
          \ : ''
   nnoremap <buffer> <expr> <silent> <SID>(do-default-action)
          \ exists('b:luis_session')

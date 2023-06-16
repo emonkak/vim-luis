@@ -165,47 +165,6 @@ function! s:test_detect_filetype() abort
   endtry
 endfunction
 
-function! s:test_do_action__with_defined_action() abort
-  let action_spy = Spy({ candidate, context -> 0 })
-  let source = CreateMockSource()
-  let source.default_kind.action_table.default  = action_spy.to_funcref()
-  let session = luis#new_session(source, {
-  \   'ui': CreateMockUI(),
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': CreateMockPreviewer(),
-  \   'hook': CreateMockHook(),
-  \   'initial_pattern': '',
-  \ })
-
-  let candidate = { 'word': 'VIM' }
-  let context = { 'kind': source.default_kind, 'session': session }
-
-  call assert_equal(0, luis#do_action('default', candidate, context))
-  call assert_equal(1, action_spy.call_count())
-  call assert_equal([candidate, context], action_spy.last_args())
-  call assert_equal(0, action_spy.last_return_value())
-endfunction
-
-function! s:test_do_action__with_undefined_action() abort
-  let source = CreateMockSource()
-  let session = luis#new_session(source, {
-  \   'ui': CreateMockUI(),
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': CreateMockPreviewer(),
-  \   'hook': CreateMockHook(),
-  \   'initial_pattern': '',
-  \ })
-  let candidate = { 'word': 'VIM' }
-  let context = { 'kind': source.default_kind, 'session': session }
-
-  call assert_equal(
-  \   "No such action: 'XXX'",
-  \   luis#do_action('XXX', candidate, context)
-  \ )
-endfunction
-
 function! s:test_preview_candidate__with_buffer_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
@@ -699,15 +658,17 @@ function! s:test_start__with_inactive_ui() abort
   endtry
 endfunction
 
-function! s:test_take_action__choose_action() abort
+function! s:test_take_action__with_choose_action() abort
   if !has('ttyin') || !has('ttyout')
     return 'TTY is required.'
   endif
 
+  let action_spy = Spy({ candidate, context -> 0 })
   let candidate = { 'word': 'VIM', 'user_data': {} }
+
   let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'is_active': 1,
   \   'candidate': candidate,
-  \   'is_active': 1
   \ }))
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [hook, hook_spies] = SpyDict(CreateMockHook())
@@ -720,15 +681,16 @@ function! s:test_take_action__choose_action() abort
   \   'initial_pattern': '',
   \ })
 
-  let action_spy = Spy({ candidate, context -> 0 })
   let kind = session.source.default_kind
   let kind.action_table.default = action_spy.to_funcref()
 
   call feedkeys("\<CR>", 'nt')
-  silent call assert_true(luis#take_action(session, ''))
+  silent call assert_true(luis#take_action(session, '*'))
   call assert_equal(0, getchar(0))
 
   let expected_context = {
+  \   'action': kind.action_table.default,
+  \   'action_name': 'default',
   \   'kind': kind,
   \   'session': session,
   \ }
@@ -760,30 +722,36 @@ function! s:test_take_action__choose_action() abort
   call assert_equal(0, action_spy.last_return_value())
 endfunction
 
-function! s:test_take_action__do_default_action() abort
-  let candidate = { 'word': 'VIM', 'user_data': {} }
-  let [ui, ui_spies] = SpyDict(CreateMockUI({
-  \   'candidate': candidate,
-  \   'is_active': 1,
-  \ }))
-  let [source, source_spies] = SpyDict(CreateMockSource())
-  let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let session = luis#new_session(source, {
-  \   'ui': ui,
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': CreateMockPreviewer(),
-  \   'hook': hook,
-  \   'initial_pattern': '',
-  \ })
+function! s:test_take_action__with_default_action() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
 
   let action_spy = Spy({ candidate, context -> 0 })
-  let kind = session.source.default_kind
+  let kind = CreateMockKind()
   let kind.action_table.default = action_spy.to_funcref()
+  let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
 
-  silent call assert_true(luis#take_action(session, 'default'))
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': candidate,
+  \   'is_active': 1,
+  \ }))
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': CreateMockPreviewer(),
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_true(1, luis#take_action(session, 'default'))
 
   let expected_context = {
+  \   'action': kind.action_table.default,
+  \   'action_name': 'default',
   \   'kind': kind,
   \   'session': session,
   \ }
@@ -815,8 +783,14 @@ function! s:test_take_action__do_default_action() abort
   call assert_equal(0, action_spy.last_return_value())
 endfunction
 
-function! s:test_take_action__no_such_action() abort
+function! s:test_take_action__with_no_such_action() abort
+  if !has('ttyin') || !has('ttyout')
+    return 'TTY is required.'
+  endif
+
+  let action_spy = Spy({ candidate, context -> 0 })
   let candidate = { 'word': 'VIM', 'user_data': {} }
+
   let [ui, ui_spies] = SpyDict(CreateMockUI({
   \   'candidate': candidate,
   \   'is_active': 1,
@@ -831,29 +805,23 @@ function! s:test_take_action__no_such_action() abort
   \   'hook': hook,
   \   'initial_pattern': '',
   \ })
+  let kind = session.source.default_kind
+  let kind.action_table.default = action_spy.to_funcref()
 
   redir => OUTPUT
   silent call assert_false(luis#take_action(session, 'XXX'))
   redir END
+
+  call assert_match("No such action: 'XXX'", OUTPUT)
 
   let expected_context = {
   \   'kind': source.default_kind,
   \   'session': session,
   \ }
 
-  call assert_match("No such action: 'XXX'", OUTPUT)
-
   call assert_equal(1, ui_spies.quit.call_count())
 
-  call assert_equal(1, source_spies.on_action.call_count())
-  call assert_equal([candidate, expected_context], source_spies.on_action.last_args())
-  call assert_equal(source, source_spies.on_action.last_self())
-  call assert_equal(1, source_spies.on_source_leave.call_count())
-  call assert_equal(
-  \   [{ 'session': session }],
-  \   source_spies.on_source_leave.last_args()
-  \ )
-  call assert_equal(source, source_spies.on_source_leave.last_self())
+  call assert_equal(0, source_spies.on_action.call_count())
   call assert_equal(1, source_spies.on_source_leave.call_count())
   call assert_equal(
   \   [{ 'session': session }],
@@ -861,59 +829,7 @@ function! s:test_take_action__no_such_action() abort
   \ )
   call assert_equal(source, source_spies.on_source_leave.last_self())
 
-  call assert_equal(1, hook_spies.on_action.call_count())
-  call assert_equal([candidate, expected_context], hook_spies.on_action.last_args())
-  call assert_equal(hook, hook_spies.on_action.last_self())
-  call assert_equal(1, hook_spies.on_source_leave.call_count())
-  call assert_equal(
-  \   [{ 'session': session }],
-  \   hook_spies.on_source_leave.last_args()
-  \ )
-  call assert_equal(hook, hook_spies.on_source_leave.last_self())
-endfunction
-
-function! s:test_take_action__with_candidate_kind() abort
-  let action_spy = Spy({ candidate, context -> 0 })
-  let kind = CreateMockKind()
-  let kind.action_table.default  = action_spy.to_funcref()
-  let candidate = { 'word': 'VIM', 'user_data': { 'kind': kind } }
-  let [ui, ui_spies] = SpyDict(CreateMockUI({
-  \   'candidate': candidate,
-  \   'is_active': 1,
-  \ }))
-  let [source, source_spies] = SpyDict(CreateMockSource())
-  let [hook, hook_spies] = SpyDict(CreateMockHook())
-  let session = luis#new_session(source, {
-  \   'ui': ui,
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': CreateMockPreviewer(),
-  \   'hook': hook,
-  \   'initial_pattern': '',
-  \ })
-
-  silent call assert_true(luis#take_action(session, 'default'))
-
-  let expected_context = {
-  \   'kind': kind,
-  \   'session': session,
-  \ }
-
-  call assert_equal(1, ui_spies.quit.call_count())
-
-  call assert_equal(1, source_spies.on_action.call_count())
-  call assert_equal([candidate, expected_context], source_spies.on_action.last_args())
-  call assert_equal(source, source_spies.on_action.last_self())
-  call assert_equal(1, source_spies.on_source_leave.call_count())
-  call assert_equal(
-  \   [{ 'session': session }],
-  \   source_spies.on_source_leave.last_args()
-  \ )
-  call assert_equal(source, source_spies.on_source_leave.last_self())
-
-  call assert_equal(1, hook_spies.on_action.call_count())
-  call assert_equal([candidate, expected_context], hook_spies.on_action.last_args())
-  call assert_equal(hook, hook_spies.on_action.last_self())
+  call assert_equal(0, hook_spies.on_action.call_count())
   call assert_equal(1, hook_spies.on_source_leave.call_count())
   call assert_equal(
   \   [{ 'session': session }],
@@ -921,7 +837,5 @@ function! s:test_take_action__with_candidate_kind() abort
   \ )
   call assert_equal(hook, hook_spies.on_source_leave.last_self())
 
-  call assert_equal(1, action_spy.call_count())
-  call assert_equal([candidate, expected_context], action_spy.last_args())
-  call assert_equal(0, action_spy.last_return_value())
+  call assert_equal(0, action_spy.call_count())
 endfunction
