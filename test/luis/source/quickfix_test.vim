@@ -50,6 +50,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#quickfix#new()
-  call assert_true(luis#validate_source(source))
+  call assert_true(luis#_validate_source(source))
   call assert_equal('quickfix', source.name)
 endfunction

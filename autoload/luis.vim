@@ -327,42 +327,6 @@ function! luis#collect_candidates(session, pattern) abort
   return candidates
 endfunction
 
-function! luis#detect_filetype(path, lines) abort
-  if has('nvim')
-    let _ =<< trim END
-    vim.filetype.match({
-      filename = vim.api.nvim_eval('a:path'),
-      contents = vim.api.nvim_eval('a:lines'),
-    }) or ''
-END
-    return luaeval(join(_, ''))
-  elseif exists('*popup_create')
-    let temp_win = popup_create(a:lines, { 'hidden': 1 })
-    let temp_bufnr = winbufnr(temp_win)
-    try
-      let command = 'doautocmd <nomodeline> filetypedetect BufNewFile '
-      \           . fnameescape(a:path)
-      call win_execute(temp_win, command)
-      return getbufvar(temp_bufnr, '&filetype')
-    finally
-      call popup_close(temp_win)
-    endtry
-  else
-    let original_lazyredraw = &lazyredraw
-    set lazyredraw
-    noautocmd new
-    setlocal buftype=nofile noswapfile bufhidden=wipe nobuflisted undolevels=-1
-    try
-      execute 'doautocmd <nomodeline> filetypedetect BufNewFile'
-      \       fnameescape(a:path)
-      return &filetype
-    finally
-      noautocmd close
-      let &lazyredraw = original_lazyredraw
-    endtry
-  endif
-endfunction
-
 function! luis#do_action(session, action_name, candidate) abort
   let kind = get(a:candidate.user_data, 'kind', a:session.source.default_kind)
   let action_name = a:action_name ==# '*'
@@ -416,12 +380,12 @@ function! luis#new_session(source, ...) abort
   let hook = get(options, 'hook', {})
   let initial_pattern = get(options, 'initial_pattern', '')
 
-  \ if !luis#validate_source(a:source)
-  \    || !luis#validate_ui(ui)
-  \    || !luis#validate_matcher(matcher)
-  \    || !luis#validate_comparer(comparer)
-  \    || !luis#validate_previewer(previewer)
-  \    || !luis#validate_hook(hook)
+  \ if !luis#_validate_source(a:source)
+  \    || !luis#_validate_ui(ui)
+  \    || !luis#_validate_matcher(matcher)
+  \    || !luis#_validate_comparer(comparer)
+  \    || !luis#_validate_previewer(previewer)
+  \    || !luis#_validate_hook(hook)
     return 0
   endif
 
@@ -489,7 +453,7 @@ function! luis#preview_candidate(session) abort
         let lines = readfile(path, '', bounds.height + 1)
         let hints = s:preview_hints_from_candidate(candidate)
         if !has_key(hints, 'filetype')
-          let filetype = luis#detect_filetype(path, lines)
+          let filetype = luis#_detect_filetype(path, lines)
           if filetype != ''
             let hints.filetype = filetype
           endif
@@ -557,15 +521,51 @@ function! luis#take_action(session, action_name) abort
   return 1
 endfunction
 
-function! luis#validate_comparer(comparer) abort
+function! luis#_detect_filetype(path, lines) abort
+  if has('nvim')
+    let _ =<< trim END
+    vim.filetype.match({
+      filename = vim.api.nvim_eval('a:path'),
+      contents = vim.api.nvim_eval('a:lines'),
+    }) or ''
+END
+    return luaeval(join(_, ''))
+  elseif exists('*popup_create')
+    let temp_win = popup_create(a:lines, { 'hidden': 1 })
+    let temp_bufnr = winbufnr(temp_win)
+    try
+      let command = 'doautocmd <nomodeline> filetypedetect BufNewFile '
+      \           . fnameescape(a:path)
+      call win_execute(temp_win, command)
+      return getbufvar(temp_bufnr, '&filetype')
+    finally
+      call popup_close(temp_win)
+    endtry
+  else
+    let original_lazyredraw = &lazyredraw
+    set lazyredraw
+    noautocmd new
+    setlocal buftype=nofile noswapfile bufhidden=wipe nobuflisted undolevels=-1
+    try
+      execute 'doautocmd <nomodeline> filetypedetect BufNewFile'
+      \       fnameescape(a:path)
+      return &filetype
+    finally
+      noautocmd close
+      let &lazyredraw = original_lazyredraw
+    endtry
+  endif
+endfunction
+
+function! luis#_validate_comparer(comparer) abort
   return s:do_validate(s:SCHEMA_COMPARER, a:comparer, 'Comparer')
 endfunction
 
-function! luis#validate_hook(hook) abort
+function! luis#_validate_hook(hook) abort
   return s:do_validate(s:SCHEMA_HOOK, a:hook, 'UI')
 endfunction
 
-function! luis#validate_kind(kind) abort
+function! luis#_validate_kind(kind) abort
   if !s:do_validate(s:SCHEMA_KIND, a:kind, 'Kind')
     return 0
   endif
@@ -583,19 +583,19 @@ function! luis#validate_kind(kind) abort
   return 1
 endfunction
 
-function! luis#validate_matcher(matcher) abort
+function! luis#_validate_matcher(matcher) abort
   return s:do_validate(s:SCHEMA_MATCHER, a:matcher, 'Matcher')
 endfunction
 
-function! luis#validate_previewer(previewer) abort
+function! luis#_validate_previewer(previewer) abort
   return s:do_validate(s:SCHEMA_PREVIEWER, a:previewer, 'Preview')
 endfunction
 
-function! luis#validate_source(source) abort
+function! luis#_validate_source(source) abort
   return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
 endfunction
 
-function! luis#validate_ui(ui) abort
+function! luis#_validate_ui(ui) abort
   return s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
 endfunction
 

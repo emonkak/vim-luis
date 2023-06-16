@@ -88,6 +88,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#local_mark#new(123)
-  call assert_true(luis#validate_source(source))
+  call assert_true(luis#_validate_source(source))
   call assert_equal('local_mark', source.name)
 endfunction

@@ -5,7 +5,7 @@ endfunction
 
 function! s:test_definition() abort
   let previewer = luis#previewer#null#import()
-  call assert_true(luis#validate_previewer(previewer))
+  call assert_true(luis#_validate_previewer(previewer))
 endfunction
 
 function! s:test_bounds() abort

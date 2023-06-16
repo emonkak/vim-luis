@@ -29,6 +29,6 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#validate_kind(s:kind))
+  call assert_true(luis#_validate_kind(s:kind))
   call assert_equal('text', s:kind.name)
 endfunction

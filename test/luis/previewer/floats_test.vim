@@ -1,6 +1,6 @@
 function! s:test_definition() abort
   let previewer = luis#previewer#floats#new()
-  call assert_true(luis#validate_previewer(previewer))
+  call assert_true(luis#_validate_previewer(previewer))
 endfunction
 
 function! s:test_open_text__after_unload_open_buffer() abort

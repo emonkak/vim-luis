@@ -155,11 +155,11 @@ endfunction
 function! s:test_detect_filetype() abort
   silent filetype on
   try
-    call assert_equal('', luis#detect_filetype('foo', []))
-    call assert_equal('c', luis#detect_filetype('foo.c', []))
-    call assert_equal('javascript', luis#detect_filetype('foo.js', []))
-    call assert_equal('vim', luis#detect_filetype('foo.vim', []))
-    call assert_equal('html', luis#detect_filetype('foo.html', ['<!DOCTYPE html>']))
+    call assert_equal('', luis#_detect_filetype('foo', []))
+    call assert_equal('c', luis#_detect_filetype('foo.c', []))
+    call assert_equal('javascript', luis#_detect_filetype('foo.js', []))
+    call assert_equal('vim', luis#_detect_filetype('foo.vim', []))
+    call assert_equal('html', luis#_detect_filetype('foo.html', ['<!DOCTYPE html>']))
   finally
     filetype off
   endtry
