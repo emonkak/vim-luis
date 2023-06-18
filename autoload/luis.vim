@@ -12,7 +12,7 @@ if !exists('g:luis#default_previewer')
   let g:luis#default_previewer = exists('*popup_create')
   \                            ? luis#previewer#popup#new()
   \                            : exists('*nvim_open_win')
-  \                            ? luis#previewer#floats#new()
+  \                            ? luis#previewer#float#new()
   \                            : luis#previewer#null#import()
 endif
 

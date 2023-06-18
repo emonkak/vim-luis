@@ -1,4 +1,4 @@
-function! luis#previewer#floats#new(...) abort
+function! luis#previewer#float#new(...) abort
   let previewer = copy(s:Previewer)
   let previewer.float_config = get(a:000, 0, {})
   let previewer.preview_bufnr = -1

@@ -1,5 +1,5 @@
 function! s:test_definition() abort
-  let previewer = luis#previewer#floats#new()
+  let previewer = luis#previewer#float#new()
   call assert_true(luis#_validate_previewer(previewer))
 endfunction
 
@@ -8,7 +8,7 @@ function! s:test_open_text__after_unload_open_buffer() abort
     return 'nvim_open_win() function is required.'
   endif
 
-  let previewer = luis#previewer#floats#new()
+  let previewer = luis#previewer#float#new()
   call assert_false(previewer.is_active())
 
   let lines = ['foo', 'bar', 'baz']
@@ -54,7 +54,7 @@ function! s:test_open_text__open_twice() abort
     return 'nvim_open_win() function is required.'
   endif
 
-  let previewer = luis#previewer#floats#new()
+  let previewer = luis#previewer#float#new()
   call assert_false(previewer.is_active())
 
   let lines = ['foo', 'bar', 'baz']
@@ -107,7 +107,7 @@ function! s:test_preview_buffer__preview_twice() abort
   let bufnr_2 = bufnr('%')
 
   try
-    let previewer = luis#previewer#floats#new()
+    let previewer = luis#previewer#float#new()
     call assert_false(previewer.is_active())
 
     let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
