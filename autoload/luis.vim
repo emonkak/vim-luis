@@ -1,3 +1,5 @@
+silent doautocmd <nomodeline> User LuisInit
+
 if !exists('g:luis#default_comparer')
   let g:luis#default_comparer = luis#comparer#default#import()
 endif
