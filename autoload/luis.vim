@@ -26,7 +26,7 @@ endif
 
 let s:SCHEMA_UI = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'current_pattern': {
 \       'type': v:t_func,
 \     },
@@ -57,7 +57,7 @@ let s:SCHEMA_UI = {
 
 let s:SCHEMA_KIND = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'name': {
 \       'type': v:t_string,
 \     },
@@ -76,15 +76,15 @@ let s:SCHEMA_KIND = {
 \   },
 \ }
 
-let s:SCHEMA_KIND.properties.prototype = {
+let s:SCHEMA_KIND.attributes.prototype = {
 \   'type': 'struct',
-\   'properties': s:SCHEMA_KIND.properties,
+\   'attributes': s:SCHEMA_KIND.attributes,
 \   'optional': 1,
 \ }
 
 let s:SCHEMA_MATCHER = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'filter_candidates': {
 \       'type': v:t_func,
 \     },
@@ -100,7 +100,7 @@ let s:SCHEMA_MATCHER = {
 
 let s:SCHEMA_COMPARER = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'compare_candidates': {
 \       'type': v:t_func,
 \     },
@@ -113,7 +113,7 @@ let s:SCHEMA_COMPARER = {
 
 let s:SCHEMA_SOURCE = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'name': {
 \       'type': v:t_string,
 \     },
@@ -152,7 +152,7 @@ let s:SCHEMA_SOURCE = {
 
 let s:SCHEMA_HOOK = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'normalize_candidate': {
 \       'type': v:t_func,
 \       'optional': 1,
@@ -174,7 +174,7 @@ let s:SCHEMA_HOOK = {
 
 let s:SCHEMA_PREVIEWER = {
 \   'type': 'struct',
-\   'properties': {
+\   'attributes': {
 \     'close': {
 \       'type': v:t_func,
 \     },

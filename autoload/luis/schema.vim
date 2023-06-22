@@ -28,11 +28,11 @@ function! luis#schema#to_string(schema) abort
   elseif a:schema.type ==# s:TYPE_LIST
     let s = 'List<' . luis#schema#to_string(a:schema.item) . '>'
   elseif a:schema.type ==# s:TYPE_STRUCT
-    let props = []
-    for [key, schema] in items(a:schema.properties)
-      call add(props, string(key) . ': ' . luis#schema#to_string(schema))
+    let attributes = []
+    for [key, schema] in items(a:schema.attributes)
+      call add(attributes, string(key) . ': ' . luis#schema#to_string(schema))
     endfor
-    let s = '{' . join(props, ', ') . '}'
+    let s = '{' . join(attributes, ', ') . '}'
   elseif a:schema.type ==# s:TYPE_UNION
     let s = 'Union<'
     \      . join(map(copy(a:schema.variants),
@@ -90,7 +90,7 @@ function! s:validate(schema, value, path, errors) abort
       return 0
     endif
     let success = 1
-    for [K, V] in items(a:schema.properties)
+    for [K, V] in items(a:schema.attributes)
       let path = a:path . (a:path[-1:] != '.' ? '.' : '') . K
       if has_key(a:value, K)
         if !s:validate(V, a:value[K], path, a:errors)

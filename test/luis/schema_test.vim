@@ -126,7 +126,7 @@ endfunction
 function! s:test_validate__struct() abort
   let schema = {
   \   'type': 'struct',
-  \   'properties': {
+  \   'attributes': {
   \     'foo': { 'type': v:t_number },
   \     'bar': { 'type': v:t_number, 'optional': 1 },
   \     'baz': { 'type': v:t_string },
@@ -291,12 +291,12 @@ function! s:test_to_string() abort
 
   let schema = {
   \   'type': 'struct',
-  \   'properties': {
+  \   'attributes': {
   \     'foo': { 'type': v:t_number },
   \     'bar': { 'type': v:t_string, 'optional': 1 },
   \   },
   \ }
-  if keys(schema.properties)[0] ==# 'foo'
+  if keys(schema.attributes)[0] ==# 'foo'
     call s:do_test_to_string("{'foo': Number, 'bar': String?}", schema)
   else
     call s:do_test_to_string("{'bar': String?, 'foo': Number}", schema)
