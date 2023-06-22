@@ -859,6 +859,4 @@ function! s:start_session(session) abort
   if has_key(a:session.source, 'on_source_enter')
     call a:session.source.on_source_enter(context)
   endif
-
-  return 1
 endfunction
