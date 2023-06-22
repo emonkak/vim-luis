@@ -169,6 +169,10 @@ let s:SCHEMA_HOOK = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
+\     'on_preview': {
+\       'type': v:t_func,
+\       'optional': 1,
+\     },
 \   },
 \ }
 
