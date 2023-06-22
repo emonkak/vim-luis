@@ -6,6 +6,10 @@ function! s:action_open(candidate, context) abort
   return s:do_command('argument', a:candidate)
 endfunction
 
+function! s:action_open_x(candidate, context) abort
+  return s:do_command('argument!', a:candidate)
+endfunction
+
 function! s:action_argdelete(candidate, context) abort
   return s:do_command('argdelete', a:candidate)
 endfunction
@@ -26,6 +30,7 @@ let s:Kind = {
 \   'name': 'argument',
 \   'action_table': {
 \     'open': function('s:action_open'),
+\     'open!': function('s:action_open_x'),
 \     'argdelete': function('s:action_argdelete'),
 \   },
 \   'key_table': {
