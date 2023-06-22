@@ -3,12 +3,12 @@ function! luis#kind#jumplist#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  if !has_key(a:candidate.user_data, 'jumplist_location')
-    return 'No location chosen'
+  if !has_key(a:candidate.user_data, 'jumplist_index')
+    return 'No jumplist chosen'
   endif
-  let location = a:candidate.user_data.jumplist_location
-  let current_location = getjumplist()[1]
-  let offset = location - current_location
+  let index = a:candidate.user_data.jumplist_index
+  let current_index = getjumplist()[1]
+  let offset = index - current_index
   let v:errmsg = ''
   if offset < 0
     silent! execute 'normal!' (-offset . "\<C-o>")

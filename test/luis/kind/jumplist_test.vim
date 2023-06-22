@@ -22,7 +22,7 @@ function! s:test_action_open() abort
   try
     let candidate = {
     \   'user_data': {
-    \     'jumplist_location': 4,
+    \     'jumplist_index': 4,
     \   },
     \ }
     let _ = Action(candidate, {})
@@ -31,7 +31,7 @@ function! s:test_action_open() abort
 
     let candidate = {
     \   'user_data': {
-    \     'jumplist_location': 2,
+    \     'jumplist_index': 2,
     \   },
     \ }
     let _ = Action(candidate, {})
@@ -40,7 +40,7 @@ function! s:test_action_open() abort
 
     let candidate = {
     \   'user_data': {
-    \     'jumplist_location': 0,
+    \     'jumplist_index': 0,
     \   },
     \ }
     let _ = Action(candidate, {})
@@ -49,7 +49,7 @@ function! s:test_action_open() abort
 
     let candidate = {
     \   'user_data': {
-    \     'jumplist_location': 3,
+    \     'jumplist_index': 3,
     \   },
     \ }
     let _ = Action(candidate, {})

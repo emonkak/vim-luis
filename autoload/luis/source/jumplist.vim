@@ -28,7 +28,7 @@ function! s:Source.on_source_enter(context) abort dict
     \   'user_data': {
     \     'buffer_nr': location.bufnr,
     \     'buffer_cursor': [location.lnum, location.col],
-    \     'jumplist_location': i,
+    \     'jumplist_index': i,
     \     'preview_bufnr': location.bufnr,
     \     'preview_cursor': [location.lnum, location.col],
     \   },

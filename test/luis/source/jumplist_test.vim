@@ -32,7 +32,7 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'buffer_cursor': [1, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_location': 0,
+    \       'jumplist_index': 0,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [1, 0],
     \     },
@@ -46,7 +46,7 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'buffer_cursor': [2, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_location': 1,
+    \       'jumplist_index': 1,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [2, 0],
     \     },
@@ -60,7 +60,7 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'buffer_cursor': [4, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_location': 2,
+    \       'jumplist_index': 2,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [4, 0],
     \     },
@@ -74,7 +74,7 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'buffer_nr': bufnr,
     \       'buffer_cursor': [8, 0],
-    \       'jumplist_location': 3,
+    \       'jumplist_index': 3,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [8, 0],
     \     },
@@ -88,7 +88,7 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'buffer_nr': bufnr,
     \       'buffer_cursor': [10, 0],
-    \       'jumplist_location': 4,
+    \       'jumplist_index': 4,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [10, 0],
     \     },
