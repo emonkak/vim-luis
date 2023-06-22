@@ -44,7 +44,7 @@ function! s:test_action_open__cmd_history() abort
   \ }
   let _ = Action(candidate, {})
   call assert_equal(0, _)
-  call assert_equal(':vim', s:consume_keys())
+  call assert_equal(": vim\<C-b>", s:consume_keys())
 endfunction
 
 function! s:test_action_open__search_history() abort

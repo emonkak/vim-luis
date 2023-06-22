@@ -8,7 +8,7 @@ function! s:action_open(candidate, context) abort
   endif
   let history_name = a:candidate.user_data.history_name
   if history_name ==# 'cmd'
-    call feedkeys(':' . a:candidate.word, 'n')
+    call feedkeys(printf(": %s\<C-b>", fnameescape(a:candidate.word)), 'n')
   elseif history_name ==# 'search'
     call feedkeys('/' . a:candidate.word, 'n')
   elseif history_name ==# 'expr'
@@ -25,7 +25,7 @@ function! s:action_open_x(candidate, context) abort
   endif
   let history_name = a:candidate.user_data.history_name
   if history_name ==# 'cmd'
-    call feedkeys(':' . a:candidate.word, 'n')
+    call feedkeys(':' . fnameescape(a:candidate.word), 'n')
   elseif history_name ==# 'search'
     call feedkeys('?' . a:candidate.word, 'n')
   elseif history_name ==# 'expr'
