@@ -11,7 +11,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
     \   'stridx(v:val.word, a:context.pattern) >= 0'
     \ )
   else
-    return a:candidates
+    return copy(a:candidates)
   endif
 endfunction
 

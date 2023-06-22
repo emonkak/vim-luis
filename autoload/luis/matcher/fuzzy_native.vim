@@ -11,7 +11,7 @@ function! s:Matcher.filter_candidates(candidates, context) abort dict
     let a:context._match_positions = positions
     let a:context._match_scores = scores
   else
-    let candidates = a:candidates
+    let candidates = copy(a:candidates)
     let a:context._match_positions = []
     let a:context._match_scores = []
   endif
