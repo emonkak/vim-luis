@@ -464,14 +464,16 @@ function! luis#preview_candidate(session) abort
         \   hints
         \ )
         return 1
-      catch /\<E484:/
-        call previewer.close()
-        return 0
+      catch /\<E\(484\|485\):/
+        " Ignore an error for file reading.
       endtry
     endif
   endif
 
-  call previewer.close()
+  if previewer.is_active()
+    call previewer.close()
+  endif
+
   return 0
 endfunction
 
@@ -815,7 +817,9 @@ function! s:quit_session(session) abort
     call a:session.hook.on_source_leave(context)
   endif
 
-  call a:session.previewer.close()
+  if a:session.previewer.is_active()
+    call a:session.previewer.close()
+  endif
 
   call a:session.ui.quit()
 endfunction

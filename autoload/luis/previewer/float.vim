@@ -9,10 +9,8 @@ endfunction
 let s:Previewer = {}
 
 function! s:Previewer.close() abort dict
-  if s:is_valid_window(self.window)
-    call nvim_win_close(self.window, v:true)
-    let self.window = -1
-  endif
+  call nvim_win_close(self.window, v:true)
+  let self.window = -1
 endfunction
 
 function! s:Previewer.bounds() abort dict

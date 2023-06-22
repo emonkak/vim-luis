@@ -27,10 +27,8 @@ function! s:Previewer.bounds() abort dict
 endfunction
 
 function! s:Previewer.close() abort dict
-  if s:is_valid_window(self.window)
-    call popup_close(self.window)
-    let self.window = -1
-  endif
+  call popup_close(self.window)
+  let self.window = -1
 endfunction
 
 function! s:Previewer.is_active() abort dict
