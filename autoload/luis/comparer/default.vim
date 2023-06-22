@@ -1,4 +1,4 @@
-function! luis#comparer#default_case#import() abort
+function! luis#comparer#default#import() abort
   return s:Comparer
 endfunction
 

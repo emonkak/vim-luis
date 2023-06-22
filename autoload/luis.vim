@@ -1,5 +1,5 @@
 if !exists('g:luis#default_comparer')
-  let g:luis#default_comparer = luis#comparer#default_case#import()
+  let g:luis#default_comparer = luis#comparer#default#import()
 endif
 
 if !exists('g:luis#default_matcher')
