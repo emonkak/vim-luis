@@ -4,7 +4,7 @@ let s:BORDER_UNICODE = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
 
 function! luis#previewer#popup#new(...) abort
   let previewer = copy(s:Previewer)
-  let previewer.popup_config = get(a:000, 0, {})
+  let previewer.options = get(a:000, 0, {})
   let previewer.preview_bufnr = -1
   let previewer.window = -1
   return previewer
@@ -44,7 +44,7 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   \   a:bufnr,
   \   a:bounds,
   \   a:hints,
-  \   self.popup_config
+  \   self.options
   \ )
 
   if has_key(a:hints, 'cursor')
@@ -75,7 +75,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
       \   self.preview_bufnr,
       \   a:bounds,
       \   a:hints,
-      \   self.popup_config
+      \   self.options
       \ )
     endif
   else
@@ -83,7 +83,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \   self.preview_bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.popup_config
+    \   self.options
     \ )
   endif
 
@@ -106,7 +106,7 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && win_gettype(a:win) !=# 'unknown'
 endfunction
 
-function! s:open_window(bufnr, bounds, hints, override_config) abort
+function! s:open_window(bufnr, bounds, hints, options) abort
   let config = {
   \   'border': [],
   \   'borderchars': &ambiwidth ==# 'double'
@@ -115,8 +115,6 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   \   'borderhighlight': ['VertSplit'],
   \   'scrollbar': 0,
   \ }
-
-  call extend(config, a:override_config, 'force')
 
   if has_key(a:hints, 'title')
     let config.title = a:hints.title
@@ -129,12 +127,25 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config.maxwidth = a:bounds.width
   let config.maxheight = a:bounds.height
 
-  let window = popup_create(a:bufnr, config)
+  if has_key(a:options, 'popup_config')
+    call extend(config, a:options.popup_config, 'force')
+  endif
 
-  call setwinvar(window, '&foldenable', 0)
-  call setwinvar(window, '&scrolloff', 0)
-  call setwinvar(window, '&signcolumn', 'no')
-  call setwinvar(window, '&wincolor', 'Normal')
+  let window = popup_create(a:bufnr, config)
+  let options = {
+  \   'foldenable': 0,
+  \   'scrolloff': 0,
+  \   'signcolumn': 'no',
+  \   'wincolor': 'Normal',
+  \ }
+
+  if has_key(a:options, 'window_options')
+    call extend(options, a:options.window_options, 'force')
+  endif
+
+  for [key, value] in items(options)
+    call setwinvar(window, '&' . key, value)
+  endfor
 
   return window
 endfunction

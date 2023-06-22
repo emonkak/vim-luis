@@ -1,6 +1,6 @@
 function! luis#previewer#float#new(...) abort
   let previewer = copy(s:Previewer)
-  let previewer.float_config = get(a:000, 0, {})
+  let previewer.options = get(a:000, 0, {})
   let previewer.preview_bufnr = -1
   let previewer.window = -1
   return previewer
@@ -37,7 +37,7 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
     \   a:bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.float_config
+    \   self.options
     \ )
   endif
 
@@ -67,7 +67,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \   self.preview_bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.float_config
+    \   self.options
     \ )
   endif
 
@@ -88,14 +88,12 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && nvim_win_is_valid(a:win)
 endfunction
 
-function! s:open_window(bufnr, bounds, hints, override_config) abort
+function! s:open_window(bufnr, bounds, hints, options) abort
   let config = {
   \    'border': 'single',
   \    'focusable': 0,
   \    'style': 'minimal',
   \ }
-
-  call extend(config, a:override_config, 'force')
 
   if has_key(a:hints, 'title')
     let config.title = a:hints.title
@@ -108,11 +106,20 @@ function! s:open_window(bufnr, bounds, hints, override_config) abort
   let config.width = a:bounds.width
   let config.height = a:bounds.height
 
-  let window = nvim_open_win(a:bufnr, v:false, config)
+  if has_key(a:options, 'window_config')
+    call extend(config, a:options.window_config, 'force')
+  endif
 
-  call nvim_win_set_option(window, 'foldenable', v:false)
-  call nvim_win_set_option(window, 'scrolloff', 0)
-  call nvim_win_set_option(window, 'signcolumn', 'no')
+  let window = nvim_open_win(a:bufnr, v:false, config)
+  let options = { 'foldenable': v:false, 'scrolloff': 0, 'signcolumn': 'no' }
+
+  if has_key(a:options, 'window_options')
+    call extend(options, a:options.window_options, 'force')
+  endif
+  
+  for [key, value] in items(options)
+    call nvim_win_set_option(window, key, value)
+  endfor
 
   return window
 endfunction
