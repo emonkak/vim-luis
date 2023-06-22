@@ -1,25 +1,5 @@
 let s:kind = luis#kind#register#import()
 
-function! s:test_action_Put() abort
-  call s:do_test_put(['foo'], 'Put', 'a', 'foo', 'c')
-  call s:do_test_put(['foo', ''], 'Put', 'a', 'foo', 'l')
-endfunction
-
-function! s:test_action_put() abort
-  call s:do_test_put(['foo'], 'put', 'a', 'foo', 'c')
-  call s:do_test_put(['foo'], 'default', 'a', 'foo', 'c')
-  call s:do_test_put(['', 'foo'], 'put', 'a', 'foo', 'l')
-  call s:do_test_put(['', 'foo'], 'default', 'a', 'foo', 'l')
-endfunction
-
-function! s:test_action_put__no_register() abort
-  for action_name in ['put', 'default']
-    let Action = s:kind.action_table[action_name]
-    let _ = Action({ 'word': '', 'user_data': {} }, {})
-    call assert_equal('No register chosen', _)
-  endfor
-endfunction
-
 function! s:test_action_delete() abort
   enew
   let bufnr = bufnr('%')
@@ -39,6 +19,22 @@ function! s:test_action_delete() abort
   finally
     execute bufnr 'bwipeout!' 
   endtry
+endfunction
+
+function! s:test_action_open() abort
+  call s:do_test_put(['foo'], 'open', 'a', 'foo', 'c')
+  call s:do_test_put(['', 'foo'], 'open', 'a', 'foo', 'l')
+endfunction
+
+function! s:test_action_open__with_no_register() abort
+  let Action = s:kind.action_table.open
+  let _ = Action({ 'word': '', 'user_data': {} }, {})
+  call assert_equal('No register chosen', _)
+endfunction
+
+function! s:test_action_open_x() abort
+  call s:do_test_put(['foo'], 'open!', 'a', 'foo', 'c')
+  call s:do_test_put(['foo', ''], 'open!', 'a', 'foo', 'l')
 endfunction
 
 function! s:test_kind_definition() abort
