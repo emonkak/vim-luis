@@ -363,8 +363,8 @@ function! s:keys_to_complete(session) abort
     if !ui.is_inserted_by_acc
     \  && ui.selected_index == -1
     \  && len(s:PROMPT) + 2 <= len(line)
-    \  && has_key(a:session.source, 'is_special_char')
-    \  && a:session.source.is_special_char(sep)
+    \  && has_key(a:session.source, 'is_component_separator')
+    \  && a:session.source.is_component_separator(sep)
       " (1) The last inserted character is not inserted by ACC.
       " (2) The selected item does not exist.
       " (3) It seems not to be the 1st one in line.
@@ -418,9 +418,9 @@ function! s:keys_to_delete_backward_component(session) abort
   "     ^^^^
   let line = getline('.')
   if len(line) < col('.')
-    if has_key(a:session.source, 'is_special_char')
+    if has_key(a:session.source, 'is_component_separator')
       for i in range(len(line) - 2, 0, -1)
-        if a:session.source.is_special_char(line[i:i])
+        if a:session.source.is_component_separator(line[i:i])
           let num_chars = strchars(line[i + 1:])
           return (pumvisible() ? "\<C-y>" : '') . repeat("\<BS>", num_chars)
         endif

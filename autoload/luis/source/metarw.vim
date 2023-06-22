@@ -28,7 +28,7 @@ function! s:Source.gather_candidates(context) abort dict
   return candidates
 endfunction
 
-function! s:Source.is_special_char(char) abort dict
+function! s:Source.is_component_separator(char) abort dict
   return a:char == s:path_separator() || a:char == ':'
 endfunction
 

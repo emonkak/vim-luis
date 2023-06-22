@@ -459,12 +459,12 @@ function! s:test_gather_candidates__with_home() abort
   endtry
 endfunction
 
-function! s:test_is_special_char() abort
+function! s:test_is_component_separator() abort
   let source = luis#source#file#new()
   let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
 
-  call assert_true(source.is_special_char(separator))
-  call assert_false(source.is_special_char('A'))
+  call assert_true(source.is_component_separator(separator))
+  call assert_false(source.is_component_separator('A'))
 endfunction
 
 function! s:test_is_valid_for_acc() abort

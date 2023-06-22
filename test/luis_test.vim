@@ -728,7 +728,10 @@ function! s:test_take_action__choose_action() abort
   silent call assert_true(luis#take_action(session, ''))
   call assert_equal(0, getchar(0))
 
-  let expected_context = { 'kind': kind, 'session': session }
+  let expected_context = {
+  \   'kind': kind,
+  \   'session': session,
+  \ }
 
   call assert_equal(1, ui_spies.quit.call_count())
 
@@ -780,7 +783,10 @@ function! s:test_take_action__do_default_action() abort
 
   silent call assert_true(luis#take_action(session, 'default'))
 
-  let expected_context = { 'kind': kind, 'session': session }
+  let expected_context = {
+  \   'kind': kind,
+  \   'session': session,
+  \ }
 
   call assert_equal(1, ui_spies.quit.call_count())
 
@@ -830,7 +836,10 @@ function! s:test_take_action__no_such_action() abort
   silent call assert_false(luis#take_action(session, 'XXX'))
   redir END
 
-  let expected_context = { 'kind': source.default_kind, 'session': session }
+  let expected_context = {
+  \   'kind': source.default_kind,
+  \   'session': session,
+  \ }
 
   call assert_match("No such action: 'XXX'", OUTPUT)
 
@@ -885,7 +894,10 @@ function! s:test_take_action__with_candidate_kind() abort
 
   silent call assert_true(luis#take_action(session, 'default'))
 
-  let expected_context = { 'kind': kind, 'session': session }
+  let expected_context = {
+  \   'kind': kind,
+  \   'session': session,
+  \ }
 
   call assert_equal(1, ui_spies.quit.call_count())
 

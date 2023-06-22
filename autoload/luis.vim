@@ -133,7 +133,7 @@ let s:SCHEMA_SOURCE = {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
-\     'is_special_char': {
+\     'is_component_separator': {
 \       'type': v:t_func,
 \       'optional': 1,
 \     },
@@ -527,7 +527,10 @@ function! luis#take_action(session, action_name) abort
     return 0
   endif
 
-  let context = { 'kind': kind, 'session': a:session }
+  let context = {
+  \   'kind': kind,
+  \   'session': a:session,
+  \ }
 
   if has_key(a:session.source, 'on_action')
     call a:session.source.on_action(candidate, context)

@@ -68,14 +68,14 @@ function! s:test_on_action() abort
   \ }, candidate)
 endfunction
 
-function! s:test_is_special_char() abort
+function! s:test_is_component_separator() abort
   let scheme = 'dummy'
   let source = luis#source#metarw#new(scheme)
   let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
 
-  call assert_true(source.is_special_char(separator))
-  call assert_true(source.is_special_char(':'))
-  call assert_false(source.is_special_char('A'))
+  call assert_true(source.is_component_separator(separator))
+  call assert_true(source.is_component_separator(':'))
+  call assert_false(source.is_component_separator('A'))
 endfunction
 
 function! s:test_source_definition() abort
