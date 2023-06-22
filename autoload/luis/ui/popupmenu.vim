@@ -86,6 +86,15 @@ endfunction
 
 let s:UI = {}
 
+function! s:UI.current_pattern() abort dict
+  let current_pattern_raw = getline(s:LNUM_PATTERN)
+  if self.selected_index >= 0
+    return current_pattern_raw
+  else
+    return s:remove_prompt(current_pattern_raw)
+  endif
+endfunction
+
 function! s:UI.guess_candidate() abort dict
   if get(v:completed_item, 'user_data', '') isnot ''
     return s:clone_candidate(v:completed_item)
@@ -108,12 +117,8 @@ function! s:UI.guess_candidate() abort dict
     endif
   endif
 
-  " There is no candidate -- user seems to want to take action on
-  " current_pattern_raw with fake sources.
-  return {
-  \   'word': s:remove_prompt(current_pattern_raw),
-  \   'user_data': {},
-  \ }
+  " There is no candidate.
+  return 0
 endfunction
 
 function! s:UI.is_active() abort dict

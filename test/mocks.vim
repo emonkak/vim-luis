@@ -10,7 +10,8 @@ endfunction
 function! CreateMockUI(...) abort
   let overrides = get(a:000, 0, {})
   return {
-  \   'guess_candidate': { -> get(overrides, 'candidate', {}) },
+  \   'current_pattern': { -> get(overrides, 'pattern', '') },
+  \   'guess_candidate': { -> get(overrides, 'candidate', 0) },
   \   'preview_bounds': { -> get(overrides, 'preview_bounds', {
   \     'row': 0,
   \     'col': 0,

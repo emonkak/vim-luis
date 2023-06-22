@@ -27,6 +27,12 @@ endif
 let s:SCHEMA_UI = {
 \   'type': 'struct',
 \   'properties': {
+\     'current_pattern': {
+\       'type': v:t_func,
+\     },
+\     'guess_candidate': {
+\       'type': v:t_func,
+\     },
 \     'is_active': {
 \       'type': v:t_func,
 \     },
@@ -406,8 +412,12 @@ function! luis#new_session(source, ...) abort
 endfunction
 
 function! luis#preview_candidate(session) abort
-  let previewer = a:session.previewer
   let candidate = a:session.ui.guess_candidate()
+  if candidate is 0
+    return 0
+  endif
+
+  let previewer = a:session.previewer
   let context = { 'session': a:session }
 
   if has_key(a:session.source, 'on_preview')
@@ -505,6 +515,15 @@ endfunction
 
 function! luis#take_action(session, action_name) abort
   let candidate = a:session.ui.guess_candidate()
+
+  if candidate is 0
+    " Make a ad-hoc candidate based on the current pattern.
+    let current_pattern = a:session.ui.current_pattern()
+    let candidate = {
+    \   'word': current_pattern,
+    \   'user_data': {},
+    \ }
+  endif
 
   " Close the UI window, because some kind of actions does something on the
   " current buffer/window and user expects that such actions do something on

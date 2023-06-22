@@ -1,7 +1,7 @@
 silent runtime! test/mocks.vim
 silent runtime! test/spy.vim
 
-function! s:test_guess_candidate__from_completed_item() abort
+function! s:test_guess_candidate__returns_completed_item() abort
   let v:errmsg = ''
   silent! let v:completed_item = {}
   if v:errmsg =~# '^E46:'
@@ -34,7 +34,7 @@ function! s:test_guess_candidate__from_completed_item() abort
   let v:completed_item = {}
 endfunction
 
-function! s:test_guess_candidate__from_first_candidate() abort
+function! s:test_guess_candidate__returns_first_candidate() abort
   if !has('ttyin') || !has('ttyout')
     return 'TTY is required.'
   endif
@@ -89,7 +89,7 @@ function! s:test_guess_candidate__from_first_candidate() abort
   endtry
 endfunction
 
-function! s:test_guess_candidate__from_selected_candidate() abort
+function! s:test_guess_candidate__returns_selected_candidate() abort
   if !has('ttyin') || !has('ttyout')
     return 'TTY is required.'
   endif
@@ -131,6 +131,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
     let candidate = ui.guess_candidate()
     call assert_equal(ui.last_candidates[1], candidate)
     call assert_true(ui.last_candidates[1] isnot candidate)
+    call assert_equal('bar', ui.current_pattern())
 
     call ui.quit()
 
@@ -144,7 +145,7 @@ function! s:test_guess_candidate__from_selected_candidate() abort
   endtry
 endfunction
 
-function! s:test_guess_candidate__from_default_candidate() abort
+function! s:test_guess_candidate__returns_no_candidate() abort
   if !has('ttyin') || !has('ttyout')
     return 'TTY is required.'
   endif
@@ -180,7 +181,8 @@ function! s:test_guess_candidate__from_default_candidate() abort
     let ui.last_pattern_raw = '>VIM'
     call setline(line('.'), '>VIM')
 
-    call assert_equal({ 'word': 'VIM', 'user_data': {} }, ui.guess_candidate())
+    call assert_equal(0, ui.guess_candidate())
+    call assert_equal('VIM', ui.current_pattern())
 
     call ui.quit()
 
