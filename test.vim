@@ -5,8 +5,8 @@ function! s:run(package_dir) abort
 
   let args = filter(getline(1, line('$')), 'v:val != ""')
 
-  %argdelete
-  %bwipeout!
+  silent! %argdelete
+  silent! %bwipeout!
 
   let &runtimepath .= ',' . a:package_dir
   let &packpath .= ',' . a:package_dir

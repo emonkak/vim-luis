@@ -247,7 +247,7 @@ function! s:test_action_cancel() abort
 endfunction
 
 function! s:test_action_ex() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 

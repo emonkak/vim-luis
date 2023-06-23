@@ -35,7 +35,7 @@ function! s:test_guess_candidate__returns_completed_item() abort
 endfunction
 
 function! s:test_guess_candidate__returns_first_candidate() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -90,7 +90,7 @@ function! s:test_guess_candidate__returns_first_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__returns_selected_candidate() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -146,7 +146,7 @@ function! s:test_guess_candidate__returns_selected_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__returns_no_candidate() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -197,7 +197,7 @@ function! s:test_guess_candidate__returns_no_candidate() abort
 endfunction
 
 function! s:test_refresh_candidates() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -253,7 +253,7 @@ function! s:test_refresh_candidates() abort
 endfunction
 
 function! s:test_start__without_initial_pattern() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -335,7 +335,7 @@ function! s:test_start__without_initial_pattern() abort
 endfunction
 
 function! s:test_start__with_initial_pattern() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 

@@ -659,7 +659,7 @@ function! s:test_start__with_inactive_ui() abort
 endfunction
 
 function! s:test_take_action__with_choose_action() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -724,7 +724,7 @@ function! s:test_take_action__with_choose_action() abort
 endfunction
 
 function! s:test_take_action__with_kind() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -786,7 +786,7 @@ function! s:test_take_action__with_kind() abort
 endfunction
 
 function! s:test_take_action__with_ad_hoc_candidate() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -853,7 +853,7 @@ function! s:test_take_action__with_ad_hoc_candidate() abort
 endfunction
 
 function! s:test_take_action__with_no_such_action() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 

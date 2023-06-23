@@ -33,7 +33,7 @@ function! s:test_action_delete__no_history() abort
 endfunction
 
 function! s:test_action_open__cmd_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -48,7 +48,7 @@ function! s:test_action_open__cmd_history() abort
 endfunction
 
 function! s:test_action_open__search_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -63,7 +63,7 @@ function! s:test_action_open__search_history() abort
 endfunction
 
 function! s:test_action_open__expr_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -106,7 +106,7 @@ function! s:test_action_open__no_history() abort
 endfunction
 
 function! s:test_action_open_x__cmd_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -121,7 +121,7 @@ function! s:test_action_open_x__cmd_history() abort
 endfunction
 
 function! s:test_action_open_x__search_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
@@ -136,7 +136,7 @@ function! s:test_action_open_x__search_history() abort
 endfunction
 
 function! s:test_action_open_x__expr_history() abort
-  if !has('ttyin') || !has('ttyout')
+  if !has('nvim') && !has('ttyin')
     return 'TTY is required.'
   endif
 
