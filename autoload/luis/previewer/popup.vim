@@ -1,6 +1,6 @@
 let s:BORDER_ASCII = ['-', '|', '_', '|', '+', '+', '+', '+']
 
-let s:BORDER_UNICODE = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
+let s:BORDER_UNICODE = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
 
 function! luis#previewer#popup#new(...) abort
   let previewer = copy(s:Previewer)

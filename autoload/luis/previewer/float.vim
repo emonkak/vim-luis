@@ -90,7 +90,7 @@ endfunction
 
 function! s:open_window(bufnr, bounds, hints, options) abort
   let config = {
-  \    'border': 'single',
+  \    'border': 'rounded',
   \    'focusable': 0,
   \    'style': 'minimal',
   \ }
