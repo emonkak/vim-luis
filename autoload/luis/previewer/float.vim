@@ -90,9 +90,9 @@ endfunction
 
 function! s:open_window(bufnr, bounds, hints, options) abort
   let config = {
-  \    'border': 'rounded',
-  \    'focusable': 0,
-  \    'style': 'minimal',
+  \   'border': 'rounded',
+  \   'focusable': 0,
+  \   'style': 'minimal',
   \ }
 
   if has_key(a:hints, 'title')
