@@ -281,7 +281,7 @@ function! s:initialize_ui_buffer(buffer_name) abort
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
     autocmd TextChangedI <buffer>  call s:on_TextChangedI()
-    if exists('#TextChangedP')
+    if exists('##TextChangedP')
       " Enable the ++nested option to allow executing autocmd on the buffer
       " during preview.
       autocmd TextChangedP <buffer> ++nested  call s:on_TextChangedP()
