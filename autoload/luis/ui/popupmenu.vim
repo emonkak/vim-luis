@@ -455,6 +455,7 @@ function! s:on_InsertEnter() abort
 
   let ui = b:luis_session.ui
   let ui.is_inserted_by_acc = 0
+  let ui.last_candidates = []
   let ui.last_column = -1
   let ui.last_pattern_raw = ''
 
