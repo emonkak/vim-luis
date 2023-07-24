@@ -174,7 +174,10 @@ function! s:UI.refresh_candidates() abort dict
 endfunction
 
 function! s:UI.start(session) abort dict
-  " Assumption: a:session.ui is self.
+  if a:session.ui isnot self
+    echoerr 'a:session.ui must be same as self, but got:' string(session.ui)
+    return
+  endif
 
   let self.original_window = win_getid()
 
