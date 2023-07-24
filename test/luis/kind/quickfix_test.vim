@@ -49,7 +49,7 @@ function! s:test_action_open() abort
     call assert_match('^E37:', _)
     call assert_equal(bufnr, bufnr('%'))
   finally
-    silent execute 'bwipeout!' bufnr_A bufnr_B bufnr 
+    silent execute 'bwipeout!' bufnr_A bufnr_B bufnr
     call setqflist([])
     call assert_equal([], getqflist())
   endtry
@@ -92,7 +92,7 @@ function! s:test_action_open_x() abort
     call assert_equal(0, _)
     call assert_equal(bufnr_B, bufnr('%'))
   finally
-    silent execute 'bwipeout!' bufnr_A bufnr_B bufnr 
+    silent execute 'bwipeout!' bufnr_A bufnr_B bufnr
     call setqflist([])
     call assert_equal([], getqflist())
   endtry

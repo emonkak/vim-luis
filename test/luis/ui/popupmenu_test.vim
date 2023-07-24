@@ -85,7 +85,7 @@ function! s:test_guess_candidate__returns_first_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
@@ -141,7 +141,7 @@ function! s:test_guess_candidate__returns_selected_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
@@ -192,7 +192,7 @@ function! s:test_guess_candidate__returns_no_candidate() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
@@ -248,7 +248,7 @@ function! s:test_refresh_candidates() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
@@ -330,7 +330,7 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
@@ -396,7 +396,7 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
   finally
-    execute ui_bufnr 'bwipeout!' 
+    execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 

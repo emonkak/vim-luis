@@ -116,7 +116,7 @@ function! s:open_window(bufnr, bounds, hints, options) abort
   if has_key(a:options, 'window_options')
     call extend(options, a:options.window_options, 'force')
   endif
-  
+
   for [key, value] in items(options)
     call nvim_win_set_option(window, key, value)
   endfor

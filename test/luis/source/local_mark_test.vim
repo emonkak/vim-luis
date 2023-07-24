@@ -23,7 +23,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':1:1',
     \     'menu': 'mark a',
-    \     'user_data': { 
+    \     'user_data': {
     \       'mark_name': 'a',
     \       'mark_pos': [1, 1],
     \       'preview_bufnr': bufnr,
@@ -35,7 +35,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':20:1',
     \     'menu': 'mark b',
-    \     'user_data': { 
+    \     'user_data': {
     \       'mark_name': 'b',
     \       'mark_pos': [20, 1],
     \       'preview_bufnr': bufnr,
@@ -47,7 +47,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':40:1',
     \     'menu': 'mark c',
-    \     'user_data': { 
+    \     'user_data': {
     \       'mark_name': 'c',
     \       'mark_pos': [40, 1],
     \       'preview_bufnr': bufnr,
@@ -59,7 +59,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':20:1',
     \     'menu': "mark '",
-    \     'user_data': { 
+    \     'user_data': {
     \       'mark_name': "'",
     \       'mark_pos': [20, 1],
     \       'preview_bufnr': bufnr,
@@ -71,7 +71,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': bufname . ':1:1',
     \     'menu': 'mark "',
-    \     'user_data': { 
+    \     'user_data': {
     \       'mark_name': '"',
     \       'mark_pos': [1, 1],
     \       'preview_bufnr': bufnr,

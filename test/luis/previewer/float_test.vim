@@ -46,7 +46,7 @@ function! s:test_open_buffer__open_twice() abort
 
     call assert_false(previewer.is_active())
   finally
-    silent execute 'bwipeout!' bufnr_1 bufnr_2 
+    silent execute 'bwipeout!' bufnr_1 bufnr_2
   endtry
 endfunction
 
