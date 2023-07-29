@@ -131,7 +131,14 @@ function! s:open_window(bufnr, bounds, hints, options) abort
     call extend(config, a:options.popup_config, 'force')
   endif
 
-  let window = popup_create(a:bufnr, config)
+  let original_eventignore = &eventignore
+  try
+    let &eventignore = 'BufEnter,BufLeave,BufWinEnter'
+    let window = popup_create(a:bufnr, config)
+  finally
+    let &eventignore = original_eventignore
+  endtry
+
   let options = {
   \   'foldenable': 0,
   \   'scrolloff': 0,

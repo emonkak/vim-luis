@@ -105,6 +105,7 @@ function! s:open_window(bufnr, bounds, hints, options) abort
   let config.col = a:bounds.col
   let config.width = a:bounds.width
   let config.height = a:bounds.height
+  let config.noautocmd = v:true
 
   if has_key(a:options, 'window_config')
     call extend(config, a:options.window_config, 'force')
