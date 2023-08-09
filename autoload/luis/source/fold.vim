@@ -18,45 +18,38 @@ function! s:Source.on_source_enter(context) abort dict
   let original_window = win_getid()
   let original_lazyredraw = &lazyredraw
 
-  " Suppress redraw during collecting folds.
+  " Suppress the redrawing during collecting folds.
   set lazyredraw
   " Back to the original buffer.
   noautocmd call win_gotoid(self.window)
   " Duplicate the original buffer.
   split
 
-  let bufnr = bufnr('%')
+  let bufnr = winbufnr(self.window)
   let candidates = []
 
   try
-    setlocal foldtext&
     normal! zM
-
-    let last_lnum = line('$')
-
     for lnum in range(1, line('$'))
-      if foldclosed(lnum) > 0
-        let foldtext = foldtextresult(lnum)
-        let matches = matchlist(foldtext, '^+-\+\s*\(\d\+\)\slines:\s\zs\(.\{-}\)\ze\s*$')
-        if len(matches) > 0
-          let num_lines = matches[1]
-          let heading = matches[2]
-          let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
-          call add(candidates, {
-          \   'word': heading,
-          \   'abbr': indent . heading,
-          \   'menu': num_lines . ' lines',
-          \   'dup': 1,
-          \   'user_data': {
-          \     'buffer_nr': bufnr,
-          \     'buffer_cursor': [lnum, 1],
-          \     'preview_bufnr': bufnr,
-          \     'preview_cursor': [lnum, 1],
-          \   },
-          \   'luis_sort_priority': -lnum,
-          \ })
-          execute lnum 'foldopen'
-        endif
+      let foldstart = foldclosed(lnum)
+      if foldstart > 0
+        let foldtext = s:trim_foldtext_decorations(foldtextresult(lnum))
+        let foldend = foldclosedend(lnum)
+        let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
+        call add(candidates, {
+        \   'word': foldtext,
+        \   'abbr': indent . foldtext,
+        \   'menu': (foldend - foldstart + 1) . ' lines',
+        \   'dup': 1,
+        \   'user_data': {
+        \     'buffer_nr': bufnr,
+        \     'buffer_cursor': [lnum, 1],
+        \     'preview_bufnr': bufnr,
+        \     'preview_cursor': [lnum, 1],
+        \   },
+        \   'luis_sort_priority': -lnum,
+        \ })
+        execute lnum 'foldopen'
       endif
     endfor
   finally
@@ -66,4 +59,13 @@ function! s:Source.on_source_enter(context) abort dict
   endtry
 
   let self.cached_candidates = candidates
+endfunction
+
+function! s:trim_foldtext_decorations(foldtext) abort
+  return substitute(
+  \   a:foldtext,
+  \   '^+\?-*\%( *\d\+ lines:\)\?\s\+\|\s\+$',
+  \   '',
+  \   'g'
+  \ )
 endfunction
