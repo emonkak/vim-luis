@@ -754,6 +754,16 @@ luis#source#local_mark#new({bufnr})		*luis#source#local_mark#new()*
 
 	Each candidates are associated with the |luis-kind-mark|.
 
+				*luis-source-lsp_document_symbol*
+				*luis#source#lsp_document_symbol#new()*
+luis#source#lsp_document_symbol#new({bufnr})
+	Create a "lsp/document_symbol" source that gathers document symbols
+	from LSP clients attached to the buffer {bufnr} as candidates.
+
+	Each candidates are associated with the |luis-kind-source|.
+
+	This source works ONLY for NeoVim.
+
 						*luis-source-mark*
 luis#source#mark#new({bufnr})			*luis#source#mark#new()*
 	Create a "mark" source that gathers candidates from global marks.

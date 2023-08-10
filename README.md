@@ -58,6 +58,7 @@ nnoremap <Leader>l\  :<C-u>call <SID>luis_start(luis#source#history#new('expr'))
 nnoremap <Leader>la  :<C-u>call <SID>luis_start(luis#source#args#new())<CR>
 nnoremap <Leader>lb  :<C-u>call <SID>luis_start(luis#source#buffer#new())<CR>
 nnoremap <Leader>lc  :<C-u>call <SID>luis_start(luis#source#colorscheme#new())<CR>
+nnoremap <Leader>ld  :<C-u>call <SID>luis_start(luis#source#lsp_document_symbol#new(bufnr('%')))<CR>
 nnoremap <Leader>lf  :<C-u>call <SID>luis_start(luis#source#file#new())<CR>
 nnoremap <Leader>lj  :<C-u>call <SID>luis_start(luis#source#jumplist#new(win_getid()))<CR>
 nnoremap <Leader>ll  :<C-u>call <SID>luis_resume()<CR>
