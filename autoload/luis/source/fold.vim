@@ -20,9 +20,9 @@ function! s:Source.on_source_enter(context) abort dict
 
   " Suppress the redrawing during collecting folds.
   set lazyredraw
-  " Back to the original buffer.
+  " Go to the target window.
   noautocmd call win_gotoid(self.window)
-  " Duplicate the original buffer.
+  " Duplicate the target buffer.
   split
 
   let bufnr = winbufnr(self.window)
@@ -33,7 +33,7 @@ function! s:Source.on_source_enter(context) abort dict
     for lnum in range(1, line('$'))
       let foldstart = foldclosed(lnum)
       if foldstart > 0
-        let foldtext = s:trim_foldtext_decorations(foldtextresult(lnum))
+        let foldtext = s:remove_foldtext_decorations(foldtextresult(lnum))
         let foldend = foldclosedend(lnum)
         let indent = repeat(' ', (foldlevel(lnum) - 1) * 2)
         call add(candidates, {
@@ -61,7 +61,7 @@ function! s:Source.on_source_enter(context) abort dict
   let self.cached_candidates = candidates
 endfunction
 
-function! s:trim_foldtext_decorations(foldtext) abort
+function! s:remove_foldtext_decorations(foldtext) abort
   return substitute(
   \   a:foldtext,
   \   '^+\?-*\%( *\d\+ lines:\)\?\s\+\|\s\+$',
