@@ -1,6 +1,5 @@
 let s:LNUM_STATUS = 1
 let s:LNUM_PATTERN = 2
-let s:LNUM_END = 3
 
 let s:PROMPT = '>'
 
@@ -136,12 +135,11 @@ function! s:UI.normalize_candidate(candidate, index, context) abort
 endfunction
 
 function! s:UI.preview_bounds() abort
-  let pum_pos = pum_getpos()
-  if !empty(pum_pos)
-    let row = float2nr(pum_pos.row + pum_pos.height)
-    let col = float2nr(pum_pos.col)
+  if &pumheight > 0
+    let row = s:LNUM_PATTERN + min([len(self.last_candidates), &pumheight])
+    let col = 0
   else
-    let row = s:LNUM_END
+    let row = s:LNUM_PATTERN + min([len(self.last_candidates), &rows])
     let col = 0
   endif
   return {
