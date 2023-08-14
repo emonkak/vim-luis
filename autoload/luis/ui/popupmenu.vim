@@ -59,7 +59,6 @@ function! luis#ui#popupmenu#new(...) abort
   let ui.original_window = 0
   let ui.preview_height = get(options, 'preview_height', &previewheight)
   let ui.preview_width = get(options, 'preview_width', 80)
-  let ui.selected_index = -1
   return ui
 endfunction
 
@@ -87,11 +86,7 @@ let s:UI = {}
 
 function! s:UI.current_pattern() abort dict
   let current_pattern_raw = getline(s:LNUM_PATTERN)
-  if self.selected_index >= 0
-    return current_pattern_raw
-  else
-    return s:remove_prompt(current_pattern_raw)
-  endif
+  return s:remove_prompt(current_pattern_raw)
 endfunction
 
 function! s:UI.guess_candidate() abort dict
@@ -281,7 +276,6 @@ function! s:initialize_ui_buffer(buffer_name) abort
     autocmd!
     autocmd CursorMovedI <buffer>  call s:on_CursorMovedI()
     autocmd InsertEnter <buffer>  call s:on_InsertEnter()
-    autocmd TextChangedI <buffer>  call s:on_TextChangedI()
     if exists('##TextChangedP')
       " Enable the ++nested option to allow executing autocmd on the buffer
       " during preview.
@@ -356,27 +350,20 @@ function! s:keys_to_complete(session) abort
   elseif lnum > s:LNUM_PATTERN
     " Delete all lines until the pattern line.
     let keys = repeat("\<Up>", (lnum - s:LNUM_PATTERN - 1)) . "\<C-o>dG"
-  elseif !s:contains_prompt(line)
-    " Complete the prompt if it doesn't exist for some reasons.
-    let keys = repeat("\<Right>", len(s:PROMPT))
-    call setline(lnum, s:PROMPT . line)
-  elseif column <= len(s:PROMPT)
-    " Move the cursor out of the prompt if it is in the prompt.
-    let keys = repeat("\<Right>", len(s:PROMPT) - column + 1)
   elseif len(line) < column && column != ui.last_column
+    " A new character is inserted. Let's complete automatically.
     let sep = line[-1:]
-    " New character is inserted. Let's complete automatically.
     if !ui.is_inserted_by_acc
-    \  && ui.selected_index == -1
+    \  && s:contains_prompt(line)
     \  && len(s:PROMPT) + 2 <= len(line)
     \  && has_key(a:session.source, 'is_component_separator')
     \  && a:session.source.is_component_separator(sep)
       " (1) The last inserted character is not inserted by ACC.
-      " (2) The selected item does not exist.
-      " (3) It seems not to be the 1st one in line.
-      " (4) It is a special character for current source
+      " (2) It seems not to be inserted by Vim's completion.
+      " (3) It seems not to be the 1st one in the line.
+      " (4) It is a component separator for the current source.
       "
-      " The (4) is necessary to input a special character as the 1st character
+      " The (3) is necessary to input a special character as the 1st character
       " in line. For example, without this condition, user cannot input the
       " 1st '/' of an absolute path like '/usr/local/bin' if '/' is a special
       " character.
@@ -389,8 +376,8 @@ function! s:keys_to_complete(session) abort
       if acc_text != ''
         " The last special character must be inserted in this way to forcedly
         " show the completion menu.
-        call setline(lnum, acc_text)
-        let keys = "\<End>" . sep
+        call setline(lnum, s:PROMPT . acc_text . sep)
+        let keys = "\<End>" . s:KEYS_TO_START_COMPLETION
         let ui.is_inserted_by_acc = 1
       else
         let keys = s:KEYS_TO_START_COMPLETION
@@ -400,6 +387,13 @@ function! s:keys_to_complete(session) abort
       let keys = s:KEYS_TO_START_COMPLETION
       let ui.is_inserted_by_acc = 0
     endif
+  elseif !s:contains_prompt(line)
+    " Complete the prompt if it doesn't exist for some reasons.
+    let keys = repeat("\<Right>", len(s:PROMPT))
+    call setline(lnum, s:PROMPT . line)
+  elseif column <= len(s:PROMPT)
+    " Move the cursor out of the prompt if it is in the prompt.
+    let keys = repeat("\<Right>", len(s:PROMPT) - column + 1)
   else
     let keys = ''
   endif
@@ -463,17 +457,6 @@ function! s:on_InsertEnter() abort
   call feedkeys(s:keys_to_complete(b:luis_session), 'n')
 endfunction
 
-function! s:on_TextChangedI() abort
-  if !exists('b:luis_session')
-    return
-  endif
-
-  let ui = b:luis_session.ui
-  let ui.selected_index = -1
-
-  call luis#preview_candidate(b:luis_session)
-endfunction
-
 function! s:on_TextChangedP() abort
   if !exists('b:luis_session')
     return
@@ -483,12 +466,6 @@ function! s:on_TextChangedP() abort
   if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS && complete_info.selected == -1
     call feedkeys(s:keys_to_complete(b:luis_session), 'n')
   endif
-
-  let ui = b:luis_session.ui
-  " BUGS: complete_info() may return incorrect selected item index. Therefore,
-  "       we can only use it to determine whether the selected item exists or
-  "       not. See https://github.com/vim/vim/issues/12230
-  let ui.selected_index = complete_info.selected
 
   call luis#preview_candidate(b:luis_session)
 endfunction
