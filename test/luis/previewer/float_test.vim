@@ -116,7 +116,7 @@ function! s:test_open_text__open_twice() abort
   call assert_notequal(0, preview_bufnr_1)
   call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
-  call assert_equal('', getbufvar(preview_bufnr_1, '&filetype'))
+  call assert_equal('', getbufvar(preview_bufnr_1, '&syntax'))
   call assert_equal(1, get(get(getwininfo(preview_win_1), 0, {}), 'topline'))
 
   let lines = ['qux', 'quux', 'corge']
@@ -131,7 +131,7 @@ function! s:test_open_text__open_twice() abort
   call assert_equal(preview_bufnr_1, preview_bufnr_2)
   call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
-  call assert_equal('vim', getbufvar(preview_bufnr_2, '&filetype'))
+  call assert_equal('vim', getbufvar(preview_bufnr_2, '&syntax'))
   call assert_equal(1, get(get(getwininfo(preview_win_2), 0, {}), 'topline'))
 
   call previewer.close()
