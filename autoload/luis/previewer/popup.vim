@@ -90,7 +90,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   let filetype = get(a:hints, 'filetype', '')
   call deletebufline(self.preview_bufnr, 1, '$')
   call setbufline(self.preview_bufnr, 1, a:lines)
-  call setbufvar(self.preview_bufnr, '&filetype', filetype)
+  " Ignore errors on the 'FileType' event.
+  silent! call setbufvar(self.preview_bufnr, '&filetype', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

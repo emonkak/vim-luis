@@ -73,7 +73,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
 
   let filetype = get(a:hints, 'filetype', '')
   call nvim_buf_set_lines(self.preview_bufnr, 0, -1, v:false, a:lines)
-  call nvim_buf_set_option(self.preview_bufnr, 'filetype', filetype)
+  " Ignore errors on the 'FileType' event.
+  silent! call nvim_buf_set_option(self.preview_bufnr, 'filetype', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort
