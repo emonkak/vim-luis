@@ -30,7 +30,7 @@ endfunction
 
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self.window)
-    call nvim_win_set_buf(self.window, a:bufnr)
+    call s:switch_buffer_without_events(self.window, a:bufnr)
     call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
@@ -60,7 +60,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   endif
 
   if s:is_valid_window(self.window)
-    call nvim_win_set_buf(self.window, self.preview_bufnr)
+    call s:switch_buffer_without_events(self.window, self.preview_bufnr)
     call s:set_bounds(self.window, a:bounds)
   else
     let self.window = s:open_window(
@@ -133,4 +133,14 @@ function! s:set_bounds(win, bounds) abort
   \   'width': a:bounds.width,
   \   'height': a:bounds.height,
   \ })
+endfunction
+
+function! s:switch_buffer_without_events(window, bufnr) abort
+  let original_eventignore = &eventignore
+  try
+    let &eventignore = 'BufEnter,BufLeave,BufWinEnter'
+    call nvim_win_set_buf(a:window, a:bufnr)
+  finally
+    let &eventignore = original_eventignore
+  endtry
 endfunction
