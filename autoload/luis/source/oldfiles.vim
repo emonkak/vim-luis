@@ -16,7 +16,7 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
   for i in range(len(v:oldfiles))
-    let path = v:oldfiles[i]
+    let path = fnamemodify(v:oldfiles[i], ':p')
     if !filereadable(path)
       continue
     endif
