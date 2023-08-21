@@ -22,7 +22,7 @@ function! s:Source.on_source_enter(context) abort dict
   set lazyredraw
   " Go to the target window.
   noautocmd call win_gotoid(self.window)
-  " Duplicate the target buffer.
+  " Duplicate the target window.
   split
 
   let bufnr = winbufnr(self.window)
