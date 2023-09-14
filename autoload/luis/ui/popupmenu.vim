@@ -48,7 +48,6 @@ function! luis#ui#popupmenu#new(...) abort
   \                  ? '[luis-popupmenu-ui]'
   \                  : '*luis-popupmenu-ui*'
   let ui.bufnr = -1
-  let ui.is_inserted_by_acc = 0
   let ui.last_candidates = []
   let ui.last_column = -1
   let ui.last_pattern_raw = ''
@@ -354,8 +353,7 @@ function! s:keys_to_complete(session) abort
   elseif len(line) < column && column != ui.last_column
     " A new character is inserted. Let's complete automatically.
     let sep = line[-1:]
-    if !ui.is_inserted_by_acc
-    \  && s:contains_prompt(line)
+    if s:contains_prompt(line)
     \  && len(s:PROMPT) + 2 <= len(line)
     \  && has_key(a:session.source, 'is_component_separator')
     \  && a:session.source.is_component_separator(sep)
@@ -379,14 +377,11 @@ function! s:keys_to_complete(session) abort
         " show the completion menu.
         call setline(lnum, s:PROMPT . acc_text . sep)
         let keys = "\<End>" . s:KEYS_TO_START_COMPLETION
-        let ui.is_inserted_by_acc = 1
       else
         let keys = s:KEYS_TO_START_COMPLETION
-        let ui.is_inserted_by_acc = 0
       endif
     else
       let keys = s:KEYS_TO_START_COMPLETION
-      let ui.is_inserted_by_acc = 0
     endif
   elseif !s:contains_prompt(line)
     " Complete the prompt if it doesn't exist for some reasons.
@@ -450,7 +445,6 @@ function! s:on_InsertEnter() abort
   endif
 
   let ui = b:luis_session.ui
-  let ui.is_inserted_by_acc = 0
   let ui.last_candidates = []
   let ui.last_column = -1
   let ui.last_pattern_raw = ''
