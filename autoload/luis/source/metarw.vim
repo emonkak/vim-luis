@@ -32,6 +32,10 @@ function! s:Source.is_component_separator(char) abort dict
   return a:char == s:path_separator() || a:char == ':'
 endfunction
 
+function! s:Source.is_valid_for_acc(candidate) abort dict
+  return get(a:candidate, 'abbr', '') =~# '[/:\\]$'
+endfunction
+
 function! s:Source.on_action(candidate, context) abort dict
   if !has_key(a:candidate.user_data, 'file_path')
     let a:candidate.user_data.file_path = self.scheme
@@ -45,5 +49,5 @@ function! s:path_separator() abort
 endfunction
 
 function! s:trim_separator(path) abort
-  return substitute(a:path, '[:/]$', '', '')
+  return substitute(a:path, '[/:\\]$', '', '')
 endfunction

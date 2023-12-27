@@ -50,6 +50,26 @@ function! s:test_gather_candidates() abort
   endtry
 endfunction
 
+function! s:test_is_valid_for_acc() abort
+  let scheme = 'dummy'
+  let source = luis#source#metarw#new(scheme)
+  let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
+
+  call assert_false(source.is_valid_for_acc({}))
+  call assert_false(source.is_valid_for_acc({ 'word': 'master:foo', 'abbr': 'master:foo' }))
+  call assert_true(source.is_valid_for_acc({ 'word': 'master:bar', 'abbr': 'master:bar/' }))
+endfunction
+
+function! s:test_is_component_separator() abort
+  let scheme = 'dummy'
+  let source = luis#source#metarw#new(scheme)
+  let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
+
+  call assert_true(source.is_component_separator(separator))
+  call assert_true(source.is_component_separator(':'))
+  call assert_false(source.is_component_separator('A'))
+endfunction
+
 function! s:test_on_action() abort
   let scheme = 'dummy'
   let source = luis#source#metarw#new(scheme)
@@ -66,16 +86,6 @@ function! s:test_on_action() abort
   \     'file_path': scheme . ':foo:bar',
   \   },
   \ }, candidate)
-endfunction
-
-function! s:test_is_component_separator() abort
-  let scheme = 'dummy'
-  let source = luis#source#metarw#new(scheme)
-  let separator = exists('+shellslash') && !&shellslash ? '\' : '/'
-
-  call assert_true(source.is_component_separator(separator))
-  call assert_true(source.is_component_separator(':'))
-  call assert_false(source.is_component_separator('A'))
 endfunction
 
 function! s:test_source_definition() abort
