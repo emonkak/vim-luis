@@ -1,7 +1,5 @@
 function! s:test_gather_candidates() abort
-  return
-
-  call s:clear_hisotries('cmd')
+  call histdel('cmd')
 
   call assert_equal(-1, histnr('cmd'))
   call assert_true(histadd('cmd', 'foo'))
@@ -51,7 +49,7 @@ function! s:test_gather_candidates() abort
     \   }
     \ ], candidates)
   finally
-    call s:clear_hisotries('cmd')
+    call histdel('cmd')
   endtry
 endfunction
 
@@ -59,13 +57,4 @@ function! s:test_source_definition() abort
   let source = luis#source#history#new('cmd')
   call assert_true(luis#_validate_source(source))
   call assert_equal('history/cmd', source.name)
-endfunction
-
-function! s:clear_hisotries(history_name) abort
-  let l = histnr(a:history_name)
-  if l > 0
-    for i in range(1, l)
-      call histdel(a:history_name, i)
-    endfor
-  endif
 endfunction

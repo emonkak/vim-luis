@@ -1,7 +1,7 @@
 let s:kind = luis#kind#history#import()
 
 function! s:test_action_delete() abort
-  call s:clear_hisotries('cmd')
+  call histdel('cmd')
 
   call assert_equal(-1, histnr('cmd'))
   call assert_true(histadd('cmd', 'vim'))
@@ -18,7 +18,7 @@ function! s:test_action_delete() abort
     call assert_equal(0, _)
     call assert_equal('', histget('cmd', 1))
   finally
-    call s:clear_hisotries('cmd')
+    call histdel('cmd')
   endtry
 endfunction
 
@@ -188,13 +188,4 @@ function! s:consume_keys() abort
     let keys .= nr2char(char)
   endwhile
   return keys
-endfunction
-
-function! s:clear_hisotries(history_name) abort
-  let l = histnr(a:history_name)
-  if l > 1
-    for i in range(1, l)
-      call histdel(a:history_name, i)
-    endfor
-  endif
 endfunction
