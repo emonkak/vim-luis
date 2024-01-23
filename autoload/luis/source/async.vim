@@ -80,7 +80,7 @@ function! s:Source._out_cb(job, message) abort dict
   let is_eof = 0
 
   for line in split(a:message, "\n")
-    if s:process_line(self, line)
+    if !s:process_line(self, line)
       let is_eof = 1
     endif
   endfor
@@ -103,13 +103,13 @@ function! s:Source._on_stdout(job, data, event) abort dict
 
   let line = self._last_line . a:data[0]
   if line != ''
-    if s:process_line(self, line)
+    if !s:process_line(self, line)
       let is_eof = 1
     endif
   endif
 
   for line in a:data[1:-2]
-    if s:process_line(self, line)
+    if !s:process_line(self, line)
       let is_eof = 1
     endif
   endfor
@@ -139,19 +139,19 @@ endfunction
 function! s:process_line(source, line) abort
   let components = split(a:line, '^[^ ]\+\zs ', 1)
   if components[0] != a:source._sequence
-    return 0
+    return 1
   endif
 
   if len(components) == 1  " EOF
     let a:source._current_candidates = a:source._pending_candidates
-    return 1
+    return 0
   else
     let rest = join(components[1:], ' ')
     let candidate = a:source._to_candidate(rest)
     if type(candidate) is v:t_dict
       call add(a:source._pending_candidates, candidate)
     endif
-    return 0
+    return 1
   endif
 endfunction
 
