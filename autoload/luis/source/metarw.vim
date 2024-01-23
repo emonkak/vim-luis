@@ -1,7 +1,7 @@
 function! luis#source#metarw#new(scheme) abort
   let source = copy(s:Source)
   let source.name = 'metarw/' . a:scheme
-  let source.scheme = a:scheme
+  let source._scheme = a:scheme
   return source
 endfunction
 
@@ -10,7 +10,7 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  let scheme = self.scheme
+  let scheme = self._scheme
   let pattern = scheme . ':' . a:context.pattern
   let candidates = []
 
@@ -38,7 +38,7 @@ endfunction
 
 function! s:Source.on_action(candidate, context) abort dict
   if !has_key(a:candidate.user_data, 'file_path')
-    let a:candidate.user_data.file_path = self.scheme
+    let a:candidate.user_data.file_path = self._scheme
     \                                   . ':'
     \                                   . a:candidate.word
   endif

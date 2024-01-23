@@ -1,7 +1,7 @@
 function! luis#source#fold#new(window) abort
   let source = copy(s:Source)
-  let source.window = a:window
-  let source.cached_candidates = []
+  let source._window = a:window
+  let source._cached_candidates = []
   return source
 endfunction
 
@@ -11,7 +11,7 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self.cached_candidates
+  return self._cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
@@ -21,11 +21,11 @@ function! s:Source.on_source_enter(context) abort dict
   " Suppress the redrawing during collecting folds.
   set lazyredraw
   " Go to the target window.
-  noautocmd call win_gotoid(self.window)
+  noautocmd call win_gotoid(self._window)
   " Duplicate the target window.
   split
 
-  let bufnr = winbufnr(self.window)
+  let bufnr = winbufnr(self._window)
   let candidates = []
 
   try
@@ -58,7 +58,7 @@ function! s:Source.on_source_enter(context) abort dict
     let &lazyredraw = original_lazyredraw
   endtry
 
-  let self.cached_candidates = candidates
+  let self._cached_candidates = candidates
 endfunction
 
 function! s:remove_foldtext_decorations(foldtext) abort

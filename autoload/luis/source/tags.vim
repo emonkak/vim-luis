@@ -1,6 +1,6 @@
 function! luis#source#tags#new(window) abort
   let source = copy(s:Source)
-  let source.window = a:window
+  let source._window = a:window
   return source
 endfunction
 
@@ -13,7 +13,7 @@ let s:Source = {
 function! s:Source.gather_candidates(context) abort dict
   let original_window = win_getid()
   try
-    noautocmd call win_gotoid(self.window)
+    noautocmd call win_gotoid(self._window)
     return map(
     \   getcompletion(a:context.pattern, 'tag'),
     \   '{ "word": v:val }'

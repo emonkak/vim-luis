@@ -66,16 +66,16 @@ function! s:test_guess_candidate__returns_first_candidate() abort
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
 
-    let ui.last_candidates = [
+    let ui._last_candidates = [
     \   { 'word': 'foo', 'user_data': {} },
     \   { 'word': 'bar', 'user_data': {} },
     \   { 'word': 'baz', 'user_data': {} },
     \ ]
-    let ui.last_pattern_raw = '>'
+    let ui._last_pattern_raw = '>'
 
     let candidate = ui.guess_candidate()
-    call assert_equal(ui.last_candidates[0], candidate)
-    call assert_true(ui.last_candidates[0] isnot candidate)
+    call assert_equal(ui._last_candidates[0], candidate)
+    call assert_true(ui._last_candidates[0] isnot candidate)
 
     call ui.quit()
 
@@ -121,7 +121,7 @@ function! s:test_guess_candidate__returns_selected_candidate() abort
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
 
-    let ui.last_candidates = [
+    let ui._last_candidates = [
     \   { 'word': 'foo', 'user_data': {} },
     \   { 'word': 'bar', 'user_data': {} },
     \   { 'word': 'baz', 'user_data': {} },
@@ -129,8 +129,8 @@ function! s:test_guess_candidate__returns_selected_candidate() abort
     call setline(line('.'), 'bar')
 
     let candidate = ui.guess_candidate()
-    call assert_equal(ui.last_candidates[1], candidate)
-    call assert_true(ui.last_candidates[1] isnot candidate)
+    call assert_equal(ui._last_candidates[1], candidate)
+    call assert_true(ui._last_candidates[1] isnot candidate)
     call assert_equal('bar', ui.current_pattern())
 
     call ui.quit()
@@ -177,8 +177,8 @@ function! s:test_guess_candidate__returns_no_candidate() abort
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
 
-    let ui.last_candidates = []
-    let ui.last_pattern_raw = '>VIM'
+    let ui._last_candidates = []
+    let ui._last_pattern_raw = '>VIM'
     call setline(line('.'), '>VIM')
 
     call assert_equal(0, ui.guess_candidate())
@@ -367,7 +367,7 @@ function! s:test_start__with_initial_pattern() abort
     call assert_true(ui.is_active())
 
     " `last_pattern_raw` is not set, so set it manually.
-    let ui.last_pattern_raw = '>VIM'
+    let ui._last_pattern_raw = '>VIM'
 
     call ui.quit()
 

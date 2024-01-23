@@ -1,7 +1,7 @@
 function! luis#source#local_mark#new(bufnr) abort
   let source = copy(s:Source)
-  let source.bufnr = a:bufnr
-  let source.cached_candidates = []
+  let source._bufnr = a:bufnr
+  let source._cached_candidates = []
   return source
 endfunction
 
@@ -11,13 +11,13 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self.cached_candidates
+  return self._cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
-  let bufname = bufname(self.bufnr)
-  for mark in getmarklist(self.bufnr)
+  let bufname = bufname(self._bufnr)
+  for mark in getmarklist(self._bufnr)
     let mark_name = mark.mark[1:]
     call add(candidates, {
     \   'word': bufname . ':' . mark.pos[1] . ':' . mark.pos[2],
@@ -26,11 +26,11 @@ function! s:Source.on_source_enter(context) abort dict
     \   'user_data': {
     \     'mark_name': mark_name,
     \     'mark_pos': mark.pos[1:2],
-    \     'preview_bufnr': self.bufnr,
+    \     'preview_bufnr': self._bufnr,
     \     'preview_cursor': mark.pos[1:2],
     \   },
     \   'luis_sort_priority': -char2nr(mark_name),
     \ })
   endfor
-  let self.cached_candidates = candidates
+  let self._cached_candidates = candidates
 endfunction

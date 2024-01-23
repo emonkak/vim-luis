@@ -4,17 +4,17 @@ let s:BORDER_UNICODE = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
 
 function! luis#previewer#popup#new(...) abort
   let previewer = copy(s:Previewer)
-  let previewer.options = get(a:000, 0, {})
-  let previewer.preview_bufnr = -1
-  let previewer.window = -1
+  let previewer._bufnr = -1
+  let previewer._options = get(a:000, 0, {})
+  let previewer._window = -1
   return previewer
 endfunction
 
 let s:Previewer = {}
 
 function! s:Previewer.bounds() abort dict
-  if s:is_valid_window(self.window)
-    let pos = popup_getpos(self.window)
+  if s:is_valid_window(self._window)
+    let pos = popup_getpos(self._window)
     return {
     \   'row': pos.line - 1,
     \   'col': pos.col,
@@ -27,24 +27,24 @@ function! s:Previewer.bounds() abort dict
 endfunction
 
 function! s:Previewer.close() abort dict
-  call popup_close(self.window)
-  let self.window = -1
+  call popup_close(self._window)
+  let self._window = -1
 endfunction
 
 function! s:Previewer.is_active() abort dict
-  return s:is_valid_window(self.window)
+  return s:is_valid_window(self._window)
 endfunction
 
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
-  if s:is_valid_window(self.window)
-    call popup_close(self.window)
+  if s:is_valid_window(self._window)
+    call popup_close(self._window)
   endif
 
-  let self.window = s:open_window(
+  let self._window = s:open_window(
   \   a:bufnr,
   \   a:bounds,
   \   a:hints,
-  \   self.options
+  \   self._options
   \ )
 
   if has_key(a:hints, 'cursor')
@@ -53,44 +53,44 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
     \   a:hints.cursor[0],
     \   a:hints.cursor[1]
     \ )
-    call win_execute(self.window, command)
+    call win_execute(self._window, command)
   endif
 endfunction
 
 function! s:Previewer.open_text(lines, bounds, hints) abort dict
-  if !bufexists(self.preview_bufnr)
-    let self.preview_bufnr = bufadd('')
-    call s:initialize_preview_buffer(self.preview_bufnr)
-  elseif !bufloaded(self.preview_bufnr)
-    call s:initialize_preview_buffer(self.preview_bufnr)
+  if !bufexists(self._bufnr)
+    let self._bufnr = bufadd('')
+    call s:initialize_preview_buffer(self._bufnr)
+  elseif !bufloaded(self._bufnr)
+    call s:initialize_preview_buffer(self._bufnr)
   endif
 
-  if s:is_valid_window(self.window)
-    if winbufnr(self.window) == self.preview_bufnr
+  if s:is_valid_window(self._window)
+    if winbufnr(self._window) == self._bufnr
       " Reuse window.
-      call s:set_bounds(self.window, a:bounds)
+      call s:set_bounds(self._window, a:bounds)
     else
-      call popup_close(self.window)
-      let self.window = s:open_window(
-      \   self.preview_bufnr,
+      call popup_close(self._window)
+      let self._window = s:open_window(
+      \   self._bufnr,
       \   a:bounds,
       \   a:hints,
-      \   self.options
+      \   self._options
       \ )
     endif
   else
-    let self.window = s:open_window(
-    \   self.preview_bufnr,
+    let self._window = s:open_window(
+    \   self._bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.options
+    \   self._options
     \ )
   endif
 
   let filetype = get(a:hints, 'filetype', '')
-  call deletebufline(self.preview_bufnr, 1, '$')
-  call setbufline(self.preview_bufnr, 1, a:lines)
-  call setbufvar(self.preview_bufnr, '&syntax', filetype)
+  call deletebufline(self._bufnr, 1, '$')
+  call setbufline(self._bufnr, 1, a:lines)
+  call setbufvar(self._bufnr, '&syntax', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

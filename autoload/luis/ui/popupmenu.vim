@@ -42,22 +42,22 @@ endfunction
 function! luis#ui#popupmenu#new(...) abort
   let options = get(a:000, 0, {})
   let ui = copy(s:UI)
-  let ui.buffer_name = has_key(options, 'buffer_name')
+  let ui._buffer_name = has_key(options, 'buffer_name')
   \                  ? options.buffer_name
   \                  : has('win32') || has('win64')
   \                  ? '[luis-popupmenu-ui]'
   \                  : '*luis-popupmenu-ui*'
-  let ui.bufnr = -1
-  let ui.last_candidates = []
-  let ui.last_column = -1
-  let ui.last_pattern_raw = ''
-  let ui.last_session_id = -1
-  let ui.original_backspace = &backspace
-  let ui.original_completeopt = &completeopt
-  let ui.original_equalalways = &equalalways
-  let ui.original_window = 0
-  let ui.preview_height = get(options, 'preview_height', &previewheight)
-  let ui.preview_width = get(options, 'preview_width', 80)
+  let ui._bufnr = -1
+  let ui._last_candidates = []
+  let ui._last_column = -1
+  let ui._last_pattern_raw = ''
+  let ui._last_session_id = -1
+  let ui._original_backspace = &backspace
+  let ui._original_completeopt = &completeopt
+  let ui._original_equalalways = &equalalways
+  let ui._original_window = 0
+  let ui._preview_height = get(options, 'preview_height', &previewheight)
+  let ui._preview_width = get(options, 'preview_width', 80)
   return ui
 endfunction
 
@@ -68,7 +68,7 @@ function! luis#ui#popupmenu#_omnifunc(findstart, base) abort
 
   if a:findstart
     let ui = b:luis_session.ui
-    let ui.last_candidates = []
+    let ui._last_candidates = []
     " To determine whether the content of the current pattern is inserted by
     " Vim's completion or not, return 0 to remove the prompt by completion.
     return 0
@@ -76,7 +76,7 @@ function! luis#ui#popupmenu#_omnifunc(findstart, base) abort
     let pattern = s:remove_prompt(a:base)
     let candidates = luis#collect_candidates(b:luis_session, pattern)
     let ui = b:luis_session.ui
-    let ui.last_candidates = candidates
+    let ui._last_candidates = candidates
     return candidates
   endif
 endfunction
@@ -94,19 +94,19 @@ function! s:UI.guess_candidate() abort dict
   endif
 
   let current_pattern_raw = getline(s:LNUM_PATTERN)
-  if current_pattern_raw !=# self.last_pattern_raw
+  if current_pattern_raw !=# self._last_pattern_raw
     " current_pattern_raw seems to be inserted by Vim's completion,
     " so user seemed to select a candidate by Vim's completion.
-    for candidate in self.last_candidates
+    for candidate in self._last_candidates
       if current_pattern_raw ==# candidate.word
         return s:clone_candidate(candidate)
       endif
     endfor
   else
-    if len(self.last_candidates) > 0
+    if len(self._last_candidates) > 0
       " There are 1 or more candidates -- user seems to want to take action on
       " the first one.
-      return s:clone_candidate(self.last_candidates[0])
+      return s:clone_candidate(self._last_candidates[0])
     endif
   endif
 
@@ -115,9 +115,9 @@ function! s:UI.guess_candidate() abort dict
 endfunction
 
 function! s:UI.is_active() abort dict
-  return bufexists(self.bufnr)
-  \      && bufwinnr(self.bufnr) != -1
-  \      && getbufvar(self.bufnr, 'luis_session', 0) isnot 0
+  return bufexists(self._bufnr)
+  \      && bufwinnr(self._bufnr) != -1
+  \      && getbufvar(self._bufnr, 'luis_session', 0) isnot 0
 endfunction
 
 function! s:UI.normalize_candidate(candidate, index, context) abort
@@ -132,16 +132,16 @@ function! s:UI.preview_bounds() abort
   let row = screenrow()
   if pumvisible()
     if &pumheight > 0
-      let row += min([len(self.last_candidates), &pumheight])
+      let row += min([len(self._last_candidates), &pumheight])
     else
-      let row += min([len(self.last_candidates), &rows - row])
+      let row += min([len(self._last_candidates), &rows - row])
     endif
   endif
   return {
   \   'row': row,
   \   'col': 0,
-  \   'width': self.preview_width,
-  \   'height': self.preview_height,
+  \   'width': self._preview_width,
+  \   'height': self._preview_height,
   \ }
 endfunction
 
@@ -153,11 +153,11 @@ function! s:UI.quit() abort dict
 
   close
 
-  let &backspace = self.original_backspace
-  let &equalalways = self.original_equalalways
-  let &completeopt = self.original_completeopt
+  let &backspace = self._original_backspace
+  let &equalalways = self._original_equalalways
+  let &completeopt = self._original_completeopt
 
-  call win_gotoid(self.original_window)
+  call win_gotoid(self._original_window)
 endfunction
 
 function! s:UI.refresh_candidates() abort dict
@@ -172,20 +172,20 @@ function! s:UI.start(session) abort dict
     return
   endif
 
-  let self.original_window = win_getid()
+  let self._original_window = win_getid()
 
   " Open or create the ui buffer.
-  if bufexists(self.bufnr)
-    let is_loaded = bufloaded(self.bufnr)
+  if bufexists(self._bufnr)
+    let is_loaded = bufloaded(self._bufnr)
     topleft split
-    silent execute self.bufnr 'buffer'
+    silent execute self._bufnr 'buffer'
     if !is_loaded
-      call s:initialize_ui_buffer(self.buffer_name)
+      call s:initialize_ui_buffer(self._buffer_name)
     endif
   else
     topleft new
-    let self.bufnr = bufnr('%')
-    call s:initialize_ui_buffer(self.buffer_name)
+    let self._bufnr = bufnr('%')
+    call s:initialize_ui_buffer(self._buffer_name)
   endif
   2 wincmd _
 
@@ -209,14 +209,14 @@ function! s:UI.start(session) abort dict
   "       Insert mode is also implemented by feedkeys(). These feedings must
   "       be done carefully.
   silent % delete _
-  if a:session.id == self.last_session_id
+  if a:session.id == self._last_session_id
     " Restore the previous pattern when starting the same session as last time.
-    let pattern = self.last_pattern_raw != ''
-    \           ? self.last_pattern_raw
+    let pattern = self._last_pattern_raw != ''
+    \           ? self._last_pattern_raw
     \           : s:PROMPT
   else
     let pattern = s:PROMPT . a:session.initial_pattern
-    let self.last_session_id = a:session.id
+    let self._last_session_id = a:session.id
   endif
   call setline(s:LNUM_STATUS, 'Source: ' . a:session.source.name)
   call setline(s:LNUM_PATTERN, pattern)
@@ -350,7 +350,7 @@ function! s:keys_to_complete(session) abort
   elseif lnum > s:LNUM_PATTERN
     " Delete all lines until the pattern line.
     let keys = repeat("\<Up>", (lnum - s:LNUM_PATTERN - 1)) . "\<C-o>dG"
-  elseif len(line) < column && column != ui.last_column
+  elseif len(line) < column && column != ui._last_column
     " A new character is inserted. Let's complete automatically.
     let sep = line[-1:]
     if s:contains_prompt(line)
@@ -369,7 +369,7 @@ function! s:keys_to_complete(session) abort
       let pattern = s:remove_prompt(line)
       let acc_text = luis#acc_text(
       \   pattern,
-      \   ui.last_candidates,
+      \   ui._last_candidates,
       \   a:session.source,
       \ )
       if acc_text != ''
@@ -394,8 +394,8 @@ function! s:keys_to_complete(session) abort
     let keys = ''
   endif
 
-  let ui.last_column = column
-  let ui.last_pattern_raw = line
+  let ui._last_column = column
+  let ui._last_pattern_raw = line
   return keys
 endfunction
 
@@ -445,9 +445,9 @@ function! s:on_InsertEnter() abort
   endif
 
   let ui = b:luis_session.ui
-  let ui.last_candidates = []
-  let ui.last_column = -1
-  let ui.last_pattern_raw = ''
+  let ui._last_candidates = []
+  let ui._last_column = -1
+  let ui._last_pattern_raw = ''
 
   call feedkeys(s:keys_to_complete(b:luis_session), 'n')
 endfunction

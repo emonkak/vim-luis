@@ -1,23 +1,23 @@
 function! luis#previewer#float#new(...) abort
   let previewer = copy(s:Previewer)
-  let previewer.options = get(a:000, 0, {})
-  let previewer.preview_bufnr = -1
-  let previewer.window = -1
+  let previewer._bufnr = -1
+  let previewer._options = get(a:000, 0, {})
+  let previewer._window = -1
   return previewer
 endfunction
 
 let s:Previewer = {}
 
 function! s:Previewer.close() abort dict
-  call nvim_win_close(self.window, v:true)
-  let self.window = -1
+  call nvim_win_close(self._window, v:true)
+  let self._window = -1
 endfunction
 
 function! s:Previewer.bounds() abort dict
-  if s:is_valid_window(self.window)
-    let [row, col] = nvim_win_get_position(self.window)
-    let width = nvim_win_get_width(self.window)
-    let height = nvim_win_get_height(self.window)
+  if s:is_valid_window(self._window)
+    let [row, col] = nvim_win_get_position(self._window)
+    let width = nvim_win_get_width(self._window)
+    let height = nvim_win_get_height(self._window)
     return { 'row': row, 'col': col, 'width': width, 'height': height }
   else
     return { 'row': 0, 'col': 0, 'width': 0, 'height': 0 }
@@ -25,19 +25,19 @@ function! s:Previewer.bounds() abort dict
 endfunction
 
 function! s:Previewer.is_active() abort dict
-  return s:is_valid_window(self.window)
+  return s:is_valid_window(self._window)
 endfunction
 
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
-  if s:is_valid_window(self.window)
-    call s:switch_buffer_without_events(self.window, a:bufnr)
-    call s:set_bounds(self.window, a:bounds)
+  if s:is_valid_window(self._window)
+    call s:switch_buffer_without_events(self._window, a:bufnr)
+    call s:set_bounds(self._window, a:bounds)
   else
-    let self.window = s:open_window(
+    let self._window = s:open_window(
     \   a:bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.options
+    \   self._options
     \ )
   endif
 
@@ -47,33 +47,33 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
     \   a:hints.cursor[0],
     \   a:hints.cursor[1]
     \ )
-    call win_execute(self.window, command)
+    call win_execute(self._window, command)
   endif
 endfunction
 
 function! s:Previewer.open_text(lines, bounds, hints) abort dict
-  if !bufexists(self.preview_bufnr)
-    let self.preview_bufnr = nvim_create_buf(v:false, v:true)
-    call s:initialize_preview_buffer(self.preview_bufnr)
-  elseif !bufloaded(self.preview_bufnr)
-    call s:initialize_preview_buffer(self.preview_bufnr)
+  if !bufexists(self._bufnr)
+    let self._bufnr = nvim_create_buf(v:false, v:true)
+    call s:initialize_preview_buffer(self._bufnr)
+  elseif !bufloaded(self._bufnr)
+    call s:initialize_preview_buffer(self._bufnr)
   endif
 
-  if s:is_valid_window(self.window)
-    call s:switch_buffer_without_events(self.window, self.preview_bufnr)
-    call s:set_bounds(self.window, a:bounds)
+  if s:is_valid_window(self._window)
+    call s:switch_buffer_without_events(self._window, self._bufnr)
+    call s:set_bounds(self._window, a:bounds)
   else
-    let self.window = s:open_window(
-    \   self.preview_bufnr,
+    let self._window = s:open_window(
+    \   self._bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self.options
+    \   self._options
     \ )
   endif
 
   let filetype = get(a:hints, 'filetype', '')
-  call nvim_buf_set_lines(self.preview_bufnr, 0, -1, v:false, a:lines)
-  call nvim_buf_set_option(self.preview_bufnr, 'syntax', filetype)
+  call nvim_buf_set_lines(self._bufnr, 0, -1, v:false, a:lines)
+  call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort

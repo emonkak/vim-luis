@@ -1,8 +1,8 @@
 function! luis#source#lsp_document_symbol#new(bufnr) abort
   let source = copy(s:Source)
-  let source.bufnr = a:bufnr
-  let source.cached_candidates = []
-  let source.cancel_func = 0
+  let source._bufnr = a:bufnr
+  let source._cached_candidates = []
+  let source._cancel_func = 0
   return source
 endfunction
 
@@ -12,29 +12,29 @@ let s:Source = {
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
-  return self.cached_candidates
+  return self._cached_candidates
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let source = self
   let session = a:context.session
-  function! self.callback(symbols) abort closure
+  function! self._callback(symbols) abort closure
     let candidates = []
-    call s:aggregate_candidates(a:symbols, source.bufnr, candidates, 1)
-    let source.cached_candidates = candidates
+    call s:aggregate_candidates(a:symbols, source._bufnr, candidates, 1)
+    let source._cached_candidates = candidates
     if session.ui.is_active()
       call session.ui.refresh_candidates()
     endif
-    let source.cancel_func = 0
+    let source._cancel_func = 0
   endfunction
-  let callback_name = get(function(self.callback), 'name')
-  let self.cancel_func = s:request_document_symbol(self.bufnr, callback_name)
+  let callback_name = get(function(self._callback), 'name')
+  let self._cancel_func = s:request_document_symbol(self._bufnr, callback_name)
 endfunction
 
 function! s:Source.on_source_leave(context) abort dict
-  if self.cancel_func isnot 0
-    call self.cancel_func()
-    let self.cancel_func = 0
+  if self._cancel_func isnot 0
+    call self._cancel_func()
+    let self._cancel_func = 0
   endif
 endfunction
 
