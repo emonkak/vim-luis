@@ -1,4 +1,5 @@
 let s:INVALID_JOB = 0
+let s:INVALID_SESSION = 0
 let s:INVALID_TIMER = -1
 
 function! luis#source#async#new(name, default_kind, command, ...) abort
@@ -12,6 +13,7 @@ function! luis#source#async#new(name, default_kind, command, ...) abort
   \                       : { line -> { 'word': line } }
   let source.debounce_time = get(options, 'debounce_time', 0)
   let source.current_job = s:INVALID_JOB
+  let source.current_session = s:INVALID_SESSION
   let source.current_timer = s:INVALID_TIMER
   let source.sequence = 0
   let source.last_line = 0
@@ -33,8 +35,7 @@ function! s:Source.gather_candidates(context) abort dict
       call timer_stop(self.current_timer)
     endif
     if self.debounce_time > 0
-      let Callback = function('s:on_timer', [self])
-      let self.current_timer = timer_start(self.debounce_time, Callback)
+      let self.current_timer = timer_start(self.debounce_time, self._on_timer)
     else
       call s:send_pattern(self)
     endif
@@ -45,21 +46,22 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   if has('nvim')
     let self.current_job = jobstart(self.command, {
-    \   'on_stdout': function('s:on_nvim_stdout', [self, a:context.session]),
-    \   'on_exit': function('s:on_nvim_exit', [self]),
+    \   'on_exit': function(self._on_exit, [], self),
+    \   'on_stdout': function(self._on_stdout, [], self),
     \ })
   else
     let self.current_job = job_start(self.command, {
-    \   'out_cb': function('s:on_vim_stdout', [self, a:context.session]),
-    \   'exit_cb': function('s:on_vim_exit', [self]),
+    \   'out_cb': self._out_cb,
+    \   'exit_cb': self._exit_cb,
     \ })
     let status = job_status(self.current_job)
     if status ==# 'fail'
       let self.current_job = s:INVALID_JOB
     endif
   endif
-  let self.sequence = 0
+  let self.current_session = a:context.session
   let self.last_line = ''
+  let self.sequence = 0
 endfunction
 
 function! s:Source.on_source_leave(context) abort dict
@@ -71,61 +73,66 @@ function! s:Source.on_source_leave(context) abort dict
     endif
     let self.current_job = s:INVALID_JOB
   endif
+  let self.current_session = s:INVALID_SESSION
 endfunction
 
-function! s:on_nvim_exit(source, job, exit_code, event) abort
-  if a:source.current_job == a:job
-    let a:source.current_job = s:INVALID_JOB
+function! s:Source._out_cb(job, message) abort dict
+  let is_eof = 0
+
+  for line in split(a:message, "\n")
+    if s:process_line(self, line)
+      let is_eof = 1
+    endif
+  endfor
+
+  if is_eof
+  \  && self.current_session isnot s:INVALID_SESSION
+  \  && self.current_session.ui.is_active()
+    call self.current_session.ui.refresh_candidates()
   endif
 endfunction
 
-function! s:on_nvim_stdout(source, session, job, data, event) abort
+function! s:Source._on_exit(job, exit_code, event) abort
+  if self.current_job == a:job
+    let self.current_job = s:INVALID_JOB
+  endif
+endfunction
+
+function! s:Source._on_stdout(job, data, event) abort dict
   let is_eof = 0
 
-  let line = a:source.last_line . a:data[0]
+  let line = self.last_line . a:data[0]
   if line != ''
-    if s:process_line(a:source, line)
+    if s:process_line(self, line)
       let is_eof = 1
     endif
   endif
 
   for line in a:data[1:-2]
-    if s:process_line(a:source, line)
+    if s:process_line(self, line)
       let is_eof = 1
     endif
   endfor
 
-  let a:source.last_line = a:data[-1]
+  let self.last_line = a:data[-1]
 
-  if is_eof && a:session.ui.is_active()
-    call a:session.ui.refresh_candidates()
+  if is_eof
+  \  && self.current_session isnot s:INVALID_SESSION
+  \  && self.current_session.ui.is_active()
+    call self.current_session.ui.refresh_candidates()
   endif
 endfunction
 
-function! s:on_timer(source, timer) abort
-  if a:source.current_job isnot s:INVALID_JOB
-    call s:send_pattern(a:source)
+function! s:Source._on_timer(timer) abort dict
+  if self.current_job isnot s:INVALID_JOB
+    call s:send_pattern(self)
   endif
-  let a:source.current_timer = s:INVALID_TIMER
+  let self.current_timer = s:INVALID_TIMER
 endfunction
 
-function! s:on_vim_exit(source, job, status) abort
-  if a:source.current_job is a:job
-    let a:source.current_job = s:INVALID_JOB
-  endif
-endfunction
-
-function! s:on_vim_stdout(source, session, job, message) abort
-  let is_eof = 0
-
-  for line in split(a:message, "\n")
-    if s:process_line(a:source, line)
-      let is_eof = 1
-    endif
-  endfor
-
-  if is_eof && a:session.ui.is_active()
-    call a:session.ui.refresh_candidates()
+function! s:Source._exit_cb(job, status) abort dict
+  if self.current_job is a:job
+    let self.current_job = s:INVALID_JOB
   endif
 endfunction
 
