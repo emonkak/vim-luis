@@ -455,8 +455,8 @@ function! s:on_TextChangedP() abort
     return
   endif
 
-  let complete_info = complete_info(['selected'])
-  if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS && complete_info.selected == -1
+  if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS
+  \  && get(complete_info(['selected']), 'selected', -1) == -1
     call feedkeys(s:keys_to_complete(b:luis_session), 'n')
   endif
 
