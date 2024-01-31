@@ -73,14 +73,12 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
 
   call nvim_buf_set_lines(self._bufnr, 0, -1, v:false, a:lines)
 
-  if has_key(a:hints, 'filetype')
-    call nvim_buf_set_option(self._bufnr, 'syntax', a:hints.filetype)
-  elseif has_key(a:hints, 'path')
-    let filetype = s:detect_filetype(self._bufnr, a:hints.path)
-    call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
-  else
-    call nvim_buf_set_option(self._bufnr, 'syntax', '')
-  endif
+  let filetype = has_key(a:hints, 'filetype')
+  \            ? a:hints.filetype
+  \            : has_key(a:hints, 'path')
+  \            ? s:detect_filetype(self._bufnr, a:hints.path)
+  \            : ''
+  call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
 endfunction
 
 function! s:detect_filetype(bufnr, path) abort

@@ -90,14 +90,12 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   call deletebufline(self._bufnr, 1, '$')
   call setbufline(self._bufnr, 1, a:lines)
 
-  if has_key(a:hints, 'filetype')
-    call setbufvar(self._bufnr, '&syntax', a:hints.filetype)
-  elseif has_key(a:hints, 'path')
-    let filetype = s:detect_filetype(self._window, self._bufnr, a:hints.path)
-    call setbufvar(self._bufnr, '&syntax', filetype)
-  else
-    call setbufvar(self._bufnr, '&syntax', '')
-  endif
+  let filetype = has_key(a:hints, 'filetype')
+  \            ? a:hints.filetype
+  \            : has_key(a:hints, 'path')
+  \            ? s:detect_filetype(self._window, self._bufnr, a:hints.path)
+  \            : ''
+  call setbufvar(self._bufnr, '&syntax', filetype)
 endfunction
 
 function! s:detect_filetype(window, bufnr, path) abort
