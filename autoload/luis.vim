@@ -418,12 +418,14 @@ function! luis#new_session(source, ...) abort
 endfunction
 
 function! luis#preview_candidate(session) abort
+  let previewer = a:session.previewer
   let candidate = a:session.ui.guess_candidate()
+
   if candidate is 0
+    call previewer.close()
     return 0
   endif
 
-  let previewer = a:session.previewer
   let context = { 'session': a:session }
 
   if has_key(a:session.source, 'on_preview')
@@ -480,9 +482,7 @@ function! luis#preview_candidate(session) abort
     endif
   endif
 
-  if previewer.is_active()
-    call previewer.close()
-  endif
+  call previewer.close()
 
   return 0
 endfunction

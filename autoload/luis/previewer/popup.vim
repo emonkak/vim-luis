@@ -49,8 +49,10 @@ function! s:Previewer.bounds() abort dict
 endfunction
 
 function! s:Previewer.close() abort dict
-  call popup_close(self._window)
-  let self._window = -1
+  if s:is_valid_window(self._window)
+    call popup_close(self._window)
+    let self._window = -1
+  endif
 endfunction
 
 function! s:Previewer.is_active() abort dict
@@ -190,8 +192,8 @@ function! s:initialize_preview_buffer(bufnr) abort
   call setbufvar(a:bufnr, '&undolevels', -1)
 endfunction
 
-function! s:is_valid_window(win) abort
-  return a:win >= 0 && win_gettype(a:win) !=# 'unknown'
+function! s:is_valid_window(window) abort
+  return a:window > 0 && win_gettype(a:window) ==# 'popup'
 endfunction
 
 function! s:open_window(bufnr, bounds, hints, popup_options, window_options) abort

@@ -343,6 +343,30 @@ function! s:test_preview_candidate__with_file_preview() abort
   endtry
 endfunction
 
+function! s:test_preview_candidate__with_no_candidate() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': 0,
+  \ }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_false(luis#preview_candidate(session))
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
+  call assert_equal(0, source_spies.on_preview.call_count())
+  call assert_equal(0, hook_spies.on_preview.call_count())
+  call assert_equal(1, previewer_spies.close.call_count())
+endfunction
+
 function! s:test_preview_candidate__with_no_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({

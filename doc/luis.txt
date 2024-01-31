@@ -1693,8 +1693,7 @@ Previewer provides previewing each candidate in the preview window.
 ATTRIBUTES					*luis-previewer-attributes*
 
 Previewer.close() (required)			*luis-previewer-close*
-	Close the preview window.  If this function is called when the window
-	is not active, it may raise an error.
+	Close the preview window.
 
 Previewer.bounds() (required)			*luis-previewer-bounds*
 	Return a dictionary that represents the position and size of the the

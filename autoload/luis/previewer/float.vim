@@ -27,8 +27,10 @@ endfunction
 let s:Previewer = {}
 
 function! s:Previewer.close() abort dict
-  call nvim_win_close(self._window, v:true)
-  let self._window = -1
+  if s:is_valid_window(self._window)
+    call nvim_win_close(self._window, v:true)
+    let self._window = -1
+  endif
 endfunction
 
 function! s:Previewer.bounds() abort dict
@@ -161,8 +163,8 @@ function! s:initialize_preview_buffer(bufnr) abort
   call nvim_buf_set_option(a:bufnr, 'undolevels', -1)
 endfunction
 
-function! s:is_valid_window(win) abort
-  return a:win >= 0 && nvim_win_is_valid(a:win)
+function! s:is_valid_window(window) abort
+  return a:window > 0 && nvim_win_is_valid(a:window)
 endfunction
 
 function! s:open_window(bufnr, bounds, hints, config, options) abort
