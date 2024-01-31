@@ -129,12 +129,11 @@ function! s:UI.normalize_candidate(candidate, index, context) abort
 endfunction
 
 function! s:UI.preview_bounds() abort
-  let pos = screenpos(bufwinnr(self._bufnr), s:LNUM_PATTERN, len(s:PROMPT))
-  let row = pos.row
-  if pumvisible()
-    let max_height = &pumheight > 0 ? &pumheight : &rows - row
-    let row += min([len(self._last_candidates), max_height])
+  let max_height = &lines - s:LNUM_PATTERN
+  if &pumheight > 0 && max_height > &pumheight
+    let max_height = &pumheight
   endif
+  let row = s:LNUM_PATTERN + min([len(self._last_candidates), max_height])
   return {
   \   'row': row,
   \   'col': 0,
