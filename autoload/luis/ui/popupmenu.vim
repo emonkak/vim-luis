@@ -120,7 +120,7 @@ function! s:UI.is_active() abort dict
   \      && getbufvar(self._bufnr, 'luis_session', 0) isnot 0
 endfunction
 
-function! s:UI.normalize_candidate(candidate, index, context) abort
+function! s:UI.normalize_candidate(candidate, index, context) abort dict
   let a:candidate.equal = 1
   if s:USER_DATA_CAN_ONLY_BE_STRING
     let a:candidate.user_data = json_encode(a:candidate.user_data)
@@ -128,7 +128,7 @@ function! s:UI.normalize_candidate(candidate, index, context) abort
   return a:candidate
 endfunction
 
-function! s:UI.preview_bounds() abort
+function! s:UI.preview_bounds() abort dict
   let max_height = &lines - s:LNUM_PATTERN
   if &pumheight > 0 && max_height > &pumheight
     let max_height = &pumheight
