@@ -87,10 +87,29 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \ )
   endif
 
-  let filetype = get(a:hints, 'filetype', '')
   call deletebufline(self._bufnr, 1, '$')
   call setbufline(self._bufnr, 1, a:lines)
-  call setbufvar(self._bufnr, '&syntax', filetype)
+
+  if has_key(a:hints, 'filetype')
+    call setbufvar(self._bufnr, '&syntax', a:hints.filetype)
+  elseif has_key(a:hints, 'path')
+    let filetype = s:detect_filetype(self._window, self._bufnr, a:hints.path)
+    call setbufvar(self._bufnr, '&syntax', filetype)
+  endif
+endfunction
+
+function! s:detect_filetype(window, bufnr, path) abort
+  " Ignore FileType event to prevent load filetype plugins.
+  let original_eventignore = &eventignore
+  set eventignore=FileType
+  try
+    let command = 'doautocmd <nomodeline> filetypedetect BufNewFile'
+    \           . ' ' . fnameescape(a:path)
+    call win_execute(a:window, command)
+    return getbufvar(a:bufnr, '&filetype')
+  finally
+    let &eventignore = original_eventignore
+  endtry
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort
@@ -132,8 +151,9 @@ function! s:open_window(bufnr, bounds, hints, options) abort
   endif
 
   let original_eventignore = &eventignore
+  set eventignore=BufEnter,BufLeave,BufWinEnter
+
   try
-    let &eventignore = 'BufEnter,BufLeave,BufWinEnter'
     let window = popup_create(a:bufnr, config)
   finally
     let &eventignore = original_eventignore

@@ -77,9 +77,11 @@ function! s:test_open_text__after_open_buffer() abort
     call assert_equal(bufnr, preview_bufnr_1)
     call assert_equal(bounds, previewer.bounds())
     call assert_equal(1, get(get(getwininfo(preview_win_1), 0, {}), 'topline'))
+    call assert_equal('', getbufvar(preview_bufnr_1, '&syntax'))
 
     let lines = ['foo', 'bar', 'baz']
     let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
+
     call previewer.open_text(lines, bounds, {})
 
     let preview_win_2 = previewer._window
@@ -93,6 +95,7 @@ function! s:test_open_text__after_open_buffer() abort
     call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
     call assert_equal(bounds, previewer.bounds())
     call assert_equal(1, get(get(getwininfo(preview_win_2), 0, {}), 'topline'))
+    call assert_equal('', getbufvar(preview_bufnr_2, '&syntax'))
 
     call previewer.close()
 
@@ -115,6 +118,7 @@ function! s:test_open_text__after_unload_preview_buffer() abort
 
   let lines = ['foo', 'bar', 'baz']
   let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
+
   call previewer.open_text(lines, bounds, {})
 
   let preview_win_1 = previewer._window
@@ -126,11 +130,13 @@ function! s:test_open_text__after_unload_preview_buffer() abort
   call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_win_1), 0, {}), 'topline'))
+  call assert_equal('', getbufvar(preview_bufnr_1, '&syntax'))
 
   execute preview_bufnr_1 'bunload!'
 
   let lines = ['qux', 'quux', 'corge']
   let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
+
   call previewer.open_text(lines, bounds, {})
 
   let preview_win_2 = previewer._window
@@ -142,6 +148,7 @@ function! s:test_open_text__after_unload_preview_buffer() abort
   call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_win_2), 0, {}), 'topline'))
+  call assert_equal('', getbufvar(preview_bufnr_2, '&syntax'))
 
   call previewer.close()
 
@@ -161,6 +168,7 @@ function! s:test_open_text__open_twice() abort
 
   let lines = ['foo', 'bar', 'baz']
   let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
+
   call previewer.open_text(lines, bounds, {})
 
   let preview_win_1 = previewer._window
@@ -172,10 +180,12 @@ function! s:test_open_text__open_twice() abort
   call assert_equal(lines, getbufline(preview_bufnr_1, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
   call assert_equal(1, get(get(getwininfo(preview_win_1), 0, {}), 'topline'))
+  call assert_equal('', getbufvar(preview_bufnr_1, '&syntax'))
 
   let lines = ['qux', 'quux', 'corge']
   let bounds = { 'row': 2, 'col': 4, 'width': 6, 'height': 8 }
-  call previewer.open_text(lines, bounds, { 'filetype': 'vim' })
+
+  call previewer.open_text(lines, bounds, {})
 
   let preview_win_2 = previewer._window
   let preview_bufnr_2 = winbufnr(previewer._window)
@@ -185,12 +195,87 @@ function! s:test_open_text__open_twice() abort
   call assert_equal(preview_bufnr_1, preview_bufnr_2)
   call assert_equal(lines, getbufline(preview_bufnr_2, 1, '$'))
   call assert_equal(bounds, previewer.bounds())
-  call assert_equal('vim', getbufvar(preview_bufnr_2, '&syntax'))
   call assert_equal(1, get(get(getwininfo(preview_win_2), 0, {}), 'topline'))
+  call assert_equal('', getbufvar(preview_bufnr_2, '&syntax'))
 
   call previewer.close()
 
   call assert_false(previewer.is_active())
 
   execute preview_bufnr_1 'bwipeout!'
+endfunction
+
+function! s:test_open_text__with_filetype() abort
+  if !exists('*popup_create')
+    return 'popup_create() function is required.'
+  endif
+
+  let previewer = luis#previewer#popup#new()
+
+  call assert_false(previewer.is_active())
+
+  let lines = ['foo', 'bar', 'baz']
+  let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
+  let filetype = 'vim'
+
+  call previewer.open_text(lines, bounds, { 'filetype': filetype })
+
+  let preview_win = previewer._window
+  let preview_bufnr = winbufnr(previewer._window)
+
+  call assert_true(previewer.is_active())
+  call assert_notequal(0, preview_win)
+  call assert_notequal(0, preview_bufnr)
+  call assert_equal(lines, getbufline(preview_bufnr, 1, '$'))
+  call assert_equal(bounds, previewer.bounds())
+  call assert_equal(1, get(get(getwininfo(preview_win), 0, {}), 'topline'))
+  call assert_equal(filetype, getbufvar(preview_bufnr, '&syntax'))
+
+  call previewer.close()
+
+  call assert_false(previewer.is_active())
+
+  execute preview_bufnr 'bwipeout!'
+endfunction
+
+function! s:test_open_text__with_path() abort
+  if !exists('*popup_create')
+    return 'popup_create() function is required.'
+  endif
+
+  silent filetype on
+  try
+    let previewer = luis#previewer#popup#new()
+
+    call assert_false(previewer.is_active())
+
+    let bounds = { 'row': 1, 'col': 3, 'width': 5, 'height': 7 }
+
+    for [lines, path, expected_filetype] in [
+    \   [["console.log('Hello World!')"], 'foo.ts', 'typescript'],
+    \   [["#!/bin/bash"], 'foo.sh', 'sh'],
+    \   [["#!/bin/zsh"], 'foo.sh', 'zsh'],
+    \ ]
+      call previewer.open_text(lines, bounds, { 'path': path })
+
+      let preview_win = previewer._window
+      let preview_bufnr = winbufnr(previewer._window)
+
+      call assert_true(previewer.is_active())
+      call assert_notequal(0, preview_win)
+      call assert_notequal(0, preview_bufnr)
+      call assert_equal(lines, getbufline(preview_bufnr, 1, '$'))
+      call assert_equal(bounds, previewer.bounds())
+      call assert_equal(1, get(get(getwininfo(preview_win), 0, {}), 'topline'))
+      call assert_equal(expected_filetype, getbufvar(preview_bufnr, '&syntax'))
+    endfor
+
+    call previewer.close()
+
+    call assert_false(previewer.is_active())
+
+    execute preview_bufnr 'bwipeout!'
+  finally
+    filetype off
+  endtry
 endfunction

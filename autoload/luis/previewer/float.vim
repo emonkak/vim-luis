@@ -71,9 +71,24 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \ )
   endif
 
-  let filetype = get(a:hints, 'filetype', '')
   call nvim_buf_set_lines(self._bufnr, 0, -1, v:false, a:lines)
-  call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
+
+  if has_key(a:hints, 'filetype')
+    call nvim_buf_set_option(self._bufnr, 'syntax', a:hints.filetype)
+  elseif has_key(a:hints, 'path')
+    let filetype = s:detect_filetype(self._bufnr, a:hints.path)
+    call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
+  endif
+endfunction
+
+function! s:detect_filetype(bufnr, path) abort
+  let SCRIPT =<< trim END
+  vim.filetype.match({
+    buf = vim.api.nvim_eval('a:bufnr'),
+    filename = vim.api.nvim_eval('a:path'),
+  }) or ''
+END
+  return luaeval(join(SCRIPT, ''))
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort
@@ -137,8 +152,8 @@ endfunction
 
 function! s:switch_buffer_without_events(window, bufnr) abort
   let original_eventignore = &eventignore
+  set eventignore=BufEnter,BufLeave,BufWinEnter
   try
-    let &eventignore = 'BufEnter,BufLeave,BufWinEnter'
     call nvim_win_set_buf(a:window, a:bufnr)
   finally
     let &eventignore = original_eventignore

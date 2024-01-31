@@ -468,12 +468,6 @@ function! luis#preview_candidate(session) abort
         " comma.
         let lines = readfile(path, '', bounds.height + 1)
         let hints = s:preview_hints_from_candidate(candidate)
-        if !has_key(hints, 'filetype')
-          let filetype = luis#_detect_filetype(path, lines)
-          if filetype != ''
-            let hints.filetype = filetype
-          endif
-        endif
         call previewer.open_text(
         \   lines,
         \   bounds,
@@ -546,43 +540,6 @@ function! luis#take_action(session, action_name) abort
   endif
 
   return 1
-endfunction
-
-function! luis#_detect_filetype(path, lines) abort
-  if has('nvim')
-    let _ =<< trim END
-    vim.filetype.match({
-      filename = vim.api.nvim_eval('a:path'),
-      contents = vim.api.nvim_eval('a:lines'),
-    }) or ''
-END
-    return luaeval(join(_, ''))
-  elseif exists('*popup_create')
-    let temp_win = popup_create(a:lines, { 'hidden': 1 })
-    let temp_bufnr = winbufnr(temp_win)
-    try
-      let command = 'doautocmd <nomodeline> filetypedetect BufNewFile '
-      \           . fnameescape(a:path)
-      call win_execute(temp_win, command)
-      return getbufvar(temp_bufnr, '&filetype')
-    finally
-      call popup_close(temp_win)
-    endtry
-  else
-    let original_lazyredraw = &lazyredraw
-    set lazyredraw
-    noautocmd new
-    setlocal buftype=nofile noswapfile bufhidden=wipe nobuflisted undolevels=-1
-    call setline(1, a:lines)
-    try
-      execute 'doautocmd <nomodeline> filetypedetect BufNewFile'
-      \       fnameescape(a:path)
-      return &filetype
-    finally
-      noautocmd close
-      let &lazyredraw = original_lazyredraw
-    endtry
-  endif
 endfunction
 
 function! luis#_validate_comparer(comparer) abort
@@ -827,6 +784,10 @@ function! s:preview_hints_from_candidate(candidate) abort
 
   if has_key(a:candidate.user_data, 'preview_filetype')
     let hints.filetype = a:candidate.user_data.preview_filetype
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_path')
+    let hints.path = a:candidate.user_data.preview_path
   endif
 
   return hints

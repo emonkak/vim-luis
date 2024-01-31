@@ -152,20 +152,6 @@ function! s:test_collect_candidates() abort
   \ )
 endfunction
 
-function! s:test_detect_filetype() abort
-  silent filetype on
-  try
-    call assert_equal('', luis#_detect_filetype('foo', []))
-    call assert_equal('c', luis#_detect_filetype('foo.c', []))
-    call assert_equal('javascript', luis#_detect_filetype('foo.js', []))
-    call assert_equal('vim', luis#_detect_filetype('foo.vim', []))
-    call assert_equal('html', luis#_detect_filetype('foo.html', ['<!DOCTYPE html>']))
-    call assert_equal('zsh', luis#_detect_filetype('foo.sh', ['#!/bin/zsh']))
-  finally
-    filetype off
-  endtry
-endfunction
-
 function! s:test_preview_candidate__with_buffer_preview() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
@@ -308,51 +294,7 @@ function! s:test_preview_candidate__with_file_preview() abort
     \   [
     \     ['1', '2', '3', '4', '5'],
     \     preview_bounds,
-    \     { 'filetype': 'help' },
-    \   ],
-    \   previewer_spies.open_text.last_args()
-    \ )
-    call assert_equal(0, previewer_spies.close.call_count())
-
-    " Without filetype (Auto detection)
-    let candidate = {
-    \   'word': 'hello_world.vim',
-    \   'user_data': {
-    \     'preview_path': 'test/data/hello_world.vim',
-    \   }
-    \ }
-    let preview_bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
-    let [ui, ui_spies] = SpyDict(CreateMockUI({
-    \   'candidate': candidate,
-    \   'preview_bounds': preview_bounds,
-    \ }))
-    let session = luis#new_session(source, {
-    \   'ui': ui,
-    \   'matcher': CreateMockMatcher(),
-    \   'comparer': CreateMockComparer(),
-    \   'previewer': previewer,
-    \   'hook': hook,
-    \   'initial_pattern': '',
-    \ })
-
-    call assert_true(luis#preview_candidate(session))
-    call assert_equal(1, ui_spies.guess_candidate.call_count())
-    call assert_equal(2, source_spies.on_preview.call_count())
-    call assert_equal([
-    \   candidate,
-    \   { 'session': session },
-    \ ], source_spies.on_preview.last_args())
-    call assert_equal(2, hook_spies.on_preview.call_count())
-    call assert_equal([
-    \   candidate,
-    \   { 'session': session },
-    \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, previewer_spies.open_text.call_count())
-    call assert_equal(
-    \   [
-    \     ["echo 'hello, world!'"],
-    \     preview_bounds,
-    \     { 'filetype': 'vim' },
+    \     { 'path': 'test/data/seq.txt', 'filetype': 'help' },
     \   ],
     \   previewer_spies.open_text.last_args()
     \ )
@@ -381,17 +323,17 @@ function! s:test_preview_candidate__with_file_preview() abort
 
     call assert_false(luis#preview_candidate(session))
     call assert_equal(1, ui_spies.guess_candidate.call_count())
-    call assert_equal(3, source_spies.on_preview.call_count())
+    call assert_equal(2, source_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
     \   { 'session': session },
     \ ], source_spies.on_preview.last_args())
-    call assert_equal(3, hook_spies.on_preview.call_count())
+    call assert_equal(2, hook_spies.on_preview.call_count())
     call assert_equal([
     \   candidate,
     \   { 'session': session },
     \ ], hook_spies.on_preview.last_args())
-    call assert_equal(2, previewer_spies.open_text.call_count())
+    call assert_equal(1, previewer_spies.open_text.call_count())
     call assert_equal(1, previewer_spies.close.call_count())
   finally
     filetype off
