@@ -198,7 +198,10 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \   [
   \     candidate.user_data.preview_bufnr,
   \     preview_bounds,
-  \     { 'cursor': candidate.user_data.preview_cursor }
+  \     {
+  \       'bufnr': candidate.user_data.preview_bufnr,
+  \       'cursor': candidate.user_data.preview_cursor,
+  \     },
   \   ],
   \   previewer_spies.open_buffer.last_args()
   \ )
@@ -387,7 +390,7 @@ function! s:test_preview_candidate__with_text_preview() abort
   let candidate = {
   \   'word': 'foo',
   \   'user_data': {
-  \     'preview_title': 'title',
+  \     'preview_path': 'foo/bar/baz',
   \     'preview_lines': ['foo', 'bar', 'baz'],
   \   }
   \ }
@@ -422,7 +425,7 @@ function! s:test_preview_candidate__with_text_preview() abort
   \   [
   \     candidate.user_data.preview_lines,
   \     preview_bounds,
-  \     { 'title': candidate.user_data.preview_title }
+  \     { 'path': 'foo/bar/baz' }
   \   ],
   \   previewer_spies.open_text.last_args()
   \ )

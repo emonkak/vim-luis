@@ -1765,7 +1765,7 @@ luis#previewer#popup#new({options} = {})
 
 	  "window_options"  (dict) A dictionary containing window-local
 	                    |options| (e.g. `{ 'number': 1 }`).
-	  "window_config"   (dict) A dictionary that represents a window
+	  "popup_options"   (dict) A dictionary that represents a window
 	                    config.  See |popup_create-arguments| for more
 	                    details.
 

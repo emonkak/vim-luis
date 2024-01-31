@@ -774,8 +774,8 @@ endfunction
 function! s:preview_hints_from_candidate(candidate) abort
   let hints = {}
 
-  if has_key(a:candidate.user_data, 'preview_title')
-    let hints.title = a:candidate.user_data.preview_title
+  if has_key(a:candidate.user_data, 'preview_bufnr')
+    let hints.bufnr = a:candidate.user_data.preview_bufnr
   endif
 
   if has_key(a:candidate.user_data, 'preview_cursor')
@@ -788,6 +788,10 @@ function! s:preview_hints_from_candidate(candidate) abort
 
   if has_key(a:candidate.user_data, 'preview_path')
     let hints.path = a:candidate.user_data.preview_path
+  endif
+
+  if has_key(a:candidate.user_data, 'preview_title')
+    let hints.title = a:candidate.user_data.preview_title
   endif
 
   return hints

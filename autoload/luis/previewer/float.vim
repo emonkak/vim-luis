@@ -1,8 +1,26 @@
 function! luis#previewer#float#new(...) abort
+  let options = get(a:000, 0, {})
   let previewer = copy(s:Previewer)
   let previewer._bufnr = -1
-  let previewer._options = get(a:000, 0, {})
   let previewer._window = -1
+  let previewer._window_config = extend(
+  \   {
+  \     'border': 'rounded',
+  \     'focusable': 0,
+  \     'style': 'minimal',
+  \   },
+  \   get(options, 'window_config', {}),
+  \   'force'
+  \ )
+  let previewer._window_options = extend(
+  \   {
+  \     'foldenable': v:false,
+  \     'scrolloff': 0,
+  \     'signcolumn': 'no',
+  \   },
+  \   get(options, 'window_options', {}),
+  \   'force'
+  \ )
   return previewer
 endfunction
 
@@ -31,13 +49,19 @@ endfunction
 function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   if s:is_valid_window(self._window)
     call s:switch_buffer_without_events(self._window, a:bufnr)
-    call s:set_bounds(self._window, a:bounds)
+    call s:configure_window(
+    \   self._window,
+    \   a:bounds,
+    \   a:hints,
+    \   self._window_config
+    \ )
   else
     let self._window = s:open_window(
     \   a:bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self._options
+    \   self._window_config,
+    \   self._window_options
     \ )
   endif
 
@@ -61,13 +85,19 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
 
   if s:is_valid_window(self._window)
     call s:switch_buffer_without_events(self._window, self._bufnr)
-    call s:set_bounds(self._window, a:bounds)
+    call s:configure_window(
+    \   self._window,
+    \   a:bounds,
+    \   a:hints,
+    \   self._window_config
+    \ )
   else
     let self._window = s:open_window(
     \   self._bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self._options
+    \   self._window_config,
+    \   self._window_options
     \ )
   endif
 
@@ -79,6 +109,38 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   \            ? s:detect_filetype(self._bufnr, a:hints.path)
   \            : ''
   call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
+endfunction
+
+function! s:configure_window(window, bounds, hints, config) abort
+  let config = s:create_window_config(a:bounds, a:hints, a:config)
+  call nvim_win_set_config(a:window, config)
+endfunction
+
+function! s:create_window_config(bounds, hints, default_config) abort
+  let config = copy(a:default_config)
+  let config.relative = 'editor'
+  let config.row = a:bounds.row
+  let config.col = a:bounds.col
+  let config.width = a:bounds.width
+  let config.height = a:bounds.height
+
+  let title = ''
+
+  if has_key(a:hints, 'title')
+    let title = a:hints.title
+  elseif has_key(a:hints, 'bufnr')
+    let title = bufname(a:hints.bufnr)
+    let title = title != '' ? fnamemodify(title, ':t') : '[No Name]'
+  elseif has_key(a:hints, 'path')
+    let title = fnamemodify(a:hints.path, ':t')
+  endif
+
+  if title != ''
+    " Add padding around title.
+    let config.title = ' ' . title . ' '
+  endif
+
+  return config
 endfunction
 
 function! s:detect_filetype(bufnr, path) abort
@@ -103,51 +165,17 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && nvim_win_is_valid(a:win)
 endfunction
 
-function! s:open_window(bufnr, bounds, hints, options) abort
-  let config = {
-  \   'border': 'rounded',
-  \   'focusable': 0,
-  \   'style': 'minimal',
-  \ }
-
-  if has_key(a:hints, 'title')
-    let config.title = a:hints.title
-    let config.title_pos = 'center'
-  endif
-
-  let config.relative = 'editor'
-  let config.row = a:bounds.row
-  let config.col = a:bounds.col
-  let config.width = a:bounds.width
-  let config.height = a:bounds.height
+function! s:open_window(bufnr, bounds, hints, config, options) abort
+  let config = s:create_window_config(a:bounds, a:hints, a:config)
   let config.noautocmd = v:true
 
-  if has_key(a:options, 'window_config')
-    call extend(config, a:options.window_config, 'force')
-  endif
-
   let window = nvim_open_win(a:bufnr, v:false, config)
-  let options = { 'foldenable': v:false, 'scrolloff': 0, 'signcolumn': 'no' }
 
-  if has_key(a:options, 'window_options')
-    call extend(options, a:options.window_options, 'force')
-  endif
-
-  for [key, value] in items(options)
+  for [key, value] in items(a:options)
     call nvim_win_set_option(window, key, value)
   endfor
 
   return window
-endfunction
-
-function! s:set_bounds(win, bounds) abort
-  call nvim_win_set_config(a:win, {
-  \   'relative': 'editor',
-  \   'row': a:bounds.row,
-  \   'col': a:bounds.col,
-  \   'width': a:bounds.width,
-  \   'height': a:bounds.height,
-  \ })
 endfunction
 
 function! s:switch_buffer_without_events(window, bufnr) abort

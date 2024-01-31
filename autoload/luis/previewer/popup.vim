@@ -3,10 +3,32 @@ let s:BORDER_ASCII = ['-', '|', '_', '|', '+', '+', '+', '+']
 let s:BORDER_UNICODE = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
 
 function! luis#previewer#popup#new(...) abort
+  let options = get(a:000, 0, {})
   let previewer = copy(s:Previewer)
   let previewer._bufnr = -1
-  let previewer._options = get(a:000, 0, {})
   let previewer._window = -1
+  let previewer._popup_options = extend(
+  \   {
+  \     'border': [],
+  \     'borderchars': &ambiwidth ==# 'double'
+  \                    ? s:BORDER_ASCII
+  \                    : s:BORDER_UNICODE,
+  \     'borderhighlight': ['VertSplit'],
+  \     'scrollbar': 0,
+  \   },
+  \   get(options, 'popup_options', {}),
+  \   'force'
+  \ )
+  let previewer._window_options = extend(
+  \   {
+  \     'foldenable': 0,
+  \     'scrolloff': 0,
+  \     'signcolumn': 'no',
+  \     'wincolor': 'Normal',
+  \   },
+  \   get(options, 'window_options', {}),
+  \   'force'
+  \ )
   return previewer
 endfunction
 
@@ -44,7 +66,8 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
   \   a:bufnr,
   \   a:bounds,
   \   a:hints,
-  \   self._options
+  \   self._popup_options,
+  \   self._window_options
   \ )
 
   if has_key(a:hints, 'cursor')
@@ -68,14 +91,20 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   if s:is_valid_window(self._window)
     if winbufnr(self._window) == self._bufnr
       " Reuse window.
-      call s:set_bounds(self._window, a:bounds)
+      call s:configure_popup(
+      \   self._window,
+      \   a:bounds,
+      \   a:hints,
+      \   self._popup_options
+      \ )
     else
       call popup_close(self._window)
       let self._window = s:open_window(
       \   self._bufnr,
       \   a:bounds,
       \   a:hints,
-      \   self._options
+      \   self._popup_options,
+      \   self._window_options
       \ )
     endif
   else
@@ -83,7 +112,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
     \   self._bufnr,
     \   a:bounds,
     \   a:hints,
-    \   self._options
+    \   self._popup_options,
+    \   self._window_options
     \ )
   endif
 
@@ -96,6 +126,43 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   \            ? s:detect_filetype(self._window, self._bufnr, a:hints.path)
   \            : ''
   call setbufvar(self._bufnr, '&syntax', filetype)
+endfunction
+
+function! s:configure_popup(window, bounds, hints, popup_options) abort
+  let popup_options = s:create_popup_options(a:hints, a:popup_options)
+
+  call popup_setoptions(a:window, popup_options)
+
+  " line = row + border_width
+  call popup_move(a:window, {
+  \   'line': a:bounds.row + 1,
+  \   'col': max([1, a:bounds.col]),
+  \   'minwidth': a:bounds.width,
+  \   'minheight': a:bounds.height,
+  \   'maxwidth': a:bounds.width,
+  \   'maxheight': a:bounds.height,
+  \ })
+endfunction
+
+function! s:create_popup_options(hints, default_options) abort
+  let options = copy(a:default_options)
+  let title = ''
+
+  if has_key(a:hints, 'title')
+    let title = a:hints.title
+  elseif has_key(a:hints, 'bufnr')
+    let title = bufname(a:hints.bufnr)
+    let title = title != '' ? fnamemodify(title, ':t') : '[No Name]'
+  elseif has_key(a:hints, 'path')
+    let title = fnamemodify(a:hints.path, ':t')
+  endif
+
+  if title != ''
+    " Add padding around title.
+    let options.title = ' ' . title . ' '
+  endif
+
+  return options
 endfunction
 
 function! s:detect_filetype(window, bufnr, path) abort
@@ -127,66 +194,29 @@ function! s:is_valid_window(win) abort
   return a:win >= 0 && win_gettype(a:win) !=# 'unknown'
 endfunction
 
-function! s:open_window(bufnr, bounds, hints, options) abort
-  let config = {
-  \   'border': [],
-  \   'borderchars': &ambiwidth ==# 'double'
-  \                  ? s:BORDER_ASCII
-  \                  : s:BORDER_UNICODE,
-  \   'borderhighlight': ['VertSplit'],
-  \   'scrollbar': 0,
-  \ }
+function! s:open_window(bufnr, bounds, hints, popup_options, window_options) abort
+  let popup_options = s:create_popup_options(a:hints, a:popup_options)
 
-  if has_key(a:hints, 'title')
-    let config.title = a:hints.title
-  endif
-
-  let config.line = a:bounds.row + 1  " 1 = {border_width}
-  let config.col = max([1, a:bounds.col])
-  let config.minwidth = a:bounds.width
-  let config.minheight = a:bounds.height
-  let config.maxwidth = a:bounds.width
-  let config.maxheight = a:bounds.height
-
-  if has_key(a:options, 'popup_config')
-    call extend(config, a:options.popup_config, 'force')
-  endif
+  " line = row + border_width
+  let popup_options.line = a:bounds.row + 1
+  let popup_options.col = max([1, a:bounds.col])
+  let popup_options.minwidth = a:bounds.width
+  let popup_options.minheight = a:bounds.height
+  let popup_options.maxwidth = a:bounds.width
+  let popup_options.maxheight = a:bounds.height
 
   let original_eventignore = &eventignore
   set eventignore=BufEnter,BufLeave,BufWinEnter
 
   try
-    let window = popup_create(a:bufnr, config)
+    let window = popup_create(a:bufnr, popup_options)
   finally
     let &eventignore = original_eventignore
   endtry
 
-  let options = {
-  \   'foldenable': 0,
-  \   'scrolloff': 0,
-  \   'signcolumn': 'no',
-  \   'wincolor': 'Normal',
-  \ }
-
-  if has_key(a:options, 'window_options')
-    call extend(options, a:options.window_options, 'force')
-  endif
-
-  for [key, value] in items(options)
+  for [key, value] in items(a:window_options)
     call setwinvar(window, '&' . key, value)
   endfor
 
   return window
-endfunction
-
-function! s:set_bounds(win, bounds) abort
-  " {line} = {row} + {border_width}
-  call popup_move(a:win, {
-  \   'line': a:bounds.row + 1,
-  \   'col': max([1, a:bounds.col]),
-  \   'minwidth': a:bounds.width,
-  \   'minheight': a:bounds.height,
-  \   'maxwidth': a:bounds.width,
-  \   'maxheight': a:bounds.height,
-  \ })
 endfunction
