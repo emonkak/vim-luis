@@ -458,7 +458,7 @@ function! s:on_TextChangedI() abort
   " Close the preview when there are no candidates. This is not handled in
   " TextChangedP handler.
   if empty(b:luis_session.ui._last_candidates)
-    call luis#preview_candidate(b:luis_session)
+    call b:luis_session.previewer.close()
   endif
 endfunction
 

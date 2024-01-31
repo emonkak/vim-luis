@@ -364,7 +364,7 @@ function! s:test_preview_candidate__with_no_candidate() abort
   call assert_equal(1, ui_spies.guess_candidate.call_count())
   call assert_equal(0, source_spies.on_preview.call_count())
   call assert_equal(0, hook_spies.on_preview.call_count())
-  call assert_equal(1, previewer_spies.close.call_count())
+  call assert_equal(0, previewer_spies.close.call_count())
 endfunction
 
 function! s:test_preview_candidate__with_no_preview() abort
