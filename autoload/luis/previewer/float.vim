@@ -78,6 +78,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   elseif has_key(a:hints, 'path')
     let filetype = s:detect_filetype(self._bufnr, a:hints.path)
     call nvim_buf_set_option(self._bufnr, 'syntax', filetype)
+  else
+    call nvim_buf_set_option(self._bufnr, 'syntax', '')
   endif
 endfunction
 

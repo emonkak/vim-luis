@@ -95,6 +95,8 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
   elseif has_key(a:hints, 'path')
     let filetype = s:detect_filetype(self._window, self._bufnr, a:hints.path)
     call setbufvar(self._bufnr, '&syntax', filetype)
+  else
+    call setbufvar(self._bufnr, '&syntax', '')
   endif
 endfunction
 
@@ -106,7 +108,9 @@ function! s:detect_filetype(window, bufnr, path) abort
     let command = 'doautocmd <nomodeline> filetypedetect BufNewFile'
     \           . ' ' . fnameescape(a:path)
     call win_execute(a:window, command)
-    return getbufvar(a:bufnr, '&filetype')
+    let filetype = getbufvar(a:bufnr, '&filetype')
+    call setbufvar(a:bufnr, '&filetype', '')
+    return filetype
   finally
     let &eventignore = original_eventignore
   endtry

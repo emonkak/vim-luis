@@ -231,6 +231,16 @@ function! s:test_open_text__with_filetype() abort
   call assert_equal(1, get(get(getwininfo(preview_win), 0, {}), 'topline'))
   call assert_equal(filetype, getbufvar(preview_bufnr, '&syntax'))
 
+  call previewer.open_text(lines, bounds, {})
+
+  call assert_true(previewer.is_active())
+  call assert_notequal(0, preview_win)
+  call assert_notequal(0, preview_bufnr)
+  call assert_equal(lines, getbufline(preview_bufnr, 1, '$'))
+  call assert_equal(bounds, previewer.bounds())
+  call assert_equal(1, get(get(getwininfo(preview_win), 0, {}), 'topline'))
+  call assert_equal('', getbufvar(preview_bufnr, '&syntax'))
+
   call previewer.close()
 
   call assert_false(previewer.is_active())
