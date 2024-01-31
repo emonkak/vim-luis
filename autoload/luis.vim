@@ -573,6 +573,7 @@ END
     set lazyredraw
     noautocmd new
     setlocal buftype=nofile noswapfile bufhidden=wipe nobuflisted undolevels=-1
+    call setline(1, a:lines)
     try
       execute 'doautocmd <nomodeline> filetypedetect BufNewFile'
       \       fnameescape(a:path)

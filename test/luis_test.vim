@@ -160,6 +160,7 @@ function! s:test_detect_filetype() abort
     call assert_equal('javascript', luis#_detect_filetype('foo.js', []))
     call assert_equal('vim', luis#_detect_filetype('foo.vim', []))
     call assert_equal('html', luis#_detect_filetype('foo.html', ['<!DOCTYPE html>']))
+    call assert_equal('zsh', luis#_detect_filetype('foo.sh', ['#!/bin/zsh']))
   finally
     filetype off
   endtry
