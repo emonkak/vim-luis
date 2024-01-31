@@ -276,6 +276,7 @@ function! s:initialize_ui_buffer(buffer_name) abort
     if exists('##TextChangedP')
       " Enable the ++nested option to allow executing autocmd on the buffer
       " during preview.
+      autocmd TextChangedI <buffer> ++nested  call s:on_TextChangedI()
       autocmd TextChangedP <buffer> ++nested  call s:on_TextChangedP()
     endif
     autocmd WinLeave <buffer>  call s:on_WinLeave()
@@ -449,17 +450,29 @@ function! s:on_InsertEnter() abort
   call feedkeys(s:keys_to_complete(b:luis_session), 'n')
 endfunction
 
+function! s:on_TextChangedI() abort
+  if !exists('b:luis_session')
+    return
+  endif
+
+  " Close the preview when there are no candidates. This is not handled in
+  " TextChangedP handler.
+  if empty(b:luis_session.ui._last_candidates)
+    call luis#preview_candidate(b:luis_session)
+  endif
+endfunction
+
 function! s:on_TextChangedP() abort
   if !exists('b:luis_session')
     return
   endif
 
+  call luis#preview_candidate(b:luis_session)
+
   if s:SUPPORTS_EQUAL_FIELD_FOR_COMPLETE_ITEMS
-  \  && get(complete_info(['selected']), 'selected', -1) == -1
+  \  && complete_info(['selected']).selected == -1
     call feedkeys(s:keys_to_complete(b:luis_session), 'n')
   endif
-
-  call luis#preview_candidate(b:luis_session)
 endfunction
 
 function! s:on_WinLeave() abort
