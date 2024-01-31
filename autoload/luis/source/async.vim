@@ -60,6 +60,8 @@ function! s:Source.on_source_enter(context) abort dict
     endif
   endif
   let self._current_session = a:context.session
+  let self._current_candidates = []
+  let self._pending_candidates = []
   let self._last_line = ''
   let self._sequence = 0
 endfunction
@@ -72,6 +74,10 @@ function! s:Source.on_source_leave(context) abort dict
       call job_stop(self._current_job)
     endif
     let self._current_job = s:INVALID_JOB
+  endif
+  if self._current_timer isnot s:INVALID_TIMER
+    call timer_stop(self._current_timer)
+    let self._current_timer = s:INVALID_TIMER
   endif
   let self._current_session = s:INVALID_SESSION
 endfunction
