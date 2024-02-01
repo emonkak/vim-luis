@@ -126,20 +126,9 @@ function! s:create_window_config(bounds, hints, default_config) abort
   let config.width = a:bounds.width
   let config.height = a:bounds.height
 
-  let title = ''
-
-  if has_key(a:hints, 'title')
-    let title = a:hints.title
-  elseif has_key(a:hints, 'bufnr')
-    let title = bufname(a:hints.bufnr)
-    let title = title != '' ? fnamemodify(title, ':t') : '[No Name]'
-  elseif has_key(a:hints, 'path')
-    let title = fnamemodify(a:hints.path, ':t')
-  endif
-
-  if title != ''
+  if get(a:hints, 'title', '') != ''
     " Add padding around title.
-    let config.title = ' ' . title . ' '
+    let config.title = ' ' . a:hints.title . ' '
   endif
 
   return config

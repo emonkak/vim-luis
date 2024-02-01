@@ -148,20 +148,10 @@ endfunction
 
 function! s:create_popup_options(hints, default_options) abort
   let options = copy(a:default_options)
-  let title = ''
 
-  if has_key(a:hints, 'title')
-    let title = a:hints.title
-  elseif has_key(a:hints, 'bufnr')
-    let title = bufname(a:hints.bufnr)
-    let title = title != '' ? fnamemodify(title, ':t') : '[No Name]'
-  elseif has_key(a:hints, 'path')
-    let title = fnamemodify(a:hints.path, ':t')
-  endif
-
-  if title != ''
+  if get(a:hints, 'title', '') != ''
     " Add padding around title.
-    let options.title = ' ' . title . ' '
+    let options.title = ' ' . a:hints.title . ' '
   endif
 
   return options
@@ -209,7 +199,6 @@ function! s:open_window(bufnr, bounds, hints, popup_options, window_options) abo
 
   let original_eventignore = &eventignore
   set eventignore=BufEnter,BufLeave,BufWinEnter
-
   try
     let window = popup_create(a:bufnr, popup_options)
   finally

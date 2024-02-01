@@ -791,6 +791,21 @@ function! s:preview_hints_from_candidate(candidate) abort
 
   if has_key(a:candidate.user_data, 'preview_title')
     let hints.title = a:candidate.user_data.preview_title
+  elseif has_key(hints, 'bufnr')
+    let title = bufname(hints.bufnr)
+    let title = title != '' ? fnamemodify(title, ':t') : '[No Name]'
+    if has_key(hints, 'cursor')
+      let [lnum, col] = hints.cursor
+      let title .= ':' . lnum . ':' . col
+    endif
+    let hints.title = title
+  elseif has_key(hints, 'path')
+    let title = fnamemodify(hints.path, ':t')
+    if has_key(hints, 'cursor')
+      let [lnum, col] = hints.cursor
+      let title .= ':' . lnum . ':' . col
+    endif
+    let hints.title = title
   endif
 
   return hints

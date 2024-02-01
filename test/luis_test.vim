@@ -201,6 +201,7 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   \     {
   \       'bufnr': candidate.user_data.preview_bufnr,
   \       'cursor': candidate.user_data.preview_cursor,
+  \       'title': '[No Name]:10:1'
   \     },
   \   ],
   \   previewer_spies.open_buffer.last_args()
@@ -297,7 +298,7 @@ function! s:test_preview_candidate__with_file_preview() abort
     \   [
     \     ['1', '2', '3', '4', '5'],
     \     preview_bounds,
-    \     { 'path': 'test/data/seq.txt', 'filetype': 'help' },
+    \     { 'path': 'test/data/seq.txt', 'filetype': 'help', 'title': 'seq.txt' },
     \   ],
     \   previewer_spies.open_text.last_args()
     \ )
@@ -449,7 +450,7 @@ function! s:test_preview_candidate__with_text_preview() abort
   \   [
   \     candidate.user_data.preview_lines,
   \     preview_bounds,
-  \     { 'path': 'foo/bar/baz' }
+  \     { 'path': 'foo/bar/baz', 'title': 'baz' }
   \   ],
   \   previewer_spies.open_text.last_args()
   \ )

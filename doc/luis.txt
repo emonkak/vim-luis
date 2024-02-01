@@ -155,8 +155,9 @@ luis#preview_candidates({session})	*luis#preview_candidates()*
 
 	  "preview_bufnr"     (number) The number of the buffer to preview.
 	                      It is prioritized over the "preview_path"
-	  "preview_cursor"    (string) The position of the cursor in the
-	                      prewview buffer.
+	  "preview_cursor"    (list) The list representing the position of the
+	                      cursor within the preview buffer. This list is
+	                      like the argument {list} of |cursor()|.
 	  "preview_filetype"  (string) 'filetype' of the preview buffer.
 	  "preview_lines"     (list of strings) The list of lines representing
 	                      the text to preview.  It is prioritized over the
@@ -164,6 +165,9 @@ luis#preview_candidates({session})	*luis#preview_candidates()*
 	  "preview_path"      (string) The path of the file to preview.  If
 	                      not specified, it will be inferred from the
 	                      content or the path.
+	  "preview_title"     (string) The title of the preview window.  If
+	                      not specified, it will be inferred from the
+	                      buffer or the path.
 
 	NOTE: This is a function intended for UI implementation.
 
