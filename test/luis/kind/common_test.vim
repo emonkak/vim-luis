@@ -1,6 +1,11 @@
 silent runtime! test/spy.vim
 silent runtime! test/mocks.vim
 
+let s:ttyin = has('nvim')
+\             || (has('patch-8.0.96')
+\                 ? has('ttyin')
+\                 : has('unix') && libcallnr('', 'isatty', 0))
+
 function! s:action_open(candidate, context) abort
   edit `=a:candidate.word`
   return 0
@@ -247,7 +252,7 @@ function! s:test_action_cancel() abort
 endfunction
 
 function! s:test_action_ex() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 

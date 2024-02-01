@@ -1,6 +1,11 @@
 silent runtime! test/mocks.vim
 silent runtime! test/spy.vim
 
+let s:ttyin = has('nvim')
+\             || (has('patch-8.0.96')
+\                 ? has('ttyin')
+\                 : has('unix') && libcallnr('', 'isatty', 0))
+
 function! s:test_guess_candidate__returns_completed_item() abort
   let v:errmsg = ''
   silent! let v:completed_item = {}
@@ -35,7 +40,7 @@ function! s:test_guess_candidate__returns_completed_item() abort
 endfunction
 
 function! s:test_guess_candidate__returns_first_candidate() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -90,7 +95,7 @@ function! s:test_guess_candidate__returns_first_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__returns_selected_candidate() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -146,7 +151,7 @@ function! s:test_guess_candidate__returns_selected_candidate() abort
 endfunction
 
 function! s:test_guess_candidate__returns_no_candidate() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -197,7 +202,7 @@ function! s:test_guess_candidate__returns_no_candidate() abort
 endfunction
 
 function! s:test_refresh_candidates() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -253,7 +258,7 @@ function! s:test_refresh_candidates() abort
 endfunction
 
 function! s:test_start__without_initial_pattern() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -275,6 +280,12 @@ function! s:test_start__without_initial_pattern() abort
   call ui.start(session)
   let ui_bufnr = bufnr('%')
 
+  let ui._last_candidates = [
+  \   { 'word': 'foo', 'user_data': {} },
+  \   { 'word': 'bar', 'user_data': {} },
+  \   { 'word': 'baz', 'user_data': {} },
+  \ ]
+
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
@@ -283,6 +294,12 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+    call assert_equal({
+    \   'row': screenrow() + 4,
+    \   'col': 1,
+    \   'width': 80,
+    \   'height': &previewheight,
+    \ }, ui.preview_bounds())
 
     call ui.quit()
 
@@ -291,6 +308,12 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
+    call assert_equal({
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }, ui.preview_bounds())
 
     " Reuse the existing luis buffer.
     call ui.start(session)
@@ -302,6 +325,12 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+    call assert_equal({
+    \   'row': screenrow() + 4,
+    \   'col': 1,
+    \   'width': 80,
+    \   'height': &previewheight,
+    \ }, ui.preview_bounds())
 
     call ui.quit()
 
@@ -310,6 +339,12 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
+    call assert_equal({
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }, ui.preview_bounds())
 
     " Start after unload the existing luis buffer.
     call ui.start(session)
@@ -321,6 +356,12 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+    call assert_equal({
+    \   'row': screenrow() + 4,
+    \   'col': 1,
+    \   'width': 80,
+    \   'height': &previewheight,
+    \ }, ui.preview_bounds())
 
     call ui.quit()
 
@@ -329,13 +370,19 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
+    call assert_equal({
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }, ui.preview_bounds())
   finally
     execute ui_bufnr 'bwipeout!'
   endtry
 endfunction
 
 function! s:test_start__with_initial_pattern() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -357,6 +404,12 @@ function! s:test_start__with_initial_pattern() abort
   call ui.start(session)
   let ui_bufnr = bufnr('%')
 
+  let ui._last_candidates = [
+  \   { 'word': 'foo', 'user_data': {} },
+  \   { 'word': 'bar', 'user_data': {} },
+  \   { 'word': 'baz', 'user_data': {} },
+  \ ]
+
   try
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
@@ -365,6 +418,12 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+    call assert_equal({
+    \   'row': screenrow() + 4,
+    \   'col': 1,
+    \   'width': 80,
+    \   'height': &previewheight,
+    \ }, ui.preview_bounds())
 
     " `last_pattern_raw` is not set, so set it manually.
     let ui._last_pattern_raw = '>VIM'
@@ -376,6 +435,12 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
+    call assert_equal({
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }, ui.preview_bounds())
 
     call ui.start(session)
 
@@ -387,6 +452,12 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
+    call assert_equal({
+    \   'row': screenrow() + 4,
+    \   'col': 1,
+    \   'width': 80,
+    \   'height': &previewheight,
+    \ }, ui.preview_bounds())
 
     call ui.quit()
 
@@ -395,6 +466,12 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(1, winnr('$'))
     call assert_equal(1, winnr())
     call assert_false(ui.is_active())
+    call assert_equal({
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }, ui.preview_bounds())
   finally
     execute ui_bufnr 'bwipeout!'
   endtry

@@ -129,14 +129,24 @@ function! s:UI.normalize_candidate(candidate, index, context) abort dict
 endfunction
 
 function! s:UI.preview_bounds() abort dict
+  let window = win_getid()
+  if winbufnr(window) != self._bufnr
+    return {
+    \   'row': 0,
+    \   'col': 0,
+    \   'width': 0,
+    \   'height': 0,
+    \ }
+  endif
+
   let max_height = &lines - s:LNUM_PATTERN
   if &pumheight > 0 && max_height > &pumheight
     let max_height = &pumheight
   endif
-  let row = s:LNUM_PATTERN + min([len(self._last_candidates), max_height])
+
   return {
-  \   'row': row,
-  \   'col': 0,
+  \   'row': screenrow() + min([len(self._last_candidates), max_height]) + 1,
+  \   'col': 1,
   \   'width': self._preview_width,
   \   'height': self._preview_height,
   \ }

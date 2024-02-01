@@ -38,7 +38,7 @@ function! s:Previewer.bounds() abort dict
     let [row, col] = nvim_win_get_position(self._window)
     let width = nvim_win_get_width(self._window)
     let height = nvim_win_get_height(self._window)
-    return { 'row': row, 'col': col, 'width': width, 'height': height }
+    return { 'row': row + 1, 'col': col + 1, 'width': width, 'height': height }
   else
     return { 'row': 0, 'col': 0, 'width': 0, 'height': 0 }
   endif
@@ -121,8 +121,10 @@ endfunction
 function! s:create_window_config(bounds, hints, default_config) abort
   let config = copy(a:default_config)
   let config.relative = 'editor'
-  let config.row = a:bounds.row
-  let config.col = a:bounds.col
+  " "row" and "col" are relative positions from (1, 1). So we subtract 1 to
+  " convert to absolute positions.
+  let config.row = a:bounds.row - 1
+  let config.col = a:bounds.col - 1
   let config.width = a:bounds.width
   let config.height = a:bounds.height
 

@@ -38,7 +38,7 @@ function! s:Previewer.bounds() abort dict
   if s:is_valid_window(self._window)
     let pos = popup_getpos(self._window)
     return {
-    \   'row': pos.line - 1,
+    \   'row': pos.line,
     \   'col': pos.col,
     \   'width': pos.core_width,
     \   'height': pos.core_height,
@@ -135,9 +135,8 @@ function! s:configure_popup(window, bounds, hints, popup_options) abort
 
   call popup_setoptions(a:window, popup_options)
 
-  " line = row + border_width
   call popup_move(a:window, {
-  \   'line': a:bounds.row + 1,
+  \   'line': a:bounds.row,
   \   'col': max([1, a:bounds.col]),
   \   'minwidth': a:bounds.width,
   \   'minheight': a:bounds.height,
@@ -189,9 +188,8 @@ endfunction
 function! s:open_window(bufnr, bounds, hints, popup_options, window_options) abort
   let popup_options = s:create_popup_options(a:hints, a:popup_options)
 
-  " line = row + border_width
-  let popup_options.line = a:bounds.row + 1
-  let popup_options.col = max([1, a:bounds.col])
+  let popup_options.line = a:bounds.row
+  let popup_options.col = a:bounds.col
   let popup_options.minwidth = a:bounds.width
   let popup_options.minheight = a:bounds.height
   let popup_options.maxwidth = a:bounds.width

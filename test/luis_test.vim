@@ -1,6 +1,11 @@
 silent runtime! test/spy.vim
 silent runtime! test/mocks.vim
 
+let s:ttyin = has('nvim')
+\             || (has('patch-8.0.96')
+\                 ? has('ttyin')
+\                 : has('unix') && libcallnr('', 'isatty', 0))
+
 function! s:test_acc_text() abort
   let source = CreateMockSource({
   \   'is_valid_for_acc': { candidate ->
@@ -630,7 +635,7 @@ function! s:test_start__with_inactive_ui() abort
 endfunction
 
 function! s:test_take_action__with_choose_action() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -695,7 +700,7 @@ function! s:test_take_action__with_choose_action() abort
 endfunction
 
 function! s:test_take_action__with_kind() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -757,7 +762,7 @@ function! s:test_take_action__with_kind() abort
 endfunction
 
 function! s:test_take_action__with_ad_hoc_candidate() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -824,7 +829,7 @@ function! s:test_take_action__with_ad_hoc_candidate() abort
 endfunction
 
 function! s:test_take_action__with_no_such_action() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 

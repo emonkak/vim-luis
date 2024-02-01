@@ -1,3 +1,8 @@
+let s:ttyin = has('nvim')
+\             || (has('patch-8.0.96')
+\                 ? has('ttyin')
+\                 : has('unix') && libcallnr('', 'isatty', 0))
+
 let s:kind = luis#kind#history#import()
 
 function! s:test_action_delete() abort
@@ -33,7 +38,7 @@ function! s:test_action_delete__no_history() abort
 endfunction
 
 function! s:test_action_open__cmd_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -48,7 +53,7 @@ function! s:test_action_open__cmd_history() abort
 endfunction
 
 function! s:test_action_open__search_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -63,7 +68,7 @@ function! s:test_action_open__search_history() abort
 endfunction
 
 function! s:test_action_open__expr_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -106,7 +111,7 @@ function! s:test_action_open__no_history() abort
 endfunction
 
 function! s:test_action_open_x__cmd_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -121,7 +126,7 @@ function! s:test_action_open_x__cmd_history() abort
 endfunction
 
 function! s:test_action_open_x__search_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
@@ -136,7 +141,7 @@ function! s:test_action_open_x__search_history() abort
 endfunction
 
 function! s:test_action_open_x__expr_history() abort
-  if !has('nvim') && !has('ttyin')
+  if !s:ttyin
     return 'TTY is required.'
   endif
 
