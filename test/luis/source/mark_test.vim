@@ -26,6 +26,8 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'mark_name': 'A',
     \       'mark_pos': [1, 1],
+    \       'preview_path': bufname,
+    \       'preview_cursor': [1, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': -char2nr('A'),
@@ -36,6 +38,8 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'mark_name': 'B',
     \       'mark_pos': [20, 1],
+    \       'preview_path': bufname,
+    \       'preview_cursor': [20, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': -char2nr('B'),
@@ -46,6 +50,8 @@ function! s:test_gather_candidates() abort
     \     'user_data': {
     \       'mark_name': 'C',
     \       'mark_pos': [40, 1],
+    \       'preview_path': bufname,
+    \       'preview_cursor': [40, 1],
     \     },
     \     'dup': 1,
     \     'luis_sort_priority': -char2nr('C'),
