@@ -157,7 +157,68 @@ function! s:test_collect_candidates() abort
   \ )
 endfunction
 
-function! s:test_preview_candidate__with_buffer_preview() abort
+function! s:test_preview_candidate__with_no_candidate() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer())
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': 0,
+  \ }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_false(luis#preview_candidate(session))
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
+  call assert_equal(0, source_spies.on_preview.call_count())
+  call assert_equal(0, hook_spies.on_preview.call_count())
+  call assert_equal(0, previewer_spies.close.call_count())
+endfunction
+
+function! s:test_preview_candidate__with_no_preview() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
+  \   'is_active': 1,
+  \ }))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+
+  let candidate = { 'word': '', 'user_data': {} }
+  let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': candidate,
+  \   'preview_bounds': preview_bounds,
+  \ }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_false(luis#preview_candidate(session))
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
+  call assert_equal(1, source_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], source_spies.on_preview.last_args())
+  call assert_equal(1, hook_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], hook_spies.on_preview.last_args())
+  call assert_equal(1, previewer_spies.close.call_count())
+endfunction
+
+function! s:test_preview_candidate__with_preview_buffer() abort
   let [source, source_spies] = SpyDict(CreateMockSource())
   let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
   \   'is_active': 1,
@@ -250,7 +311,113 @@ function! s:test_preview_candidate__with_buffer_preview() abort
   call assert_equal(1, previewer_spies.close.call_count())
 endfunction
 
-function! s:test_preview_candidate__with_file_preview() abort
+function! s:test_preview_candidate__with_preview_function() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
+  \   'is_active': 1,
+  \ }))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+
+  let candidate = {
+  \   'word': 'foo',
+  \   'user_data': {
+  \     'preview_function': { candidate -> [candidate.word] },
+  \     'preview_title': 'foo',
+  \   }
+  \ }
+  let preview_bounds = { 'row': 2, 'col': 3, 'width': 4, 'height': 5 }
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': candidate,
+  \   'preview_bounds': preview_bounds,
+  \ }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_true(luis#preview_candidate(session))
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
+  call assert_equal(1, source_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], source_spies.on_preview.last_args())
+  call assert_equal(1, hook_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], hook_spies.on_preview.last_args())
+  call assert_equal(1, previewer_spies.open_text.call_count())
+  call assert_equal(
+  \   [
+  \     ['foo'],
+  \     preview_bounds,
+  \     {
+  \       'title': 'foo'
+  \     },
+  \   ],
+  \   previewer_spies.open_text.last_args()
+  \ )
+  call assert_equal(0, previewer_spies.close.call_count())
+endfunction
+
+function! s:test_preview_candidate__with_preview_lines() abort
+  let [source, source_spies] = SpyDict(CreateMockSource())
+  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
+  \   'is_active': 1,
+  \ }))
+  let [hook, hook_spies] = SpyDict(CreateMockHook())
+
+  let candidate = {
+  \   'word': 'foo',
+  \   'user_data': {
+  \     'preview_path': 'foo/bar/baz',
+  \     'preview_lines': ['foo', 'bar', 'baz'],
+  \   }
+  \ }
+  let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
+  let [ui, ui_spies] = SpyDict(CreateMockUI({
+  \   'candidate': candidate,
+  \   'preview_bounds': preview_bounds,
+  \ }))
+  let session = luis#new_session(source, {
+  \   'ui': ui,
+  \   'matcher': CreateMockMatcher(),
+  \   'comparer': CreateMockComparer(),
+  \   'previewer': previewer,
+  \   'hook': hook,
+  \   'initial_pattern': '',
+  \ })
+
+  call assert_true(luis#preview_candidate(session))
+  call assert_equal(1, ui_spies.guess_candidate.call_count())
+  call assert_equal(1, source_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], source_spies.on_preview.last_args())
+  call assert_equal(1, hook_spies.on_preview.call_count())
+  call assert_equal([
+  \   candidate,
+  \   { 'session': session },
+  \ ], hook_spies.on_preview.last_args())
+  call assert_equal(1, previewer_spies.open_text.call_count())
+  call assert_equal(
+  \   [
+  \     candidate.user_data.preview_lines,
+  \     preview_bounds,
+  \     { 'path': 'foo/bar/baz', 'title': 'baz' }
+  \   ],
+  \   previewer_spies.open_text.last_args()
+  \ )
+  call assert_equal(0, previewer_spies.close.call_count())
+endfunction
+
+function! s:test_preview_candidate__with_preview_path() abort
   if !has('nvim') && !exists('*popup_create')
     return 'popup_create() function is required.'
   endif
@@ -347,119 +514,6 @@ function! s:test_preview_candidate__with_file_preview() abort
   finally
     filetype off
   endtry
-endfunction
-
-function! s:test_preview_candidate__with_no_candidate() abort
-  let [source, source_spies] = SpyDict(CreateMockSource())
-  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer())
-  let [hook, hook_spies] = SpyDict(CreateMockHook())
-
-  let [ui, ui_spies] = SpyDict(CreateMockUI({
-  \   'candidate': 0,
-  \ }))
-  let session = luis#new_session(source, {
-  \   'ui': ui,
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': previewer,
-  \   'hook': hook,
-  \   'initial_pattern': '',
-  \ })
-
-  call assert_false(luis#preview_candidate(session))
-  call assert_equal(1, ui_spies.guess_candidate.call_count())
-  call assert_equal(0, source_spies.on_preview.call_count())
-  call assert_equal(0, hook_spies.on_preview.call_count())
-  call assert_equal(0, previewer_spies.close.call_count())
-endfunction
-
-function! s:test_preview_candidate__with_no_preview() abort
-  let [source, source_spies] = SpyDict(CreateMockSource())
-  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
-  \   'is_active': 1,
-  \ }))
-  let [hook, hook_spies] = SpyDict(CreateMockHook())
-
-  let candidate = { 'word': '', 'user_data': {} }
-  let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
-  let [ui, ui_spies] = SpyDict(CreateMockUI({
-  \   'candidate': candidate,
-  \   'preview_bounds': preview_bounds,
-  \ }))
-  let session = luis#new_session(source, {
-  \   'ui': ui,
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': previewer,
-  \   'hook': hook,
-  \   'initial_pattern': '',
-  \ })
-
-  call assert_false(luis#preview_candidate(session))
-  call assert_equal(1, ui_spies.guess_candidate.call_count())
-  call assert_equal(1, source_spies.on_preview.call_count())
-  call assert_equal([
-  \   candidate,
-  \   { 'session': session },
-  \ ], source_spies.on_preview.last_args())
-  call assert_equal(1, hook_spies.on_preview.call_count())
-  call assert_equal([
-  \   candidate,
-  \   { 'session': session },
-  \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, previewer_spies.close.call_count())
-endfunction
-
-function! s:test_preview_candidate__with_text_preview() abort
-  let [source, source_spies] = SpyDict(CreateMockSource())
-  let [previewer, previewer_spies] = SpyDict(CreateMockPreviewer({
-  \   'is_active': 1,
-  \ }))
-  let [hook, hook_spies] = SpyDict(CreateMockHook())
-
-  let candidate = {
-  \   'word': 'foo',
-  \   'user_data': {
-  \     'preview_path': 'foo/bar/baz',
-  \     'preview_lines': ['foo', 'bar', 'baz'],
-  \   }
-  \ }
-  let preview_bounds = { 'row': 1, 'col': 2, 'width': 3, 'height': 4 }
-  let [ui, ui_spies] = SpyDict(CreateMockUI({
-  \   'candidate': candidate,
-  \   'preview_bounds': preview_bounds,
-  \ }))
-  let session = luis#new_session(source, {
-  \   'ui': ui,
-  \   'matcher': CreateMockMatcher(),
-  \   'comparer': CreateMockComparer(),
-  \   'previewer': previewer,
-  \   'hook': hook,
-  \   'initial_pattern': '',
-  \ })
-
-  call assert_true(luis#preview_candidate(session))
-  call assert_equal(1, ui_spies.guess_candidate.call_count())
-  call assert_equal(1, source_spies.on_preview.call_count())
-  call assert_equal([
-  \   candidate,
-  \   { 'session': session },
-  \ ], source_spies.on_preview.last_args())
-  call assert_equal(1, hook_spies.on_preview.call_count())
-  call assert_equal([
-  \   candidate,
-  \   { 'session': session },
-  \ ], hook_spies.on_preview.last_args())
-  call assert_equal(1, previewer_spies.open_text.call_count())
-  call assert_equal(
-  \   [
-  \     candidate.user_data.preview_lines,
-  \     preview_bounds,
-  \     { 'path': 'foo/bar/baz', 'title': 'baz' }
-  \   ],
-  \   previewer_spies.open_text.last_args()
-  \ )
-  call assert_equal(0, previewer_spies.close.call_count())
 endfunction
 
 function! s:test_quit__with_active_ui() abort

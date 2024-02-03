@@ -435,6 +435,14 @@ function! luis#preview_candidate(session) abort
     call a:session.hook.on_preview(candidate, context)
   endif
 
+  if has_key(candidate.user_data, 'preview_function')
+    let lines = candidate.user_data.preview_function(candidate)
+    let hints = s:preview_hints_from_candidate(candidate)
+    let bounds = a:session.ui.preview_bounds()
+    call previewer.open_text(lines, bounds, hints)
+    return 1
+  endif
+
   if has_key(candidate.user_data, 'preview_lines')
     let hints = s:preview_hints_from_candidate(candidate)
     let bounds = a:session.ui.preview_bounds()

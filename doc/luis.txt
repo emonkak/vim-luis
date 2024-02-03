@@ -159,6 +159,9 @@ luis#preview_candidates({session})	*luis#preview_candidates()*
 	                      cursor within the preview buffer. This list is
 	                      like the argument {list} of |cursor()|.
 	  "preview_filetype"  (string) 'filetype' of the preview buffer.
+	  "preview_function"  (Funcref) The function that returns the list of
+	                      lines representing the text to preview.  It is
+	                      called with the candidate as an argument.
 	  "preview_lines"     (list of strings) The list of lines representing
 	                      the text to preview.  It is prioritized over the
 	                      "preview_bufnr" or "preview_path".
