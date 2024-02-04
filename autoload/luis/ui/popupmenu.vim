@@ -138,15 +138,16 @@ function! s:UI.preview_bounds() abort dict
     \ }
   endif
   " There is `pum_getpos()`, which has been available from 8.1.1875, to get
-  " the height of the popup menu. However, it cannot be used because we support
-  " older versions.
-  let menu_height = len(self._last_candidates)
-  if &pumheight > 0 && menu_height > &pumheight
-    let menu_height = &pumheight
-  endif
-  let menu_height = min([menu_height, max([0, &lines - s:LNUM_PATTERN])])
+  " the height of the popup menu. However, it cannot be used because we
+  " support older versions.
+  let screen_row = screenrow()
+  let screen_space = max([0, &lines - screen_row])
+  let pum_height = min([
+  \    len(self._last_candidates),
+  \    &pumheight > 0 ? min([&pumheight, screen_space]) : screen_space,
+  \ ])
   return {
-  \   'row': screenrow() + menu_height + 1,
+  \   'row': screen_row + pum_height + 1,
   \   'col': 1,
   \   'width': self._preview_width,
   \   'height': self._preview_height,
