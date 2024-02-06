@@ -77,10 +77,10 @@ function(bufnr, vim_callback)
   }
   local callback = function(responses)
     local symbols = {}
-    if responses ~= nil then
-      for _, response in ipairs(responses) do
+    if responses then
+      for _, response in pairs(responses) do
         if response.result ~= nil then
-          for _, symbol in ipairs(response.result) do
+          for _, symbol in pairs(response.result) do
             table.insert(symbols, symbol)
           end
         end
