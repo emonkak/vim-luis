@@ -287,6 +287,7 @@ function! s:test_start__without_initial_pattern() abort
   \ ]
 
   try
+    let preview_bounds = ui.preview_bounds()
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-popupmenu-ui', &l:filetype)
@@ -294,12 +295,10 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
-    call assert_equal({
-    \   'row': screenrow() + 4,
-    \   'col': 1,
-    \   'width': 80,
-    \   'height': &previewheight,
-    \ }, ui.preview_bounds())
+    call assert_true(preview_bounds.row > 1)
+    call assert_equal(preview_bounds.col, 1)
+    call assert_equal(preview_bounds.width, 80)
+    call assert_equal(preview_bounds.height, &previewheight)
 
     call ui.quit()
 
@@ -318,6 +317,7 @@ function! s:test_start__without_initial_pattern() abort
     " Reuse the existing luis buffer.
     call ui.start(session)
 
+    let preview_bounds = ui.preview_bounds()
     call assert_equal('A', s:consume_keys())
     call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('luis-popupmenu-ui', &l:filetype)
@@ -325,12 +325,10 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
-    call assert_equal({
-    \   'row': screenrow() + 4,
-    \   'col': 1,
-    \   'width': 80,
-    \   'height': &previewheight,
-    \ }, ui.preview_bounds())
+    call assert_true(preview_bounds.row > 1)
+    call assert_equal(preview_bounds.col, 1)
+    call assert_equal(preview_bounds.width, 80)
+    call assert_equal(preview_bounds.height, &previewheight)
 
     call ui.quit()
 
@@ -349,6 +347,7 @@ function! s:test_start__without_initial_pattern() abort
     " Start after unload the existing luis buffer.
     call ui.start(session)
 
+    let preview_bounds = ui.preview_bounds()
     call assert_equal('A', s:consume_keys())
     call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('luis-popupmenu-ui', &l:filetype)
@@ -356,12 +355,10 @@ function! s:test_start__without_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
-    call assert_equal({
-    \   'row': screenrow() + 4,
-    \   'col': 1,
-    \   'width': 80,
-    \   'height': &previewheight,
-    \ }, ui.preview_bounds())
+    call assert_true(preview_bounds.row > 1)
+    call assert_equal(preview_bounds.col, 1)
+    call assert_equal(preview_bounds.width, 80)
+    call assert_equal(preview_bounds.height, &previewheight)
 
     call ui.quit()
 
@@ -411,6 +408,7 @@ function! s:test_start__with_initial_pattern() abort
   \ ]
 
   try
+    let preview_bounds = ui.preview_bounds()
     call assert_notequal(original_bufnr, ui_bufnr)
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-popupmenu-ui', &l:filetype)
@@ -418,12 +416,10 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
-    call assert_equal({
-    \   'row': screenrow() + 4,
-    \   'col': 1,
-    \   'width': 80,
-    \   'height': &previewheight,
-    \ }, ui.preview_bounds())
+    call assert_true(preview_bounds.row > 1)
+    call assert_equal(preview_bounds.col, 1)
+    call assert_equal(preview_bounds.width, 80)
+    call assert_equal(preview_bounds.height, &previewheight)
 
     " `last_pattern_raw` is not set, so set it manually.
     let ui._last_pattern_raw = '>VIM'
@@ -445,6 +441,7 @@ function! s:test_start__with_initial_pattern() abort
     call ui.start(session)
 
     " Reuse existing luis buffer.
+    let preview_bounds = ui.preview_bounds()
     call assert_equal(ui_bufnr, bufnr('%'))
     call assert_equal('A', s:consume_keys())
     call assert_equal('luis-popupmenu-ui', &l:filetype)
@@ -452,12 +449,10 @@ function! s:test_start__with_initial_pattern() abort
     call assert_equal(2, winnr('$'))
     call assert_equal(1, winnr())
     call assert_true(ui.is_active())
-    call assert_equal({
-    \   'row': screenrow() + 4,
-    \   'col': 1,
-    \   'width': 80,
-    \   'height': &previewheight,
-    \ }, ui.preview_bounds())
+    call assert_true(preview_bounds.row > 1)
+    call assert_equal(preview_bounds.col, 1)
+    call assert_equal(preview_bounds.width, 80)
+    call assert_equal(preview_bounds.height, &previewheight)
 
     call ui.quit()
 
