@@ -28,7 +28,11 @@ function! s:Source.on_source_enter(context) abort dict
     let source._cancel_func = 0
   endfunction
   let callback_name = get(function(self._callback), 'name')
-  let self._cancel_func = s:request_document_symbol(self._bufnr, callback_name)
+  let self._cancel_func = s:request_function(
+  \   self._bufnr,
+  \   'textDocument/documentSymbol',
+  \   callback_name
+  \ )
 endfunction
 
 function! s:Source.on_source_leave(context) abort dict
@@ -70,33 +74,33 @@ function! s:aggregate_candidates(symbols, bufnr, candidates, level) abort
   endfor
 endfunction
 
-let s:request_document_symbol =<< END
-function(bufnr, vim_callback)
+let s:request_function_definition =<< END
+function(bufnr, method, callback)
   local params = {
     textDocument = vim.lsp.util.make_text_document_params(bufnr),
   }
   local callback = function(responses)
-    local symbols = {}
+    local results = {}
     if responses then
       for _, response in pairs(responses) do
         if response.result ~= nil then
-          for _, symbol in pairs(response.result) do
-            table.insert(symbols, symbol)
+          for _, result in pairs(response.result) do
+            table.insert(results, result)
           end
         end
       end
     end
-    vim.fn.call(vim_callback, { symbols }, vim.empty_dict())
+    vim.fn.call(callback, { results }, vim.empty_dict())
   end
   return vim.lsp.buf_request_all(
     bufnr,
-    'textDocument/documentSymbol',
+    method,
     params,
     callback
   )
 end
 END
-let s:request_document_symbol = luaeval(join(s:request_document_symbol, "\n"))
+let s:request_function = luaeval(join(s:request_function_definition, "\n"))
 
 function! s:symbol_kind_to_string(kind) abort
   let expr = printf('vim.lsp.protocol.SymbolKind[%d] or "Unknown"', a:kind)
