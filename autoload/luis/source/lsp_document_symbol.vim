@@ -26,6 +26,7 @@ function! s:Source.on_source_enter(context) abort dict
       call session.ui.refresh_candidates()
     endif
     let source._cancel_func = 0
+    unlet source._callback
   endfunction
   let callback_name = get(function(self._callback), 'name')
   let self._cancel_func = s:request_function(
@@ -39,6 +40,7 @@ function! s:Source.on_source_leave(context) abort dict
   if self._cancel_func isnot 0
     call self._cancel_func()
     let self._cancel_func = 0
+    unlet self._callback
   endif
 endfunction
 
