@@ -12,8 +12,7 @@ function! s:test_action_delete() abort
     \     'register_name': 'a',
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal('', getreg('a', 1))
     call assert_equal('', getregtype('a'))
   finally
@@ -28,8 +27,11 @@ endfunction
 
 function! s:test_action_open__with_no_register() abort
   let Action = s:kind.action_table.open
-  let _ = Action({ 'word': '', 'user_data': {} }, {})
-  call assert_equal('No register chosen', _)
+  let candidate = { 'word': '', 'user_data': {} }
+  call s:assert_exception(
+  \   'No register chosen',
+  \   { -> Action(candidate, {}) }
+  \ )
 endfunction
 
 function! s:test_action_open_x() abort
@@ -38,8 +40,17 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('register', s:kind.name)
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
 endfunction
 
 function! s:do_test_put(expected_content, action_name, reg_key, reg_value, reg_type) abort
@@ -54,8 +65,7 @@ function! s:do_test_put(expected_content, action_name, reg_key, reg_value, reg_t
     \     'register_name': a:reg_key,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(a:expected_content, getline(1, line('$')))
   finally
     execute bufnr 'bwipeout!'

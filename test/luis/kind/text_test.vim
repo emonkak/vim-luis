@@ -6,8 +6,7 @@ function! s:test_action_open() abort
   normal! $
   try
     let Action = s:kind.action_table.open
-    silent let _ = Action({ 'word': ' Vim' }, {})
-    call assert_equal(0, _)
+    silent call Action({ 'word': ' Vim' }, {})
     call assert_equal(['Hello Vim!'], getline(1, line('$')))
   finally
     silent bwipeout!
@@ -20,8 +19,7 @@ function! s:test_action_open_x() abort
   normal! $
   try
     let Action = s:kind.action_table['open!']
-    silent let _ = Action({ 'word': ' Vim' }, {})
-    call assert_equal(0, _)
+    silent call Action({ 'word': ' Vim' }, {})
     call assert_equal(['Hello! Vim'], getline(1, line('$')))
   finally
     silent bwipeout!
@@ -29,6 +27,6 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('text', s:kind.name)
 endfunction

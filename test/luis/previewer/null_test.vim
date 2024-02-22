@@ -3,11 +3,6 @@ function! s:test_close() abort
   call previewer.close()
 endfunction
 
-function! s:test_definition() abort
-  let previewer = luis#previewer#null#import()
-  call assert_true(luis#_validate_previewer(previewer))
-endfunction
-
 function! s:test_bounds() abort
   let previewer = luis#previewer#null#import()
   call assert_equal(
@@ -37,4 +32,9 @@ function! s:test_open_text() abort
   \   { 'row': 0, 'col': 0, 'width': 0, 'height': 0 },
   \   {}
   \ )
+endfunction
+
+function! s:test_previewer_definition() abort
+  let previewer = luis#previewer#null#import()
+  call luis#_validate_previewer(previewer)
 endfunction

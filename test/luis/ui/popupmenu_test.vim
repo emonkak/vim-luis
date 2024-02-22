@@ -7,11 +7,11 @@ let s:ttyin = has('nvim')
 \                 : has('unix') && libcallnr('', 'isatty', 0))
 
 function! s:test_guess_candidate__returns_completed_item() abort
-  let v:errmsg = ''
-  silent! let v:completed_item = {}
-  if v:errmsg =~# '^E46:'
+  try
+    let v:completed_item = {}
+  catch /:E46:/
     return 'v:completed_item must be writable.'
-  endif
+  endtry
 
   let ui = luis#ui#popupmenu#new({})
 

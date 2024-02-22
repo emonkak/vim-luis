@@ -14,7 +14,7 @@ function! s:test_filter_candidates() abort
 endfunction
 
 function! s:test_matcher_definition() abort
-  call assert_true(luis#_validate_matcher(s:matcher))
+  call luis#_validate_matcher(s:matcher)
 endfunction
 
 function! s:test_sort_candidates() abort

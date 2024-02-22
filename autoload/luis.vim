@@ -202,8 +202,7 @@ function! luis#acc_text(pattern, candidates, source) abort
   let components = split(a:pattern, sep, 1)
 
   if len(components) < 2
-    echoerr 'luis: Assumption on ACC is failed: ' . string(components)
-    return ''
+    throw 'luis: Assumption on ACC is failed: ' . string(components)
   endif
 
   " Find a candidate which has the same components but the last 2 ones of
@@ -346,12 +345,12 @@ function! luis#do_action(session, action_name, candidate) abort
   \               : a:action_name
 
   if action_name == ''
-    return 0
+    return
   endif
 
   let Action = s:find_action(kind, action_name)
   if Action is 0
-    return 'No such action: ' . string(action_name)
+    throw 'luis: No such action: ' . string(action_name)
   endif
 
   let context = {
@@ -372,7 +371,7 @@ function! luis#do_action(session, action_name, candidate) abort
   " Maybe action has been modified by a callback.
   let Action = context.action
 
-  return Action(a:candidate, context)
+  call Action(a:candidate, context)
 endfunction
 
 function! luis#new_session(source, ...) abort
@@ -392,14 +391,12 @@ function! luis#new_session(source, ...) abort
   let hook = get(options, 'hook', {})
   let initial_pattern = get(options, 'initial_pattern', '')
 
-  \ if !luis#_validate_source(a:source)
-  \    || !luis#_validate_ui(ui)
-  \    || !luis#_validate_matcher(matcher)
-  \    || !luis#_validate_comparer(comparer)
-  \    || !luis#_validate_previewer(previewer)
-  \    || !luis#_validate_hook(hook)
-    return 0
-  endif
+  call luis#_validate_source(a:source)
+  call luis#_validate_ui(ui)
+  call luis#_validate_matcher(matcher)
+  call luis#_validate_comparer(comparer)
+  call luis#_validate_previewer(previewer)
+  call luis#_validate_hook(hook)
 
   let session = {
   \   'id': s:session_id,
@@ -497,7 +494,7 @@ endfunction
 function! luis#quit(session) abort
   if !a:session.ui.is_active()
     echohl ErrorMsg
-    echo 'luis: Not active'
+    echomsg 'luis: Not active'
     echohl NONE
     return 0
   endif
@@ -510,7 +507,7 @@ endfunction
 function! luis#start(session) abort
   if a:session.ui.is_active()
     echohl ErrorMsg
-    echo 'luis: Already active'
+    echomsg 'luis: Already active'
     echohl NONE
     return 0
   endif
@@ -538,57 +535,52 @@ function! luis#take_action(session, action_name) abort
   " active.
   call s:quit_session(a:session)
 
-  let result = luis#do_action(a:session, a:action_name, candidate)
-  if result isnot 0
+  try
+    call luis#do_action(a:session, a:action_name, candidate)
+    return 1
+  catch
     echohl ErrorMsg
-    echomsg result
+    echomsg v:exception
     echohl NONE
     return 0
-  endif
-
-  return 1
+  endtry
 endfunction
 
 function! luis#_validate_comparer(comparer) abort
-  return s:do_validate(s:SCHEMA_COMPARER, a:comparer, 'Comparer')
+  call s:do_validate(s:SCHEMA_COMPARER, a:comparer, 'Comparer')
 endfunction
 
 function! luis#_validate_hook(hook) abort
-  return s:do_validate(s:SCHEMA_HOOK, a:hook, 'UI')
+  call s:do_validate(s:SCHEMA_HOOK, a:hook, 'UI')
 endfunction
 
 function! luis#_validate_kind(kind) abort
-  if !s:do_validate(s:SCHEMA_KIND, a:kind, 'Kind')
-    return 0
-  endif
+  call s:do_validate(s:SCHEMA_KIND, a:kind, 'Kind')
 
   let missing_action_names = filter(
   \   values(a:kind.key_table),
   \   's:find_action(a:kind, v:val) is 0'
   \ )
   if !empty(missing_action_names)
-    echoerr 'luis: Missing actions are found:'
+    throw 'luis: Missing actions are found:'
     \       join(missing_action_names, ', ')
-    return 0
   endif
-
-  return 1
 endfunction
 
 function! luis#_validate_matcher(matcher) abort
-  return s:do_validate(s:SCHEMA_MATCHER, a:matcher, 'Matcher')
+  call s:do_validate(s:SCHEMA_MATCHER, a:matcher, 'Matcher')
 endfunction
 
 function! luis#_validate_previewer(previewer) abort
-  return s:do_validate(s:SCHEMA_PREVIEWER, a:previewer, 'Preview')
+  call s:do_validate(s:SCHEMA_PREVIEWER, a:previewer, 'Preview')
 endfunction
 
 function! luis#_validate_source(source) abort
-  return s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
+  call s:do_validate(s:SCHEMA_SOURCE, a:source, 'Source')
 endfunction
 
 function! luis#_validate_ui(ui) abort
-  return s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
+  call s:do_validate(s:SCHEMA_UI, a:ui, 'UI')
 endfunction
 
 function! s:choose_action(kind, candidate) abort
@@ -675,10 +667,8 @@ endfunction
 function! s:do_validate(schema, value, name) abort
   let errors = luis#schema#validate(a:schema, a:value)
   if !empty(errors)
-    echoerr 'luis: Invalid ' . a:name . ': ' . join(errors, ', ')
-    return 0
+    throw 'luis: Invalid ' . a:name . ': ' . join(errors, ', ')
   endif
-  return 1
 endfunction
 
 function! s:find_action(kind, action_name) abort
@@ -753,17 +743,17 @@ function! s:list_key_bindings(key_table) abort
       echon column == 0 ? "\n" : spacer
 
       echohl luisChooseAction
-      let _ = action_names[i]
-      echon _
+      let action_name = action_names[i]
+      echon action_name
       echohl NONE
-      echon repeat(' ', max_action_name_width - len(_))
+      echon repeat(' ', max_action_name_width - len(action_name))
 
       echohl luisChooseKey
       echon ' '
-      let _ = actions[action_names[i]].label
-      echon _
+      let action = actions[action_name]
+      echon action.label
       echohl NONE
-      echon repeat(' ', max_label_width - len(_))
+      echon repeat(' ', max_label_width - len(action.label))
     endfor
   endfor
 endfunction

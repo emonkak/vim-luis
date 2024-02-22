@@ -30,6 +30,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#colorscheme#new()
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('colorscheme', source.name)
 endfunction

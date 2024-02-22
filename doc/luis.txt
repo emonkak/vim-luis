@@ -121,9 +121,8 @@ luis#collect_candidates({session}, {pattern})	*luis#collect_candidates()*
 	   comparer.
 
 luis#do_action({session}, {action_name}, {candidate})	*luis#do_action()*
-	Execute the action indicated by {action_name} with {candidate}.
-	If the action is successful, it returns 0.  Otherwise, it returns a
-	string representing the error.
+	Execute the action indicated by {action_name} with {candidate}.  If
+	the action fails, an exception may be thrown.
 
 	When {action_name} is empty string, nothing will be done.
 
@@ -184,8 +183,8 @@ luis#start({session})					*luis#start()*
 
 luis#take_action({session}, {action_name})		*luis#take_action()*
 	Take an action indicated by {action_name} with a selected candidate in
-	UI.  It returns TRUE if successful, or it returns FALSE and outputs
-	errors otherwise.
+	UI.  It returns TRUE if successful.  Otherwise, it returns FALSE and
+	outputs error messages.
 
 	If the selected candidate is not found in the UI, an ad-hoc candidate
 	like the following will be given to the action:
@@ -841,12 +840,10 @@ gather them.
 ------------------------------------------------------------------------------
 ACTION							*luis-kind-action*
 
-An action is a function which is executed for a currently selected candidate
+Action is a function which is executed for a currently selected candidate
 in |luis-ui|.
 
-This function must take two arguments, which are {candidate} and {context},
-and it must return 0 for success or string for failure.  The string is
-displayed as an error message.
+This function must take two arguments, which are {candidate} and {context}.
 
 {context} is a dictionary that contains the following keys:
 
@@ -856,6 +853,9 @@ displayed as an error message.
   "action_name"  (string) The name of the action to be executed.
   "session"      (Session) The currently active session.
   "kind"         (Kind) The kind to which {candidate} belongs.
+
+If an exception is thrown from this function, it will be caught by Luis and
+output to the UI.
 
 ------------------------------------------------------------------------------
 ATTRIBUTES						*luis-kind-attributes*
@@ -888,20 +888,11 @@ prototype (Kind) (optional)				 *luis-kind-prototype*
 EXAMPLE							*luis-kind-example*
 >
 	function! s:action_open(candidate, context) abort
-	  return s:do_open('edit', a:candidate)
+	  edit `=a:candidate.word`
 	endfunction
 
 	function! s:action_open_x(candidate, context) abort
-	  return s:do_open('edit!', a:candidate)
-	endfunction
-
-	function! s:do_open(command, candidate) abort
-	  let v:errmsg = ''
-	  execute 'silent!' a:command '`=a:candidate.word`'
-	  if v:errmsg != ''
-	    return v:errmsg
-	  endif
-	  return 0
+	  edit! `=a:candidate.word`
 	endfunction
 
 	let s:Kind = {

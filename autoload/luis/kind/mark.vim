@@ -4,18 +4,16 @@ endfunction
 
 function! s:action_delete(candidate, context) abort
   if !has_key(a:candidate.user_data, 'mark_name')
-    return 'No mark chosen'
+    throw 'luis(kind.mark): No mark chosen'
   endif
   execute 'delmarks' a:candidate.user_data.mark_name
-  return 0
 endfunction
 
 function! s:action_open(candidate, context) abort
   if !has_key(a:candidate.user_data, 'mark_name')
-    return 'No mark chosen'
+    throw 'luis(kind.mark): No mark chosen'
   endif
   execute 'normal!' '`' . a:candidate.user_data.mark_name
-  return 0
 endfunction
 
 let s:Kind = {

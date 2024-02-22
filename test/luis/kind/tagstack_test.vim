@@ -4,8 +4,8 @@ function! s:test_action_open() abort
   if !exists('*settagstack')
     return 'settagstack() function is required.'
   endif
-  call s:do_test_open(0, 'open', {})
-  call s:do_test_open('^E37:', 'open', {
+  call s:do_test_open('', 'open', {})
+  call s:do_test_open(':E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -15,19 +15,19 @@ function! s:test_action_open_x() abort
   if !exists('*settagstack')
     return 'settagstack() function is required.'
   endif
-  call s:do_test_open(0, 'open!', {})
-  call s:do_test_open(0, 'open!', {
+  call s:do_test_open('', 'open!', {})
+  call s:do_test_open('', 'open!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('tagstack', s:kind.name)
 endfunction
 
-function! s:do_test_open(expected_result, action_name, buf_options) abort
+function! s:do_test_open(expected_exception, action_name, buf_options) abort
   new
   lcd $VIMRUNTIME/doc
 
@@ -72,12 +72,11 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
       let context = {
       \   'kind': s:kind,
       \ }
-      silent let _ = Action(candidate, context)
-      if type(a:expected_result) is v:t_string
-        call assert_match(a:expected_result, _)
+      if a:expected_exception != ''
+        call s:assert_exception(a:expected_exception, { -> Action(candidate, context) })
         call assert_equal(bufnr, bufnr('%'))
       else
-        call assert_equal(a:expected_result, _)
+        silent call Action(candidate, context)
         call assert_equal(tag_bufnr, bufnr('%'))
         call assert_equal(i + 1, gettagstack().curidx)
       endif
@@ -92,5 +91,14 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   finally
     close!
     silent %bwipeout!
+  endtry
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
   endtry
 endfunction

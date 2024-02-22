@@ -4,57 +4,37 @@ endfunction
 
 function! s:action_cd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  let v:errmsg = ''
-  silent! cd `=fnamemodify(path, ':p:h')`
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  cd `=fnamemodify(path, ':p:h')`
 endfunction
 
 function! s:action_lcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  let v:errmsg = ''
-  silent! lcd `=fnamemodify(path, ':p:h')`
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  lcd `=fnamemodify(path, ':p:h')`
 endfunction
 
 function! s:action_tcd(candidate, context) abort
   let path = s:path_from_candidate(a:candidate)
-  let v:errmsg = ''
-  silent! tcd `=fnamemodify(path, ':p:h')`
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  tcd `=fnamemodify(path, ':p:h')`
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:do_open('edit', a:candidate)
+  call s:do_open('edit', a:candidate)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:do_open('edit!', a:candidate)
+  call s:do_open('edit!', a:candidate)
 endfunction
 
 function! s:do_open(command, candidate) abort
   let path = s:path_from_candidate(a:candidate)
   if path == ''
-    return 'No file chosen'
+    throw 'luis(kind.file): No file chosen'
   endif
-  let v:errmsg = ''
-  silent! execute a:command fnamemodify(path, ':.')
-  if v:errmsg != ''
-    return v:errmsg
-  endif
+  execute a:command fnamemodify(path, ':.')
   if has_key(a:candidate.user_data, 'file_cursor')
     call cursor(a:candidate.user_data.file_cursor)
     normal! zvzt
   endif
-  return 0
 endfunction
 
 function! s:path_from_candidate(candidate) abort

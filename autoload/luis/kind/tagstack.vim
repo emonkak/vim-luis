@@ -1,26 +1,24 @@
+let s:Buffer = luis#kind#buffer#import()
+
 function! luis#kind#tagstack#import() abort
   return s:Kind
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:do_open('open', a:candidate, a:context)
+  call s:do_open('open', a:candidate, a:context)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:do_open('open!', a:candidate, a:context)
+  call s:do_open('open!', a:candidate, a:context)
 endfunction
 
 function! s:do_open(action_name, candidate, context) abort
-  let Action = a:context.kind.prototype.action_table[a:action_name]
-  let result = Action(a:candidate, a:context)
-  if result isnot 0
-    return result
-  endif
+  let Action = s:Buffer.action_table[a:action_name]
+  call Action(a:candidate, a:context)
   if has_key(a:candidate.user_data, 'tagstack_index')
     let index = a:candidate.user_data.tagstack_index
     call settagstack(winnr(), { 'curidx': index })
   endif
-  return 0
 endfunction
 
 let s:Kind = {
@@ -30,5 +28,5 @@ let s:Kind = {
 \     'open!': function('s:action_open_x'),
 \   },
 \   'key_table': {},
-\   'prototype': luis#kind#buffer#import(),
+\   'prototype': s:Buffer,
 \ }

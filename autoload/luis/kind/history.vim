@@ -4,7 +4,7 @@ endfunction
 
 function! s:action_open(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
-    return 'No history chosen'
+    throw 'luis(kind.history): No history chosen'
   endif
   let history_name = a:candidate.user_data.history_name
   if history_name ==# 'cmd'
@@ -16,12 +16,11 @@ function! s:action_open(candidate, context) abort
   elseif history_name ==# 'input'
     execute 'normal!' "i\<C-r>=a:candidate.word\<CR>"
   endif
-  return 0
 endfunction
 
 function! s:action_open_x(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
-    return 'No history chosen'
+    throw 'luis(kind.history): No history chosen'
   endif
   let history_name = a:candidate.user_data.history_name
   if history_name ==# 'cmd'
@@ -33,18 +32,16 @@ function! s:action_open_x(candidate, context) abort
   elseif history_name ==# 'input'
     execute 'normal!' "a\<C-r>=a:candidate.word\<CR>"
   endif
-  return 0
 endfunction
 
 function! s:action_delete(candidate, context) abort
   if !has_key(a:candidate.user_data, 'history_name')
   \  && !has_key(a:candidate.user_data, 'history_index')
-    return 'No history chosen'
+    throw 'luis(kind.history): No history chosen'
   endif
   let history_name = a:candidate.user_data.history_name
   let history_index = a:candidate.user_data.history_index
   call histdel(history_name, history_index)
-  return 0
 endfunction
 
 let s:Kind = {

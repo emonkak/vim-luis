@@ -1,37 +1,39 @@
 let s:kind = luis#kind#buffer#import()
 
 function! s:test_action_delete() abort
-  call s:do_test_delete(0, 1, 0, 0, 'delete', {})
-  call s:do_test_delete('^E516:', 1, 1, 1, 'delete', {
+  call s:do_test_delete('', 1, 0, 0, 'delete', {})
+  call s:do_test_delete(':E89:', 1, 1, 1, 'delete', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_action_delete_x() abort
-  call s:do_test_delete(0, 1, 0, 0, 'delete!', {
+  call s:do_test_delete('', 1, 0, 0, 'delete!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_action_open() abort
-  call s:do_test_open(0, 'open', {})
-  call s:do_test_open('^E37:', 'open', {
+  call s:do_test_open('', 'open', {})
+  call s:do_test_open(':E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
-function! s:test_action_open_no__corresponding_buffer() abort
+function! s:test_action_open__no_corresponding_buffer() abort
   let Action = s:kind.action_table.open
-  let _ = Action({ 'word': tempname(), 'user_data': {} }, {})
-  call assert_notequal(0, _)
+  call s:assert_exception(
+  \   'There is no corresponding buffer to candidate:',
+  \   { -> Action({ 'word': tempname(), 'user_data': {} }, {}) }
+  \ )
 endfunction
 
 function! s:test_action_open_x() abort
-  call s:do_test_open(0, 'open!', {})
-  call s:do_test_open(0, 'open!', {
+  call s:do_test_open('', 'open!', {})
+  call s:do_test_open('', 'open!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -39,42 +41,44 @@ endfunction
 
 function! s:test_action_open_x__no_corresponding_buffer() abort
   let Action = s:kind.action_table['open!']
-  let _ = Action({ 'word': tempname(), 'user_data': {} }, {})
-  call assert_notequal(0, _)
+  call s:assert_exception(
+  \   'There is no corresponding buffer to candidate:',
+  \   { -> Action({ 'word': tempname(), 'user_data': {} }, {}) }
+  \ )
 endfunction
 
 function! s:test_action_unload() abort
-  call s:do_test_delete(0, 1, 1, 0, 'unload', {})
-  call s:do_test_delete('^E515:', 1, 1, 1, 'unload', {
+  call s:do_test_delete('', 1, 1, 0, 'unload', {})
+  call s:do_test_delete(':E89:', 1, 1, 1, 'unload', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_action_unload_x() abort
-  call s:do_test_delete(0, 1, 1, 0, 'unload!', {
+  call s:do_test_delete('', 1, 1, 0, 'unload!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_action_wipeout() abort
-  call s:do_test_delete(0, 0, 0, 0, 'wipeout', {})
-  call s:do_test_delete('^E517:', 1, 1, 1, 'wipeout', {
+  call s:do_test_delete('', 0, 0, 0, 'wipeout', {})
+  call s:do_test_delete(':E89:', 1, 1, 1, 'wipeout', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_action_wipeout_x() abort
-  call s:do_test_delete(0, 0, 0, 0, 'wipeout!', {
+  call s:do_test_delete('', 0, 0, 0, 'wipeout!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('buffer', s:kind.name)
 endfunction
 
@@ -86,7 +90,16 @@ function! s:assert_buffer(expected_bufexists, expected_buflisted, expected_buflo
   \ ], [bufexists(a:bufnr), buflisted(a:bufnr), bufloaded(a:bufnr)])
 endfunction
 
-function! s:do_test_delete(expected_result, expected_bufexists, expected_buflisted, expected_bufloaded, action_name, buf_options) abort
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
+endfunction
+
+function! s:do_test_delete(expected_exception, expected_bufexists, expected_buflisted, expected_bufloaded, action_name, buf_options) abort
   for MakeCandidate in [
   \   { bufnr -> { 'word': bufname(bufnr), 'user_data': {} } },
   \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr } } }
@@ -96,12 +109,11 @@ function! s:do_test_delete(expected_result, expected_bufexists, expected_buflist
     try
       let Action = s:kind.action_table[a:action_name]
       let candidate = MakeCandidate(bufnr_2)
-      let _ = Action(candidate, {})
-      if type(a:expected_result) is v:t_string
-        call assert_match(a:expected_result, _)
+      if a:expected_exception != ''
+        call s:assert_exception(a:expected_exception, { -> Action(candidate, {}) })
         call assert_equal(bufnr_2, bufnr('%'))
       else
-        call assert_equal(0, _)
+        call Action(candidate, {})
         call assert_equal(bufnr_1, bufnr('%'))
       endif
       call s:assert_buffer(a:expected_bufexists, a:expected_buflisted, a:expected_bufloaded, bufnr_2)
@@ -111,7 +123,7 @@ function! s:do_test_delete(expected_result, expected_bufexists, expected_buflist
   endfor
 endfunction
 
-function! s:do_test_open(expected_result, action_name, buf_options) abort
+function! s:do_test_open(expected_exception, action_name, buf_options) abort
   for MakeCandidate in [
   \   { bufnr -> { 'word': bufname(bufnr), 'user_data': { 'buffer_cursor': [4, 1] } } },
   \   { bufnr -> { 'word': '', 'user_data': { 'buffer_nr': bufnr, 'buffer_cursor': [4, 1] } } }
@@ -122,12 +134,11 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
     try
       let Action = s:kind.action_table[a:action_name]
       let candidate = MakeCandidate(bufnr_1)
-      let _ = Action(candidate, {})
-      if type(a:expected_result) is v:t_string
-        call assert_match(a:expected_result, _)
+      if a:expected_exception != ''
+        call s:assert_exception(a:expected_exception, { -> Action(candidate, {}) })
         call assert_equal(bufnr_2, bufnr('%'))
       else
-        call assert_equal(0, _)
+        call Action(candidate, {})
         call assert_equal(bufnr_1, bufnr('%'))
         call assert_equal([4, 1], getpos('.')[1:2])
       endif

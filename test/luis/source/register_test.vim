@@ -59,7 +59,7 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#register#new()
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('register', source.name)
 endfunction
 

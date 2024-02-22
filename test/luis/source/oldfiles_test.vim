@@ -45,6 +45,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#oldfiles#new()
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('oldfiles', source.name)
 endfunction

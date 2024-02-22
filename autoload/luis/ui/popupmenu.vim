@@ -176,11 +176,6 @@ function! s:UI.refresh_candidates() abort dict
 endfunction
 
 function! s:UI.start(session) abort dict
-  if a:session.ui isnot self
-    echoerr 'a:session.ui must be same as self, but got:' string(session.ui)
-    return
-  endif
-
   let self._original_window = win_getid()
 
   " Open or create the ui buffer.

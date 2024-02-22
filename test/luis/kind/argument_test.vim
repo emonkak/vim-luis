@@ -7,8 +7,7 @@ function! s:test_action_argdelete() abort
 
   try
     let Action = s:kind.action_table.argdelete
-    let _ = Action({ 'word': 'bar', 'user_data': { 'argument_index': 1 } }, {})
-    call assert_equal(0, _)
+    silent call Action({ 'word': 'bar', 'user_data': { 'argument_index': 1 } }, {})
     call assert_equal(2, argc())
     call assert_equal(['foo', 'baz'], argv())
   finally
@@ -20,11 +19,11 @@ function! s:test_action_argdelete() abort
 endfunction
 
 function! s:test_action_argdelete__no_argument_chosen() abort
-  try
-    let Action = s:kind.action_table.argdelete
-    let _ = Action({ 'word': 'bar', 'user_data': {} }, {})
-    call assert_match('No argument chosen', _)
-  endtry
+  let Action = s:kind.action_table.argdelete
+  call s:assert_exception(
+  \   'No argument chosen',
+  \   { -> Action({ 'word': 'bar', 'user_data': {} }, {}) }
+  \ )
 endfunction
 
 function! s:test_action_open() abort
@@ -73,7 +72,9 @@ function! s:test_action_open__with_invalid_index() abort
     \  'word': 'foo',
     \  'user_data': { 'argument_index': 9 },
     \ }
-    silent call assert_match('^E16:', Action(candidate, {}))
+    call s:assert_exception(':E16:', { -> Action(candidate, {}) })
+  catch
+    call assert_exception(':E16:')
   finally
     argdelete *
     silent bwipeout foo bar baz
@@ -96,7 +97,7 @@ function! s:test_action_open__within_modified_buffer() abort
     \  'word': 'foo',
     \  'user_data': { 'argument_index': 0 },
     \ }
-    silent call assert_match('^E37:', Action(candidate, {}))
+    call s:assert_exception(':E37:', { -> Action(candidate, {}) })
   finally
     argdelete *
     silent bwipeout foo bar baz
@@ -120,21 +121,21 @@ function! s:test_action_open_x() abort
     \  'word': 'foo',
     \  'user_data': { 'argument_index': 0 },
     \ }
-    silent call assert_equal(0, Action(candidate, {}))
+    silent call Action(candidate, {})
     call assert_equal('foo', bufname('%'))
 
     let candidate = {
     \  'word': 'bar',
     \  'user_data': { 'argument_index': 1 },
     \ }
-    silent call assert_equal(0, Action(candidate, {}))
+    silent call Action(candidate, {})
     call assert_equal('bar', bufname('%'))
 
     let candidate = {
     \  'word': 'baz',
     \  'user_data': { 'argument_index': 2 },
     \ }
-    silent call assert_equal(0, Action(candidate, {}))
+    silent call Action(candidate, {})
     call assert_equal('baz', bufname('%'))
   finally
     argdelete *
@@ -144,6 +145,15 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('argument', s:kind.name)
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
 endfunction

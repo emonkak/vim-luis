@@ -121,13 +121,13 @@ function! s:test_Spy__without_dict() abort
 endfunction
 
 function! s:test_Spy__with_dict() abort
-  let _ = {}
+  let Wrapper = {}
 
-  function! _.call() abort dict
+  function! Wrapper.call() abort dict
     return 'Hello ' . self.name . '!'
   endfunction
 
-  let spy = Spy(_.call)
+  let spy = Spy(Wrapper.call)
   call assert_false(spy.called())
   call assert_equal(0, spy.call_count())
   call assert_equal([], spy.args())

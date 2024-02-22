@@ -25,8 +25,7 @@ function! s:test_action_open() abort
     \     'jumplist_index': 4,
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(10, line('.'))
 
     let candidate = {
@@ -34,8 +33,7 @@ function! s:test_action_open() abort
     \     'jumplist_index': 2,
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(4, line('.'))
 
     let candidate = {
@@ -43,8 +41,7 @@ function! s:test_action_open() abort
     \     'jumplist_index': 0,
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(1, line('.'))
 
     let candidate = {
@@ -52,8 +49,7 @@ function! s:test_action_open() abort
     \     'jumplist_index': 3,
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(8, line('.'))
   finally
     bwipeout!

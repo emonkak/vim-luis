@@ -1,8 +1,3 @@
-function! s:test_definition() abort
-  let previewer = luis#previewer#float#new()
-  call assert_true(luis#_validate_previewer(previewer))
-endfunction
-
 function! s:test_open_buffer__open_twice() abort
   if !exists('*nvim_open_win')
     return 'nvim_open_win() function is required.'
@@ -230,4 +225,9 @@ function! s:test_open_text__with_path() abort
   finally
     filetype off
   endtry
+endfunction
+
+function! s:test_previewer_definition() abort
+  let previewer = luis#previewer#float#new()
+  call luis#_validate_previewer(previewer)
 endfunction

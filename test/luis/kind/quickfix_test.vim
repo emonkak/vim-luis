@@ -21,8 +21,7 @@ function! s:test_action_open() abort
     \     'quickfix_nr': 1,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(bufnr_A, bufnr('%'))
 
     let candidate = {
@@ -31,8 +30,7 @@ function! s:test_action_open() abort
     \     'quickfix_nr': 2,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(bufnr_B, bufnr('%'))
 
     silent execute bufnr 'buffer'
@@ -45,8 +43,7 @@ function! s:test_action_open() abort
     \     'quickfix_nr': 1,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_match('^E37:', _)
+    call s:assert_exception(':E37:', { -> Action(candidate, {}) })
     call assert_equal(bufnr, bufnr('%'))
   finally
     silent execute 'bwipeout!' bufnr_A bufnr_B bufnr
@@ -78,8 +75,7 @@ function! s:test_action_open_x() abort
     \     'quickfix_nr': 1,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(bufnr_A, bufnr('%'))
 
     let candidate = {
@@ -88,8 +84,7 @@ function! s:test_action_open_x() abort
     \     'quickfix_nr': 2,
     \   },
     \ }
-    silent let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(bufnr_B, bufnr('%'))
   finally
     silent execute 'bwipeout!' bufnr_A bufnr_B bufnr
@@ -99,6 +94,15 @@ function! s:test_action_open_x() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('quickfix', s:kind.name)
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
 endfunction

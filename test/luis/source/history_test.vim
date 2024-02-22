@@ -55,6 +55,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#history#new('cmd')
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('history/cmd', source.name)
 endfunction

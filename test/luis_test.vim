@@ -72,13 +72,14 @@ function! s:test_acc_text() abort
   call assert_equal('var/4', luis#acc_text('var//', cs3, source))
 
   " No components
-  let v:errmsg = ''
-  silent! call luis#acc_text('', [], source)
-  call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
-
-  let v:errmsg = ''
-  silent! call assert_equal('', luis#acc_text('', cs1, source))
-  call assert_match('luis: Assumption on ACC is failed:', v:errmsg)
+  call s:assert_exception(
+  \   'luis: Assumption on ACC is failed:',
+  \   { -> luis#acc_text('', [], source) }
+  \ )
+  call s:assert_exception(
+  \   'luis: Assumption on ACC is failed:',
+  \   { -> luis#acc_text('', cs1, source) }
+  \ )
 
   " No proper candidate for a:pattern
   call assert_equal('', luis#acc_text('x/', [], source))
@@ -354,7 +355,7 @@ function! s:test_preview_candidate__with_preview_function() abort
   call assert_equal(1, previewer_spies.open_text.call_count())
   call assert_equal(
   \   [
-  \     ['foo'],
+  \     [candidate.word],
   \     preview_bounds,
   \     {
   \       'title': 'foo'
@@ -561,8 +562,11 @@ function! s:test_quit__with_inactive_ui() abort
   \ })
 
   redir => OUTPUT
-  silent call assert_false(luis#quit(session))
-  redir END
+  try
+    silent call assert_false(luis#quit(session))
+  finally
+    redir END
+  endtry
 
   call assert_match('luis: Not active', OUTPUT)
   call assert_equal(0, ui_spies.quit.call_count())
@@ -599,8 +603,11 @@ function! s:test_start__with_active_ui() abort
   \ }, session)
 
   redir => OUTPUT
-  silent call assert_false(luis#start(session))
-  redir END
+  try
+    silent call assert_false(luis#start(session))
+  finally
+    redir END
+  endtry
 
   call assert_match('luis: Already active', OUTPUT)
   call assert_equal(0, ui_spies.start.call_count())
@@ -908,10 +915,13 @@ function! s:test_take_action__with_no_such_action() abort
   let kind.action_table.default = action_spy.to_funcref()
 
   redir => OUTPUT
-  silent call assert_false(luis#take_action(session, 'XXX'))
-  redir END
+  try
+    silent call luis#take_action(session, 'XXX')
+  finally
+    redir END
+  endtry
 
-  call assert_match("No such action: 'XXX'", OUTPUT)
+  call assert_match('No such action: ''XXX''', OUTPUT)
 
   let expected_context = {
   \   'kind': source.default_kind,
@@ -938,4 +948,13 @@ function! s:test_take_action__with_no_such_action() abort
   call assert_equal(hook, hook_spies.on_source_leave.last_self())
 
   call assert_equal(0, action_spy.call_count())
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
 endfunction

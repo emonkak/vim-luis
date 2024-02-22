@@ -4,12 +4,10 @@ endfunction
 
 function! s:action_open(candidate, context) abort
   execute 'normal!' "i\<C-r>=a:candidate.word\<CR>"
-  return 0
 endfunction
 
 function! s:action_open_x(candidate, context) abort
   execute 'normal!' "a\<C-r>=a:candidate.word\<CR>"
-  return 0
 endfunction
 
 let s:Kind = {

@@ -35,6 +35,6 @@ function! s:test_source_definition() abort
   endif
 
   let source = luis#source#lsp_document_symbol#new(bufnr('%'))
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('lsp/document_symbol', source.name)
 endfunction

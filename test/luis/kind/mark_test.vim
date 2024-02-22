@@ -15,8 +15,7 @@ function! s:test_action_delete() abort
     \     'mark_name': 'a',
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal('', execute('marks a', 'silent!'))
   finally
     execute bufnr 'bwipeout!'
@@ -29,8 +28,10 @@ function! s:test_action_delete__no_mark() abort
   \   'word': 'VIM',
   \   'user_data': {},
   \ }
-  let _ = Action(candidate, {})
-  call assert_equal('No mark chosen', _)
+  call s:assert_exception(
+  \   'No mark chosen',
+  \   { -> Action(candidate, {}) }
+  \ )
 endfunction
 
 function! s:test_action_open() abort
@@ -49,8 +50,7 @@ function! s:test_action_open() abort
     \     'mark_name': 'a',
     \   },
     \ }
-    let _ = Action(candidate, {})
-    call assert_equal(0, _)
+    silent call Action(candidate, {})
     call assert_equal(5, line('.'))
   finally
     execute bufnr 'bwipeout!'
@@ -63,11 +63,22 @@ function! s:test_action_open__no_mark() abort
   \   'word': '',
   \   'user_data': {},
   \ }
-  let _ = Action(candidate, {})
-  call assert_equal('No mark chosen', _)
+  call s:assert_exception(
+  \   'No mark chosen',
+  \   { -> Action(candidate, {}) }
+  \ )
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('mark', s:kind.name)
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
+  endtry
 endfunction

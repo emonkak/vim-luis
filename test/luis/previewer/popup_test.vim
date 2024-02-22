@@ -1,8 +1,3 @@
-function! s:test_definition() abort
-  let previewer = luis#previewer#popup#new()
-  call assert_true(luis#_validate_previewer(previewer))
-endfunction
-
 function! s:test_open_buffer__open_twice() abort
   if !exists('*popup_create')
     return 'popup_create() function is required.'
@@ -288,4 +283,9 @@ function! s:test_open_text__with_path() abort
   finally
     filetype off
   endtry
+endfunction
+
+function! s:test_previewer_definition() abort
+  let previewer = luis#previewer#popup#new()
+  call luis#_validate_previewer(previewer)
 endfunction

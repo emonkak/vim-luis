@@ -3,26 +3,18 @@ function! luis#kind#help#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:open_help(a:candidate.word, '')
+  call s:open_help(a:candidate.word, '')
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:open_help(a:candidate.word, '!')
+  call s:open_help(a:candidate.word, '!')
 endfunction
 
 function! s:open_help(subject, bang) abort
   let command = 'edit' . a:bang
-  let v:errmsg = ''
-  silent! execute command '`=&helpfile`'
-  if v:errmsg != ''
-    return v:errmsg
-  endif
+  execute command '`=&helpfile`'
   set buftype=help
-  silent! execute 'help' a:subject
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  execute 'help' a:subject
 endfunction
 
 let s:Kind = {

@@ -3,100 +3,93 @@ function! luis#kind#common#import() abort
 endfunction
 
 function! s:action_Bottom(candidate, context) abort
-  return s:open_with_split('botright', a:candidate, a:context)
+  call s:open_with_split('botright', a:candidate, a:context)
 endfunction
 
 function! s:action_Left(candidate, context) abort
-  return s:open_with_split('topleft vertical', a:candidate, a:context)
+  call s:open_with_split('topleft vertical', a:candidate, a:context)
 endfunction
 
 function! s:action_Right(candidate, context) abort
-  return s:open_with_split('botright vertical', a:candidate, a:context)
+  call s:open_with_split('botright vertical', a:candidate, a:context)
 endfunction
 
 function! s:action_Top(candidate, context) abort
-  return s:open_with_split('topleft', a:candidate, a:context)
+  call s:open_with_split('topleft', a:candidate, a:context)
 endfunction
 
 function! s:action_Yank(candidate, context) abort
   call setreg('"', a:candidate.word, 'l')
-  return 0
 endfunction
 
 function! s:action_above(candidate, context) abort
-  return s:open_with_split('leftabove', a:candidate, a:context)
+  call s:open_with_split('leftabove', a:candidate, a:context)
 endfunction
 
 function! s:action_below(candidate, context) abort
-  return s:open_with_split('belowright', a:candidate, a:context)
+  call s:open_with_split('belowright', a:candidate, a:context)
 endfunction
 
 function! s:action_cancel(candidate, context) abort
   " Cancel to take actioin - nothing to do.
-  return 0
 endfunction
 
 function! s:action_default(candidate, context) abort
-  return luis#do_action(a:context.session, 'open', a:candidate)
+  call luis#do_action(a:context.session, 'open', a:candidate)
 endfunction
 
 function! s:action_ex(candidate, context) abort
   " Result is ':| {candidate}', here '|' means the cursor position.
   call feedkeys(printf(": %s\<C-b>", fnameescape(a:candidate.word)), 'n')
-  return 0
 endfunction
 
 function! s:action_left(candidate, context) abort
-  return s:open_with_split('leftabove vertical', a:candidate, a:context)
+  call s:open_with_split('leftabove vertical', a:candidate, a:context)
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return 'Action "open" is not defined for this candidate: '
-  \      . string(a:candidate)
+  throw 'luis(kind.common): Action "open" is not defined for this candidate: '
+  \     . string(a:candidate)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return luis#do_action(a:context.session, 'open', a:candidate)
+  call luis#do_action(a:context.session, 'open', a:candidate)
 endfunction
 
 function! s:action_put(candidate, context) abort
   put =a:candidate.word
-  return 0
 endfunction
 
 function! s:action_put_x(candidate, context) abort
   put! =a:candidate.word
-  return 0
 endfunction
 
 function! s:action_reselect(candidate, context) abort
   call luis#start(a:context.session)
-  return 0
 endfunction
 
 function! s:action_right(candidate, context) abort
-  return s:open_with_split('belowright vertical', a:candidate, a:context)
+  call s:open_with_split('belowright vertical', a:candidate, a:context)
 endfunction
 
 function! s:action_tab_Left(candidate, context) abort
-  return s:open_with_split('0 tab', a:candidate, a:context)
+  call s:open_with_split('0 tab', a:candidate, a:context)
 endfunction
 
 function! s:action_tab_Right(candidate, context) abort
-  return s:open_with_split(tabpagenr('$') . ' tab', a:candidate, a:context)
+  call s:open_with_split(tabpagenr('$') . ' tab', a:candidate, a:context)
 endfunction
 
 function! s:action_tab_left(candidate, context) abort
-  return s:open_with_split((tabpagenr() - 1) . ' tab', a:candidate, a:context)
+  call s:open_with_split((tabpagenr() - 1) . ' tab', a:candidate, a:context)
 endfunction
 
 function! s:action_tab_right(candidate, context) abort
-  return s:open_with_split('tab', a:candidate, a:context)
+  call s:open_with_split('tab', a:candidate, a:context)
 endfunction
 
 function! s:action_yank(candidate, context) abort
   call setreg('"', a:candidate.word, 'c')
-  return 0
 endfunction
 
 function! s:open_with_split(direction, candidate, context) abort
@@ -104,23 +97,20 @@ function! s:open_with_split(direction, candidate, context) abort
   let original_curwinnr = winnr()
   let original_winrestcmd = winrestcmd()
 
-  let v:errmsg = ''
-  silent! execute a:direction 'split'
-  if v:errmsg != ''
-    return v:errmsg
-  endif
+  execute a:direction 'split'
 
-  let result = luis#do_action(a:context.session, 'open', a:candidate)
-  if result isnot 0
-    " Undo the last :split.
+  try
+    call luis#do_action(a:context.session, 'open', a:candidate)
+  catch
+    " Undo the last :split if an error is occurred.
     close
     execute 'tabnext' original_tabpagenr
     execute original_curwinnr 'wincmd w'
     execute original_winrestcmd
-    return result
-  endif
-
-  return 0
+    " Vim cannnot rethrow exceptions with the "Vim" prefix. We use :echoerr
+    " instead of :throw (see also :help try-echoerr).
+    echoerr v:exception
+  endtry
 endfunction
 
 let s:Kind = {

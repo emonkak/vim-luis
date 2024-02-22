@@ -209,6 +209,6 @@ function! s:test_source_definition() abort
   \    'for n in {0..100}; do echo $n; done'
   \ ]
   let source = luis#source#async#new('files', kind, command)
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('async/files', source.name)
 endfunction

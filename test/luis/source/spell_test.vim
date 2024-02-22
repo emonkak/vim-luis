@@ -14,6 +14,6 @@ function! s:test_gather_candidates() abort
 endfunction
 
 function! s:test_source_definition() abort
-  call assert_true(luis#_validate_source(s:source))
+  call luis#_validate_source(s:source)
   call assert_equal('spell', s:source.name)
 endfunction

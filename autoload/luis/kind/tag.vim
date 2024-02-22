@@ -3,20 +3,11 @@ function! luis#kind#tag#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:do_command('tag', a:candidate, a:context)
+  execute 'tag' a:candidate.word
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:do_command('tag!', a:candidate, a:context)
-endfunction
-
-function! s:do_command(command, candidate, context) abort
-  let v:errmsg = ''
-  silent! execute a:command a:candidate.word
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  execute 'tag!' a:candidate.word
 endfunction
 
 let s:Kind = {

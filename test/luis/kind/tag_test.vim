@@ -1,8 +1,8 @@
 let s:kind = luis#kind#tag#import()
 
 function! s:test_action_open() abort
-  call s:do_test_open(0, 'open', {})
-  call s:do_test_open('^E37:', 'open', {
+  call s:do_test_open('', 'open', {})
+  call s:do_test_open(':E37:', 'open', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -12,8 +12,8 @@ function! s:test_action_open__invalid_tag() abort
   let winnr = winnr()
 
   let Action = s:kind.action_table.open
-  let _ = Action({ 'word': 'VIM' }, {})
-  call assert_match('^E\%(426\|433\):', _)
+  let candidate = { 'word': 'VIM' }
+  call s:assert_exception(':E433:', { -> Action(candidate, {}) })
 
   if exists('*settagstack')
     call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
@@ -25,8 +25,8 @@ function! s:test_action_open__invalid_tag() abort
 endfunction
 
 function! s:test_action_open_x() abort
-  call s:do_test_open(0, 'open!', {})
-  call s:do_test_open(0, 'open!', {
+  call s:do_test_open('', 'open!', {})
+  call s:do_test_open('', 'open!', {
   \   '&bufhidden': 'unload',
   \   '&modified': 1,
   \ })
@@ -36,8 +36,8 @@ function! s:test_action_open_x__invalid_tag() abort
   let winnr = winnr()
 
   let Action = s:kind.action_table['open!']
-  let _ = Action({ 'word': 'VIM' }, {})
-  call assert_match('^E\%(426\|433\):', _)
+  let candidate = { 'word': 'VIM' }
+  call s:assert_exception(':E433:', { -> Action(candidate, {}) })
 
   if exists('*settagstack')
     call settagstack(winnr, { 'curidx': 1, 'items': [], 'length': 0 })
@@ -49,11 +49,11 @@ function! s:test_action_open_x__invalid_tag() abort
 endfunction
 
 function! s:test_kind_definition() abort
-  call assert_true(luis#_validate_kind(s:kind))
+  call luis#_validate_kind(s:kind)
   call assert_equal('tag', s:kind.name)
 endfunction
 
-function! s:do_test_open(expected_result, action_name, buf_options) abort
+function! s:do_test_open(expected_exception, action_name, buf_options) abort
   let original_cwd = getcwd()
   cd $VIMRUNTIME/doc
 
@@ -67,12 +67,12 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
 
   try
     let Action = s:kind.action_table[a:action_name]
-    silent let _ = Action({ 'word': 'vimtutor' }, {})
-    if type(a:expected_result) is v:t_string
-      call assert_match(a:expected_result, _)
+    let candidate = { 'word': 'vimtutor' }
+    if a:expected_exception != ''
+      call s:assert_exception(a:expected_exception, { -> Action(candidate, {}) })
       call assert_equal(bufnr, bufnr('%'))
     else
-      call assert_equal(0, _)
+      silent call Action(candidate, {})
       call assert_notequal(bufnr, bufnr('%'))
       call assert_match('\*vimtutor\*', getline('.'))
       silent bwipeout
@@ -88,5 +88,14 @@ function! s:do_test_open(expected_result, action_name, buf_options) abort
   finally
     silent execute bufnr 'bwipeout!'
     cd `=original_cwd`
+  endtry
+endfunction
+
+function! s:assert_exception(expected_message, callback)
+  try
+    silent call a:callback()
+    call assert_true(0, 'Function should have throw exception')
+  catch
+    call assert_exception(a:expected_message)
   endtry
 endfunction

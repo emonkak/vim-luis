@@ -89,6 +89,6 @@ endfunction
 
 function! s:test_source_definition() abort
   let source = luis#source#tagstack#new(win_getid())
-  call assert_true(luis#_validate_source(source))
+  call luis#_validate_source(source)
   call assert_equal('tagstack', source.name)
 endfunction

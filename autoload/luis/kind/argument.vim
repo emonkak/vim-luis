@@ -3,27 +3,22 @@ function! luis#kind#argument#import() abort
 endfunction
 
 function! s:action_open(candidate, context) abort
-  return s:do_command('argument', a:candidate)
+  call s:do_command('argument', a:candidate)
 endfunction
 
 function! s:action_open_x(candidate, context) abort
-  return s:do_command('argument!', a:candidate)
+  call s:do_command('argument!', a:candidate)
 endfunction
 
 function! s:action_argdelete(candidate, context) abort
-  return s:do_command('argdelete', a:candidate)
+  call s:do_command('argdelete', a:candidate)
 endfunction
 
 function! s:do_command(command, candidate) abort
   if !has_key(a:candidate.user_data, 'argument_index')
-    return 'No argument chosen'
+    throw 'luis(kind.argument): No argument chosen'
   endif
-  let v:errmsg = ''
-  silent! execute (a:candidate.user_data.argument_index + 1) a:command
-  if v:errmsg != ''
-    return v:errmsg
-  endif
-  return 0
+  execute (a:candidate.user_data.argument_index + 1) a:command
 endfunction
 
 let s:Kind = {

@@ -14,7 +14,7 @@ function! s:test_syntax() abort
     let SP = 'luisSourcePrompt'
     let SS = 'luisSourceSeparator'
 
-    let _ = [
+    for [lnum, col, stack] in [
     \   [1, 1, [SL, SP]],
     \   [1, 6, [SL, SP]],
     \   [1, 7, [SL, SS]],
@@ -25,7 +25,6 @@ function! s:test_syntax() abort
     \   [2, 2, [IL, IX]],
     \   [2, 4, [IL, IX]],
     \ ]
-    for [lnum, col, stack] in _
       call assert_equal(stack, s:syn_stack(lnum, col))
     endfor
 
