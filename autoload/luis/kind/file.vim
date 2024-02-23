@@ -30,7 +30,11 @@ function! s:do_open(command, candidate) abort
   if path == ''
     throw 'luis(kind.file): No file chosen'
   endif
-  execute a:command fnamemodify(path, ':.')
+  try
+    execute a:command fnamemodify(path, ':.')
+  catch /:E325:/
+    " Ignore ATTENTION errors.
+  endtry
   if has_key(a:candidate.user_data, 'file_cursor')
     call cursor(a:candidate.user_data.file_cursor)
     normal! zvzt
