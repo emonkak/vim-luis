@@ -16,22 +16,22 @@ function! s:Source.gather_candidates(context) abort dict
   if !has_key(self._cached_candidates, dir)
     let normal_candidates = []
     let hidden_candidates = []
-    let raw_dir = dir == './' ? '' : dir
-    let real_dir = s:expand_path(dir)
+    let logical_dir = dir == './' ? '' : dir
+    let physical_dir = fnamemodify(s:expand_path(dir), ':p')
 
-    for filename in s:readdir(real_dir)
-      let raw_path = raw_dir . filename
-      let real_path = fnamemodify(real_dir . filename, ':p')
-      let user_data = { 'file_path': real_path }
-      let type = getftype(resolve(real_path))
+    for filename in s:readdir(physical_dir)
+      let logical_path = logical_dir . filename
+      let physical_path = physical_dir . filename
+      let user_data = { 'file_path': physical_path }
+      let type = getftype(resolve(physical_path))
       if type ==# 'file'
-        let user_data.preview_path = real_path
+        let user_data.preview_path = physical_path
       endif
       let is_hidden = filename[0] == '.'
       let target_candidates = is_hidden ? hidden_candidates : normal_candidates
       call add(target_candidates, {
-      \   'word': raw_path,
-      \   'abbr': raw_path . (type ==# 'dir' ? separator : ''),
+      \   'word': logical_path,
+      \   'abbr': logical_path . (type ==# 'dir' ? separator : ''),
       \   'kind': type,
       \   'user_data': user_data,
       \ })

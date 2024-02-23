@@ -11,7 +11,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/',
+    \       'file_path': new_cwd . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/',
@@ -40,7 +40,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/',
+    \       'file_path': new_cwd . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/',
@@ -74,7 +74,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1/dir2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/dir2/',
+    \       'file_path': new_cwd . '/dir1/dir2',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/dir2/',
@@ -91,7 +91,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1/link2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/link2/',
+    \       'file_path': new_cwd . '/dir1/link2',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/link2/',
@@ -102,7 +102,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/',
+    \       'file_path': new_cwd . '/.dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/',
@@ -119,7 +119,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/',
+    \       'file_path': new_cwd . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/',
@@ -148,7 +148,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/',
+    \       'file_path': new_cwd . '/.dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/',
@@ -165,7 +165,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1',
     \     'user_data': {
-    \       'file_path': new_cwd . '/dir1/',
+    \       'file_path': new_cwd . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': 'dir1/',
@@ -199,7 +199,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/dir2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/dir2/',
+    \       'file_path': new_cwd . '/.dir1/dir2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/dir2/',
@@ -216,7 +216,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/link2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/link2/',
+    \       'file_path': new_cwd . '/.dir1/link2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/link2/',
@@ -227,7 +227,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/.dir2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/.dir2/',
+    \       'file_path': new_cwd . '/.dir1/.dir2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/.dir2/',
@@ -244,7 +244,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/.link2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/.link2/',
+    \       'file_path': new_cwd . '/.dir1/.link2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/.link2/',
@@ -252,7 +252,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/dir2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/dir2/',
+    \       'file_path': new_cwd . '/.dir1/dir2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/dir2/',
@@ -269,7 +269,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1/link2',
     \     'user_data': {
-    \       'file_path': new_cwd . '/.dir1/link2/',
+    \       'file_path': new_cwd . '/.dir1/link2',
     \     },
     \     'kind': 'dir',
     \     'abbr': '.dir1/link2/',
@@ -295,7 +295,7 @@ function! s:test_gather_candidates__with_env() abort
     \   {
     \     'word': '$HOME/dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
+    \       'file_path': new_HOME . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '$HOME/dir1/',
@@ -324,7 +324,7 @@ function! s:test_gather_candidates__with_env() abort
     \   {
     \     'word': '$HOME/.dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/.dir1/',
+    \       'file_path': new_HOME . '/.dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '$HOME/.dir1/',
@@ -341,7 +341,7 @@ function! s:test_gather_candidates__with_env() abort
     \   {
     \     'word': '$HOME/dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
+    \       'file_path': new_HOME . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '$HOME/dir1/',
@@ -384,7 +384,7 @@ function! s:test_gather_candidates__with_home() abort
     \   {
     \     'word': '~/dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
+    \       'file_path': new_HOME . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '~/dir1/',
@@ -413,7 +413,7 @@ function! s:test_gather_candidates__with_home() abort
     \   {
     \     'word': '~/.dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/.dir1/',
+    \       'file_path': new_HOME . '/.dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '~/.dir1/',
@@ -430,7 +430,7 @@ function! s:test_gather_candidates__with_home() abort
     \   {
     \     'word': '~/dir1',
     \     'user_data': {
-    \       'file_path': new_HOME . '/dir1/',
+    \       'file_path': new_HOME . '/dir1',
     \     },
     \     'kind': 'dir',
     \     'abbr': '~/dir1/',
