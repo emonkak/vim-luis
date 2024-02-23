@@ -124,10 +124,6 @@ luis#do_action({session}, {action_name}, {candidate})	*luis#do_action()*
 	Execute the action indicated by {action_name} with {candidate}.  If
 	the action fails, an exception may be thrown.
 
-	When {action_name} is empty string, nothing will be done.
-
-	When {action_name} is "*", you can select the action interactively.
-
 luis#new_session({source}, {options} = {})		*luis#new_session()*
 	Create the new session for {source}, and return the created one.
 
@@ -191,6 +187,9 @@ luis#take_action({session}, {action_name})		*luis#take_action()*
 >
 	{ 'word': '{current_pattern}', user_data: {} }
 <
+	When {action_name} is "*", you can select the action interactively.
+
+	When {action_name} is empty string, nothing will be done.
 
 	NOTE: This is a function intended for UI implementation.
 

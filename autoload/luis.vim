@@ -340,22 +340,15 @@ endfunction
 
 function! luis#do_action(session, action_name, candidate) abort
   let kind = get(a:candidate.user_data, 'kind', a:session.source.default_kind)
-  let action_name = a:action_name ==# '*'
-  \               ? s:choose_action(kind, a:candidate)
-  \               : a:action_name
+  let Action = s:find_action(kind, a:action_name)
 
-  if action_name == ''
-    return
-  endif
-
-  let Action = s:find_action(kind, action_name)
   if Action is 0
-    throw 'luis: No such action: ' . string(action_name)
+    throw 'luis: No such action: ' . string(a:action_name)
   endif
 
   let context = {
   \   'action': Action,
-  \   'action_name': action_name,
+  \   'action_name': a:action_name,
   \   'kind': kind,
   \   'session': a:session,
   \ }
@@ -368,7 +361,7 @@ function! luis#do_action(session, action_name, candidate) abort
     call a:session.hook.on_action(a:candidate, context)
   endif
 
-  " Maybe action has been modified by a callback.
+  " The action may have been modified by a callback.
   let Action = context.action
 
   call Action(a:candidate, context)
@@ -535,8 +528,19 @@ function! luis#take_action(session, action_name) abort
   " active.
   call s:quit_session(a:session)
 
+  if a:action_name == '*'
+    let kind = get(candidate.user_data, 'kind', a:session.source.default_kind)
+    let action_name = s:choose_action(kind, candidate)
+  else
+    let action_name = a:action_name
+  endif
+
+  if action_name == ''
+    return 0
+  endif
+
   try
-    call luis#do_action(a:session, a:action_name, candidate)
+    call luis#do_action(a:session, action_name, candidate)
     return 1
   catch
     echohl ErrorMsg
