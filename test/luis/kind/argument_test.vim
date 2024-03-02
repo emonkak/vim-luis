@@ -73,8 +73,6 @@ function! s:test_action_open__with_invalid_index() abort
     \  'user_data': { 'argument_index': 9 },
     \ }
     call s:assert_exception(':E16:', { -> Action(candidate, {}) })
-  catch
-    call assert_exception(':E16:')
   finally
     argdelete *
     silent bwipeout foo bar baz
