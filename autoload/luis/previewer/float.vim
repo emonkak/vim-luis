@@ -128,7 +128,7 @@ function! s:create_window_config(bounds, hints, default_config) abort
   let config.width = a:bounds.width
   let config.height = a:bounds.height
 
-  if get(a:hints, 'title', '') != ''
+  if has('nvim-0.9.0') && get(a:hints, 'title', '') != ''
     " Add padding around title.
     let config.title = ' ' . a:hints.title . ' '
   endif
