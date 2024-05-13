@@ -63,6 +63,7 @@ function! s:Source.on_source_enter(context) abort dict
   let self._current_candidates = []
   let self._pending_candidates = []
   let self._last_line = ''
+  let self._last_pattern = 0
   let self._sequence = 0
 endfunction
 

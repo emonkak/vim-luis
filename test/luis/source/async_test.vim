@@ -1,7 +1,7 @@
 silent runtime! test/spy.vim
 silent runtime! test/mock.vim
 
-function! s:test_gather_candidates__without_options() abort
+function! s:test_gather_candidates__restart_source() abort
   if !has('patch-8.0.0018')
     " When using ":sleep", channel input is not handled.
     return 'patch-8.0.0018 is required.'
@@ -31,40 +31,42 @@ function! s:test_gather_candidates__without_options() abort
   \   'initial_pattern': '',
   \ }
 
-  call source.on_source_enter({ 'session': session })
+  for i in range(1, 2)
+    call source.on_source_enter({ 'session': session })
 
-  let candidates = source.gather_candidates({ 'pattern': '00' })
+    let candidates = source.gather_candidates({ 'pattern': '00' })
 
-  call assert_equal(candidates, [])
+    call assert_equal(candidates, [])
 
-  for i in range(1, 10)
-    execute 'sleep' (float2nr(pow(i, 2)) . 'm')
-    if refresh_candidates_spy.called()
-      break
-    endif
+    for j in range(1, 10)
+      execute 'sleep' (float2nr(pow(j, 2)) . 'm')
+      if refresh_candidates_spy.call_count() == i
+        break
+      endif
+    endfor
+
+    call assert_equal(i, refresh_candidates_spy.call_count())
+    call assert_equal(session.ui, refresh_candidates_spy.last_self())
+
+    let candidates = source.gather_candidates(({ 'pattern': '00' }))
+    call assert_equal([
+    \   { 'word': '001' },
+    \   { 'word': '002' },
+    \   { 'word': '003' },
+    \   { 'word': '004' },
+    \   { 'word': '005' },
+    \   { 'word': '006' },
+    \   { 'word': '007' },
+    \   { 'word': '008' },
+    \   { 'word': '009' },
+    \   { 'word': '100' },
+    \ ], candidates)
+
+    call source.on_source_leave({})
   endfor
-
-  call assert_equal(1, refresh_candidates_spy.call_count())
-  call assert_equal(session.ui, refresh_candidates_spy.last_self())
-
-  let candidates = source.gather_candidates(({ 'pattern': '00' }))
-  call assert_equal([
-  \   { 'word': '001' },
-  \   { 'word': '002' },
-  \   { 'word': '003' },
-  \   { 'word': '004' },
-  \   { 'word': '005' },
-  \   { 'word': '006' },
-  \   { 'word': '007' },
-  \   { 'word': '008' },
-  \   { 'word': '009' },
-  \   { 'word': '100' },
-  \ ], candidates)
-
-  call source.on_source_leave({})
 endfunction
 
-function! s:test_gather_candidates__with_to_candidate() abort
+function! s:test_gather_candidates__with_to_candidate_option() abort
   if !has('patch-8.0.0018')
     return 'patch-8.0.0018 is required.'
   endif
@@ -130,7 +132,7 @@ function! s:test_gather_candidates__with_to_candidate() abort
   call source.on_source_leave({})
 endfunction
 
-function! s:test_gather_candidates__with_debounce_time() abort
+function! s:test_gather_candidates__with_debounce_time_option() abort
   if !has('patch-8.0.0018')
     return 'patch-8.0.0018 is required.'
   endif
