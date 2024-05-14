@@ -1,7 +1,9 @@
 name: CI
-
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 jobs:
   build:
     strategy:
@@ -17,11 +19,13 @@ jobs:
             neovim: true
     runs-on: ubuntu-latest
     steps:
-      - uses: rhysd/action-setup-vim@v1
+      - name: Setup Vim
+        uses: rhysd/action-setup-vim@v1
         with:
           version: ${{ matrix.version }}
           neovim: ${{ matrix.neovim }}
-      - uses: actions/checkout@v3
+      - name: Checkout the repository
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Run tests
