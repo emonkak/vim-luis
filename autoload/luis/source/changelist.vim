@@ -1,13 +1,13 @@
-function! luis#source#jumplist#new(window) abort
+function! luis#source#changelist#new(bufnr) abort
   let source = copy(s:Source)
-  let source._window = a:window
+  let source._bufnr = a:bufnr
   let source._cached_candidates = []
   return source
 endfunction
 
 let s:Source = {
-\   'name': 'jumplist',
-\   'default_kind': luis#kind#jumplist#import(),
+\   'name': 'changelist',
+\   'default_kind': luis#kind#changelist#import(),
 \ }
 
 function! s:Source.gather_candidates(context) abort dict
@@ -15,26 +15,26 @@ function! s:Source.gather_candidates(context) abort dict
 endfunction
 
 function! s:Source.on_source_enter(context) abort dict
-  let jumplist = getjumplist(self._window)
-  if empty(jumplist)
+  let changelist = getchangelist(self._bufnr)
+  if empty(changelist)
     return
   endif
-  let [locations, current_location] = jumplist
   let candidates = []
+  let [locations, current_location] = changelist
   for i in range(len(locations))
     let location = locations[i]
-    let bufname = bufname(location.bufnr)
+    let bufname = bufname(self._bufnr)
     call add(candidates, {
     \   'word': bufname . ':' . location.lnum . ':' . location.col,
-    \   'menu': 'jump ' . (i + 1),
+    \   'menu': 'change ' . (i + 1),
     \   'kind': i == current_location ? '*' : '',
     \   'dup': 1,
     \   'user_data': {
-    \     'buffer_nr': location.bufnr,
+    \     'buffer_nr': self._bufnr,
     \     'buffer_cursor': [location.lnum, location.col],
-    \     'jumplist_index': i,
-    \     'jumplist_window': self._window,
-    \     'preview_bufnr': location.bufnr,
+    \     'changelist_index': i,
+    \     'changelist_bufnr': self._bufnr,
+    \     'preview_bufnr': self._bufnr,
     \     'preview_cursor': [location.lnum, location.col],
     \   },
     \   'luis_sort_priority': -i,
