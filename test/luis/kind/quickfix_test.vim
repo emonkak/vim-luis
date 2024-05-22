@@ -52,6 +52,18 @@ function! s:test_action_open() abort
   endtry
 endfunction
 
+function! s:test_action_open__no_error() abort
+  let Action = s:kind.action_table.open
+  let candidate = {
+  \   'word': 'vim',
+  \   'user_data': {},
+  \ }
+  call s:assert_exception(
+  \   'No error chosen',
+  \   { -> Action(candidate, {}) }
+  \ )
+endfunction
+
 function! s:test_action_open_x() abort
   cgetexpr ['A:12:foo', 'B:24:bar', 'B:36:bar', 'D:baz']
 
@@ -101,7 +113,7 @@ endfunction
 function! s:assert_exception(expected_message, callback)
   try
     silent call a:callback()
-    call assert_true(0, 'Function should have throw exception')
+    call assert_true(0, 'Function must throw an exception')
   catch
     call assert_exception(a:expected_message)
   endtry

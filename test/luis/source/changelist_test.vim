@@ -1,27 +1,29 @@
 function! s:test_gather_candidates() abort
-  if !exists('*getjumplist')
-    return 'getjumplist() function is required.'
+  if !exists('*getchangelist')
+    return 'getchangelist() function is required.'
   endif
 
   let bufname = tempname()
   silent split `=bufname`
   let bufnr = bufnr('%')
-  let window = win_getid()
 
-  call setline(1, range(1, 10))
-  clearjumps
-  normal! 2gg
-  normal! 4gg
-  normal! 8gg
-  normal! 10gg
-  execute 'normal!' "\<C-o>"
+  keepjumps call setline(1, range(1, 10))
+  call feedkeys("1ggi\<Space>\<BS>", 'ntx')
+  call feedkeys("2ggi\<Space>\<BS>", 'ntx')
+  call feedkeys("4ggi\<Space>\<BS>", 'ntx')
+  call feedkeys("8ggi\<Space>\<BS>", 'ntx')
+  call feedkeys("10ggi\<Space>\<BS>", 'ntx')
+  normal! 2g;
 
-  call assert_equal([1, 2, 4, 8, 10], map(get(getjumplist(window), 0, []), 'v:val.lnum'))
-  call assert_equal(3, get(getjumplist(window), 1, -1))
+  call assert_equal(
+  \   [[1, 0], [2, 0], [4, 0], [8, 0], [10, 0]],
+  \   map(get(getchangelist(bufnr), 0, []), '[v:val.lnum, v:val.col]')
+  \ )
+  call assert_equal(3, get(getchangelist(bufnr), 1, -1))
   call assert_equal(8, line('.'))
 
   try
-    let source = luis#source#jumplist#new(window)
+    let source = luis#source#changelist#new(bufnr)
 
     call source.on_source_enter({})
 
@@ -29,13 +31,13 @@ function! s:test_gather_candidates() abort
     call assert_equal([
     \   {
     \     'word': bufname . ':1:0',
-    \     'menu': 'jump 1',
+    \     'menu': 'change 1',
     \     'kind': '',
     \     'user_data': {
     \       'buffer_cursor': [1, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_index': 0,
-    \       'jumplist_window': window,
+    \       'changelist_index': 0,
+    \       'changelist_bufnr': bufnr,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [1, 0],
     \     },
@@ -44,13 +46,13 @@ function! s:test_gather_candidates() abort
     \   },
     \   {
     \     'word': bufname . ':2:0',
-    \     'menu': 'jump 2',
+    \     'menu': 'change 2',
     \     'kind': '',
     \     'user_data': {
     \       'buffer_cursor': [2, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_index': 1,
-    \       'jumplist_window': window,
+    \       'changelist_index': 1,
+    \       'changelist_bufnr': bufnr,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [2, 0],
     \     },
@@ -59,13 +61,13 @@ function! s:test_gather_candidates() abort
     \   },
     \   {
     \     'word': bufname . ':4:0',
-    \     'menu': 'jump 3',
+    \     'menu': 'change 3',
     \     'kind': '',
     \     'user_data': {
     \       'buffer_cursor': [4, 0],
     \       'buffer_nr': bufnr,
-    \       'jumplist_index': 2,
-    \       'jumplist_window': window,
+    \       'changelist_index': 2,
+    \       'changelist_bufnr': bufnr,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [4, 0],
     \     },
@@ -74,13 +76,13 @@ function! s:test_gather_candidates() abort
     \   },
     \   {
     \     'word': bufname . ':8:0',
-    \     'menu': 'jump 4',
+    \     'menu': 'change 4',
     \     'kind': '*',
     \     'user_data': {
     \       'buffer_nr': bufnr,
     \       'buffer_cursor': [8, 0],
-    \       'jumplist_index': 3,
-    \       'jumplist_window': window,
+    \       'changelist_index': 3,
+    \       'changelist_bufnr': bufnr,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [8, 0],
     \     },
@@ -89,13 +91,13 @@ function! s:test_gather_candidates() abort
     \   },
     \   {
     \     'word': bufname . ':10:0',
-    \     'menu': 'jump 5',
+    \     'menu': 'change 5',
     \     'kind': '',
     \     'user_data': {
     \       'buffer_nr': bufnr,
     \       'buffer_cursor': [10, 0],
-    \       'jumplist_index': 4,
-    \       'jumplist_window': window,
+    \       'changelist_index': 4,
+    \       'changelist_bufnr': bufnr,
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [10, 0],
     \     },
@@ -109,7 +111,7 @@ function! s:test_gather_candidates() abort
 endfunction
 
 function! s:test_source_definition() abort
-  let source = luis#source#jumplist#new(win_getid())
+  let source = luis#source#changelist#new(win_getid())
   call luis#_validate_source(source)
-  call assert_equal('jumplist', source.name)
+  call assert_equal('changelist', source.name)
 endfunction

@@ -21,7 +21,7 @@ endfunction
 function! s:assert_exception(expected_message, callback)
   try
     silent call a:callback()
-    call assert_true(0, 'Function should have throw exception')
+    call assert_true(0, 'Function must throw an exception')
   catch
     call assert_exception(a:expected_message)
   endtry

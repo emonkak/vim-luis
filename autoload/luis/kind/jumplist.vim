@@ -4,15 +4,18 @@ endfunction
 
 function! s:action_open(candidate, context) abort
   if !has_key(a:candidate.user_data, 'jumplist_index')
-    throw 'luis(kind.jumplist): No jumplist chosen'
+  \  || !has_key(a:candidate.user_data, 'jumplist_window')
+    throw 'luis(kind.jumplist): No jump chosen'
   endif
   let index = a:candidate.user_data.jumplist_index
-  let current_index = getjumplist()[1]
-  let offset = index - current_index
-  if offset < 0
-    execute 'normal!' (-offset . "\<C-o>")
-  elseif offset > 0
-    execute 'normal!' (offset . "\<C-i>")
+  let jumplist = getjumplist(a:candidate.user_data.jumplist_window)
+  if !empty(jumplist)
+    let offset = index - jumplist[1]
+    if offset < 0
+      execute 'normal!' (-offset . "\<C-o>")
+    elseif offset > 0
+      execute 'normal!' (offset . "\<C-i>")
+    endif
   endif
 endfunction
 
