@@ -5,7 +5,6 @@ let s:BORDER_UNICODE = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
 function! luis#previewer#popup#new(...) abort
   let options = get(a:000, 0, {})
   let previewer = copy(s:Previewer)
-  let previewer._bufnr = -1
   let previewer._window = -1
   let previewer._popup_options = extend(
   \   {
@@ -83,51 +82,25 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
 endfunction
 
 function! s:Previewer.open_text(lines, bounds, hints) abort dict
-  if !bufexists(self._bufnr)
-    let self._bufnr = bufadd('')
-    call s:initialize_preview_buffer(self._bufnr)
-  elseif !bufloaded(self._bufnr)
-    call s:initialize_preview_buffer(self._bufnr)
-  endif
-
   if s:is_valid_window(self._window)
-    if winbufnr(self._window) == self._bufnr
-      " Reuse window.
-      call s:configure_popup(
-      \   self._window,
-      \   a:bounds,
-      \   a:hints,
-      \   self._popup_options
-      \ )
-    else
-      call popup_close(self._window)
-      let self._window = s:create_window(
-      \   self._bufnr,
-      \   a:bounds,
-      \   a:hints,
-      \   self._popup_options,
-      \   self._window_options
-      \ )
-    endif
-  else
-    let self._window = s:create_window(
-    \   self._bufnr,
-    \   a:bounds,
-    \   a:hints,
-    \   self._popup_options,
-    \   self._window_options
-    \ )
+    call popup_close(self._window)
   endif
 
-  call deletebufline(self._bufnr, 1, '$')
-  call setbufline(self._bufnr, 1, a:lines)
+  let self._window = s:create_window(
+  \   a:lines,
+  \   a:bounds,
+  \   a:hints,
+  \   self._popup_options,
+  \   self._window_options
+  \ )
 
+  let bufnr = winbufnr(self._window)
   let filetype = has_key(a:hints, 'filetype')
   \            ? a:hints.filetype
   \            : has_key(a:hints, 'path')
-  \            ? s:detect_filetype(self._window, self._bufnr, a:hints.path)
+  \            ? s:detect_filetype(self._window, bufnr, a:hints.path)
   \            : ''
-  call setbufvar(self._bufnr, '&syntax', filetype)
+  call setbufvar(bufnr, '&syntax', filetype)
 endfunction
 
 function! s:configure_popup(window, bounds, hints, popup_options) abort
@@ -156,7 +129,7 @@ function! s:create_popup_options(hints, options) abort
   return options
 endfunction
 
-function! s:create_window(bufnr, bounds, hints, popup_options, window_options) abort
+function! s:create_window(content, bounds, hints, popup_options, window_options) abort
   let popup_options = s:create_popup_options(a:hints, a:popup_options)
 
   let popup_options.line = a:bounds.row
@@ -169,7 +142,7 @@ function! s:create_window(bufnr, bounds, hints, popup_options, window_options) a
   let original_eventignore = &eventignore
   set eventignore=BufEnter,BufLeave,BufWinEnter
   try
-    let window = popup_create(a:bufnr, popup_options)
+    let window = popup_create(a:content, popup_options)
   finally
     let &eventignore = original_eventignore
   endtry
@@ -189,21 +162,10 @@ function! s:detect_filetype(window, bufnr, path) abort
     let command = 'doautocmd <nomodeline> filetypedetect BufNewFile'
     \           . ' ' . fnameescape(a:path)
     call win_execute(a:window, command)
-    let filetype = getbufvar(a:bufnr, '&filetype')
-    call setbufvar(a:bufnr, '&filetype', '')
-    return filetype
+    return getbufvar(a:bufnr, '&filetype')
   finally
     let &eventignore = original_eventignore
   endtry
-endfunction
-
-function! s:initialize_preview_buffer(bufnr) abort
-  call setbufvar(a:bufnr, '&bufhidden', 'hide')
-  call setbufvar(a:bufnr, '&buflisted', 0)
-  call setbufvar(a:bufnr, '&buftype', 'nofile')
-  call setbufvar(a:bufnr, '&foldenable', 0)
-  call setbufvar(a:bufnr, '&swapfile', 0)
-  call setbufvar(a:bufnr, '&undolevels', -1)
 endfunction
 
 function! s:is_valid_window(window) abort
