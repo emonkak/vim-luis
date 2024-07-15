@@ -283,8 +283,8 @@ function! s:initialize_ui_buffer(buffer_name) abort
     if exists('##TextChangedP')
       " Enable the ++nested option to allow executing autocmd on the buffer
       " during preview.
-      autocmd TextChangedI <buffer> ++nested  call s:on_TextChangedI()
-      autocmd TextChangedP <buffer> ++nested  call s:on_TextChangedP()
+      autocmd TextChangedI <buffer> nested  call s:on_TextChangedI()
+      autocmd TextChangedP <buffer> nested  call s:on_TextChangedP()
     endif
     autocmd WinLeave <buffer>  call s:on_WinLeave()
   augroup END
