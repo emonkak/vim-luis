@@ -118,8 +118,8 @@ function! s:configure_window(window, bounds, hints, config) abort
   call nvim_win_set_config(a:window, config)
 endfunction
 
-function! s:create_window_config(bounds, hints, default_config) abort
-  let config = copy(a:default_config)
+function! s:create_window_config(bounds, hints, config) abort
+  let config = copy(a:config)
   let config.relative = 'editor'
   " "row" and "col" are relative positions from (1, 1). So we subtract 1 to
   " convert to absolute positions.

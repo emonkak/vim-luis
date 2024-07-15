@@ -64,7 +64,7 @@ function! s:Previewer.open_buffer(bufnr, bounds, hints) abort dict
     call popup_close(self._window)
   endif
 
-  let self._window = s:open_window(
+  let self._window = s:create_window(
   \   a:bufnr,
   \   a:bounds,
   \   a:hints,
@@ -101,7 +101,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
       \ )
     else
       call popup_close(self._window)
-      let self._window = s:open_window(
+      let self._window = s:create_window(
       \   self._bufnr,
       \   a:bounds,
       \   a:hints,
@@ -110,7 +110,7 @@ function! s:Previewer.open_text(lines, bounds, hints) abort dict
       \ )
     endif
   else
-    let self._window = s:open_window(
+    let self._window = s:create_window(
     \   self._bufnr,
     \   a:bounds,
     \   a:hints,
@@ -145,8 +145,8 @@ function! s:configure_popup(window, bounds, hints, popup_options) abort
   \ })
 endfunction
 
-function! s:create_popup_options(hints, default_options) abort
-  let options = copy(a:default_options)
+function! s:create_popup_options(hints, options) abort
+  let options = copy(a:options)
 
   if get(a:hints, 'title', '') != ''
     " Add padding around title.
@@ -154,6 +154,31 @@ function! s:create_popup_options(hints, default_options) abort
   endif
 
   return options
+endfunction
+
+function! s:create_window(bufnr, bounds, hints, popup_options, window_options) abort
+  let popup_options = s:create_popup_options(a:hints, a:popup_options)
+
+  let popup_options.line = a:bounds.row
+  let popup_options.col = a:bounds.col
+  let popup_options.minwidth = a:bounds.width
+  let popup_options.minheight = a:bounds.height
+  let popup_options.maxwidth = a:bounds.width
+  let popup_options.maxheight = a:bounds.height
+
+  let original_eventignore = &eventignore
+  set eventignore=BufEnter,BufLeave,BufWinEnter
+  try
+    let window = popup_create(a:bufnr, popup_options)
+  finally
+    let &eventignore = original_eventignore
+  endtry
+
+  for [key, value] in items(a:window_options)
+    call setwinvar(window, '&' . key, value)
+  endfor
+
+  return window
 endfunction
 
 function! s:detect_filetype(window, bufnr, path) abort
@@ -183,29 +208,4 @@ endfunction
 
 function! s:is_valid_window(window) abort
   return a:window > 0 && win_gettype(a:window) ==# 'popup'
-endfunction
-
-function! s:open_window(bufnr, bounds, hints, popup_options, window_options) abort
-  let popup_options = s:create_popup_options(a:hints, a:popup_options)
-
-  let popup_options.line = a:bounds.row
-  let popup_options.col = a:bounds.col
-  let popup_options.minwidth = a:bounds.width
-  let popup_options.minheight = a:bounds.height
-  let popup_options.maxwidth = a:bounds.width
-  let popup_options.maxheight = a:bounds.height
-
-  let original_eventignore = &eventignore
-  set eventignore=BufEnter,BufLeave,BufWinEnter
-  try
-    let window = popup_create(a:bufnr, popup_options)
-  finally
-    let &eventignore = original_eventignore
-  endtry
-
-  for [key, value] in items(a:window_options)
-    call setwinvar(window, '&' . key, value)
-  endfor
-
-  return window
 endfunction
