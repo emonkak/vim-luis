@@ -24,6 +24,8 @@ function! s:Source.on_source_enter(context) abort dict
   noautocmd call win_gotoid(self._window)
   " Duplicate the target window.
   split
+  " Update folds.
+  normal! zx
 
   let bufnr = winbufnr(self._window)
   let candidates = []
