@@ -24,14 +24,13 @@ function! s:Source.on_source_enter(context) abort dict
   noautocmd call win_gotoid(self._window)
   " Duplicate the target window.
   split
-  " Update folds.
-  normal! zx
+  " Update and close folds.
+  normal! zxzM
 
   let bufnr = winbufnr(self._window)
   let candidates = []
 
   try
-    normal! zM
     for lnum in range(1, line('$'))
       let foldstart = foldclosed(lnum)
       if foldstart > 0
