@@ -147,11 +147,11 @@ END
 endfunction
 
 function! s:initialize_preview_buffer(bufnr) abort
-  call nvim_buf_set_option(a:bufnr, 'bufhidden', 'hide')
-  call nvim_buf_set_option(a:bufnr, 'buflisted', v:false)
-  call nvim_buf_set_option(a:bufnr, 'buftype', 'nofile')
-  call nvim_buf_set_option(a:bufnr, 'swapfile', v:false)
-  call nvim_buf_set_option(a:bufnr, 'undolevels', -1)
+  call nvim_set_option_value('bufhidden', 'hide', { 'buf': a:bufnr })
+  call nvim_set_option_value('buflisted', v:false, { 'buf': a:bufnr })
+  call nvim_set_option_value('buftype', 'nofile', { 'buf': a:bufnr })
+  call nvim_set_option_value('swapfile', v:false, { 'buf': a:bufnr })
+  call nvim_set_option_value('undolevels', -1, { 'buf': a:bufnr })
 endfunction
 
 function! s:is_valid_window(window) abort
@@ -165,7 +165,7 @@ function! s:open_window(bufnr, bounds, hints, config, options) abort
   let window = nvim_open_win(a:bufnr, v:false, config)
 
   for [key, value] in items(a:options)
-    call nvim_win_set_option(window, key, value)
+    call nvim_set_option_value(key, value, { 'win': window })
   endfor
 
   return window
