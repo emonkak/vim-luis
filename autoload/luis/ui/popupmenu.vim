@@ -141,10 +141,10 @@ function! s:UI.preview_bounds() abort dict
   " the height of the popup menu. However, it cannot be used because we
   " support older versions.
   let screen_row = screenrow()
-  let screen_space = max([0, &lines - screen_row])
+  let screen_vspace = max([0, &lines - screen_row])
   let pum_height = min([
   \    len(self._last_candidates),
-  \    &pumheight > 0 ? min([&pumheight, screen_space]) : screen_space,
+  \    &pumheight > 0 ? min([&pumheight, screen_vspace]) : screen_vspace,
   \ ])
   return {
   \   'row': screen_row + pum_height + 1,
