@@ -30,7 +30,7 @@ function! s:Source.on_source_enter(context) abort dict
       continue
     endif
     call add(candidates, {
-    \   'word': contents[0],
+    \   'word': strpart(strtrans(contents[0]), 0, 80),
     \   'menu': '"' . name,
     \   'kind': get(s:REGISTER_TYPES, getregtype(name)[0], ''),
     \   'dup': 1,

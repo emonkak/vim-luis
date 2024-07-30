@@ -57,6 +57,41 @@ function! s:test_gather_candidates() abort
   endtry
 endfunction
 
+function! s:test_gather_candidates__with_long_content() abort
+  0verbose let saved_registers = s:clean_registers(s:ALL_REGISTER_CHARS)
+
+  " Clear the content of "." register.
+  normal! i
+
+  let long_content = join(repeat(['abcde'], 20), '')
+
+  call setreg('a', long_content, 'v')
+
+  try
+    let source = luis#source#register#new()
+
+    call source.on_source_enter({})
+
+    let candidates = source.gather_candidates({})
+    call assert_equal([
+    \   {
+    \     'word': strpart(long_content, 0, 80),
+    \     'menu': '"a',
+    \     'user_data': {
+    \       'register_name': 'a',
+    \       'preview_lines': [long_content],
+    \     },
+    \     'kind': 'c',
+    \     'dup': 1,
+    \     'luis_sort_priority': -char2nr('a'),
+    \   },
+    \ ], candidates)
+  finally
+    call s:restore_registers(saved_registers)
+    bwipeout!
+  endtry
+endfunction
+
 function! s:test_source_definition() abort
   let source = luis#source#register#new()
   call luis#_validate_source(source)
