@@ -18,7 +18,7 @@ endfunction
 function! s:Source.on_source_enter(context) abort dict
   let source = self
   let session = a:context.session
-  function! self._callback(symbols) abort closure
+  function! LuisLSPDocumentSymbolCallback(symbols) abort closure
     let candidates = []
     call s:aggregate_candidates(a:symbols, source._bufnr, candidates, 1)
     let source._cached_candidates = candidates
@@ -26,13 +26,11 @@ function! s:Source.on_source_enter(context) abort dict
       call session.ui.refresh_candidates()
     endif
     let source._cancel_func = 0
-    unlet source._callback
   endfunction
-  let callback_name = get(function(self._callback), 'name')
   let self._cancel_func = s:request_function(
   \   self._bufnr,
   \   'textDocument/documentSymbol',
-  \   callback_name
+  \   'LuisLSPDocumentSymbolCallback'
   \ )
 endfunction
 
@@ -40,7 +38,7 @@ function! s:Source.on_source_leave(context) abort dict
   if self._cancel_func isnot 0
     call self._cancel_func()
     let self._cancel_func = 0
-    unlet self._callback
+    delfunction! LuisLSPDocumentSymbolCallback
   endif
 endfunction
 
@@ -81,7 +79,7 @@ function(bufnr, method, callback)
   local params = {
     textDocument = vim.lsp.util.make_text_document_params(bufnr),
   }
-  local callback = function(responses)
+  local handler = function(responses)
     local results = {}
     if responses then
       for _, response in pairs(responses) do
@@ -92,13 +90,13 @@ function(bufnr, method, callback)
         end
       end
     end
-    vim.fn.call(callback, { results }, vim.empty_dict())
+    vim.call(callback, results)
   end
   return vim.lsp.buf_request_all(
     bufnr,
     method,
     params,
-    callback
+    handler
   )
 end
 END
