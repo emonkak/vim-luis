@@ -1,6 +1,8 @@
-function! luis#source#buffer#new() abort
+function! luis#source#buffer#new(...) abort
+  let options = get(a:000, 0, {})
   let source = copy(s:Source)
   let source._cached_candidates = []
+  let source._sort_priority = get(options, 'sort_priority', function('s:default_sort_priority'))
   return source
 endfunction
 
@@ -15,32 +17,18 @@ endfunction
 
 function! s:Source.on_source_enter(context) abort dict
   let candidates = []
+  let SortPriority = self._sort_priority
   for bufinfo in getbufinfo({ 'buflisted': 1 })
-    let sort_priority = 0
-    if bufinfo.name == ''
-      let word = '[No Name]'
-      let dup = 1
-    else
-      let word = bufname(bufinfo.bufnr)
-      let dup = 0
-      let sort_priority -= 1
-      if word !=# bufinfo.name
-        let sort_priority -= 1
-      endif
-      if getbufvar(bufinfo.bufnr, '&buftype') == ''
-        let sort_priority -= 1
-      endif
-    endif
     call add(candidates, {
-    \   'word': word,
+    \   'word': bufinfo.name == '' ? '[No Name]' : bufname(bufinfo.bufnr),
     \   'menu': 'buffer ' . bufinfo.bufnr,
     \   'kind': s:buffer_indicator(bufinfo),
-    \   'dup': dup,
+    \   'dup': bufinfo.name == '',
     \   'user_data': {
     \     'buffer_nr': bufinfo.bufnr,
     \     'preview_bufnr': bufinfo.bufnr,
     \   },
-    \   'luis_sort_priority': sort_priority,
+    \   'luis_sort_priority': SortPriority(bufinfo),
     \ })
   endfor
   let self._cached_candidates = candidates
@@ -69,4 +57,18 @@ function! s:buffer_indicator(bufinfo) abort
     let indicators .= '+'
   endif
   return indicators
+endfunction
+
+function! s:default_sort_priority(bufinfo) abort
+  let sort_priority = 0
+  if a:bufinfo.name !=# ''
+    let sort_priority -= 1
+  endif
+  if a:bufinfo.name !=# bufname(a:bufinfo.bufnr)
+    let sort_priority -= 1
+  endif
+  if getbufvar(a:bufinfo.bufnr, '&buftype') == ''
+    let sort_priority -= 1
+  endif
+  return sort_priority
 endfunction

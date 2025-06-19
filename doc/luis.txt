@@ -704,19 +704,30 @@ luis#source#async#new({name}, {default_kind}, {command}, {options} = {})
 	[^2] https://github.com/sharkdp/fd
 
 						*luis-source-buffer*
-luis#source#buffer#new()			*luis#source#buffer#new()*
+luis#source#buffer#new({options} = {})		*luis#source#buffer#new()*
 	Create a "buffer" source that gathers candidates from the all existing
 	buffers.
 
 	Each candidates are associated with the |luis-kind-buffer|.
 
-	The buffers are sorted by default in the following condition, with the
+	The buffers are sorted by default in following conditions, with the
 	buffer that satisfies all conditions being the lowest priority:
 
 	1. The buffer is located within the current directory.
 	2. The buffer has an empty value for 'buftype'.
 	3. The buffer is not an unnamed buffer.
 
+	The following keys can be specified in {options}:
+
+	  "sort_priority"  (Funcref) The custom function to determine sort
+	                   priorities.  Receives a dictionary of the return
+	                   value of |getbufinfo()| as an argument.
+>
+	" Buffers are sorted by the recently used order.
+	luis#source#buffer#new({
+	\   'sort_priority': { bufinfo -> -bufinfo.lastused },
+	\ })
+<
 					*luis-source-colorscheme*
 luis#source#colorscheme#new()		*luis#source#colorscheme#new()*
 	Create a "colorscheme" source that gathers candidates from available
@@ -1737,7 +1748,7 @@ BUILT-INS					*luis-previewer-built-ins*
 luis#previewer#float#new({options} = {})
 	Create a previewer using a floating window (|api-floatwin|).
 
-	The {options} can be specified as follows:
+	The following keys can be specified in {options}:
 
 	  "window_options"  (dict) A dictionary containing window-local
 	                    |options| that can be set with
@@ -1757,7 +1768,7 @@ luis#float#null#import()
 luis#previewer#popup#new({options} = {})
 	Create a previewer using a |popup|.
 
-	The {options} can be specified as follows:
+	The following keys can be specified in {options}:
 
 	  "window_options"  (dict) A dictionary containing window-local
 	                    |options| (e.g. `{ 'number': 1 }`).
