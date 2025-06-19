@@ -31,7 +31,7 @@ function! s:Source.on_source_enter(context) abort dict
       \     'history_index': i,
       \     'history_name': self._history_name,
       \   },
-      \   'luis_sort_priority': -i,
+      \   'luis_sort_priority': i,
       \ })
     endfor
   endif

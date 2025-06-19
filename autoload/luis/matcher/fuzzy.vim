@@ -26,7 +26,7 @@ endfunction
 
 function! s:compare(first, second) abort dict
   return a:first.luis_match_priority != a:second.luis_match_priority
-  \      ? a:second.luis_match_priority - a:first.luis_match_priority
+  \      ? a:first.luis_match_priority - a:second.luis_match_priority
   \      : a:first.luis_match_positions != a:second.luis_match_positions
   \        && a:first.luis_match_score != a:second.luis_match_score
   \      ? a:second.luis_match_score - a:first.luis_match_score

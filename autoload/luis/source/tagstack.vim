@@ -36,7 +36,7 @@ function! s:Source.on_source_enter(context) abort dict
     \     'preview_bufnr': item.bufnr,
     \     'preview_cursor': item.from[1:2],
     \   },
-    \   'luis_sort_priority': -i,
+    \   'luis_sort_priority': i,
     \ })
   endfor
 

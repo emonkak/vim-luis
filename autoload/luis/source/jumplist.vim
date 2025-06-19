@@ -37,7 +37,7 @@ function! s:Source.on_source_enter(context) abort dict
     \     'preview_bufnr': location.bufnr,
     \     'preview_cursor': [location.lnum, location.col],
     \   },
-    \   'luis_sort_priority': -i,
+    \   'luis_sort_priority': i,
     \ })
   endfor
   let self._cached_candidates = candidates

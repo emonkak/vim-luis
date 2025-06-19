@@ -66,7 +66,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': 'dir1',
     \     'kind': '*new*',
-    \     'luis_match_priority': -1
+    \     'luis_match_priority': 1
     \   },
     \ ], source.gather_candidates({ 'pattern': 'dir1' }))
 
@@ -191,7 +191,7 @@ function! s:test_gather_candidates() abort
     \   {
     \     'word': '.dir1',
     \     'kind': '*new*',
-    \     'luis_match_priority': -1
+    \     'luis_match_priority': 1
     \   },
     \ ], source.gather_candidates({ 'pattern': '.dir1' }))
 

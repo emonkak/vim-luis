@@ -61,7 +61,7 @@ function! s:aggregate_candidates(symbols, bufnr, candidates, level) abort
     \     'preview_bufnr': a:bufnr,
     \     'preview_cursor': cursor,
     \   },
-    \   'luis_sort_priority': -symbol.range.start.line,
+    \   'luis_sort_priority': symbol.range.start.line,
     \ })
     if has_key(symbol, 'children')
       call s:aggregate_candidates(

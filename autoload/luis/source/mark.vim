@@ -28,7 +28,7 @@ function! s:Source.on_source_enter(context) abort dict
     \     'preview_path': mark.file,
     \     'preview_cursor': mark.pos[1:2],
     \   },
-    \   'luis_sort_priority': -char2nr(mark_name),
+    \   'luis_sort_priority': char2nr(mark_name),
     \ })
   endfor
   let self._cached_candidates = candidates

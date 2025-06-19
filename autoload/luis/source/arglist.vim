@@ -19,6 +19,6 @@ function! s:Source.on_source_enter(context) abort dict
   \   "word": v:val,
   \   "kind": v:key == argidx ? "*" : "",
   \   "user_data": { "argument_index": v:key, "preview_bufnr": bufnr(v:val) },
-  \   "luis_sort_priority": -v:key,
+  \   "luis_sort_priority": v:key,
   \ }')
 endfunction

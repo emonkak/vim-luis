@@ -35,7 +35,7 @@ function! s:test_gather_candidates() abort
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [1, 1],
     \     },
-    \     'luis_sort_priority': -1,
+    \     'luis_sort_priority': 1,
     \   },
     \   {
     \     'word': '" Bar',
@@ -48,7 +48,7 @@ function! s:test_gather_candidates() abort
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [5, 1],
     \     },
-    \     'luis_sort_priority': -5,
+    \     'luis_sort_priority': 5,
     \   },
     \   {
     \     'word': '" Baz',
@@ -61,7 +61,7 @@ function! s:test_gather_candidates() abort
     \       'preview_bufnr': bufnr,
     \       'preview_cursor': [9, 1],
     \     },
-    \     'luis_sort_priority': -9,
+    \     'luis_sort_priority': 9,
     \   },
     \ ], candidates)
   finally

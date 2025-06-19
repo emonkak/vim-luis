@@ -23,12 +23,12 @@ function! s:Source.on_source_enter(context) abort dict
     else
       let word = bufname(bufinfo.bufnr)
       let dup = 0
-      let sort_priority += 1
+      let sort_priority -= 1
       if word !=# bufinfo.name
-        let sort_priority += 1
+        let sort_priority -= 1
       endif
       if getbufvar(bufinfo.bufnr, '&buftype') == ''
-        let sort_priority += 1
+        let sort_priority -= 1
       endif
     endif
     call add(candidates, {

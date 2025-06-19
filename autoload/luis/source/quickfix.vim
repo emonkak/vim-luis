@@ -45,7 +45,7 @@ function! s:Source.on_source_enter(context) abort dict
     \     'preview_cursor': [entry.lnum, entry.col],
     \     'quickfix_nr': i + 1,
     \   },
-    \   'luis_sort_priority': -i,
+    \   'luis_sort_priority': i,
     \ })
   endfor
 

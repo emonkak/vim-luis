@@ -45,7 +45,7 @@ function! s:test_gather_candidates__filled_list() abort
     \       'argument_index': 1,
     \       'preview_bufnr': bufnr_B,
     \     },
-    \     'luis_sort_priority': -1,
+    \     'luis_sort_priority': 1,
     \   },
     \   {
     \     'word': 'C',
@@ -54,7 +54,7 @@ function! s:test_gather_candidates__filled_list() abort
     \       'argument_index': 2,
     \       'preview_bufnr': bufnr_C,
     \     },
-    \     'luis_sort_priority': -2,
+    \     'luis_sort_priority': 2,
     \   },
     \ ], candidates)
   finally

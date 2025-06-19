@@ -30,7 +30,7 @@ function! s:test_gather_candidates() abort
     \       'preview_cursor': [1, 1],
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('A'),
+    \     'luis_sort_priority': char2nr('A'),
     \   },
     \   {
     \     'word': bufname . ':20:1',
@@ -42,7 +42,7 @@ function! s:test_gather_candidates() abort
     \       'preview_cursor': [20, 1],
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('B'),
+    \     'luis_sort_priority': char2nr('B'),
     \   },
     \   {
     \     'word': bufname . ':40:1',
@@ -54,7 +54,7 @@ function! s:test_gather_candidates() abort
     \       'preview_cursor': [40, 1],
     \     },
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('C'),
+    \     'luis_sort_priority': char2nr('C'),
     \   },
     \ ], candidates)
   finally

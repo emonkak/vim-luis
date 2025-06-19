@@ -34,7 +34,7 @@ function! s:test_gather_candidates() abort
     \       'buffer_nr': bufnr_2,
     \       'preview_bufnr': bufnr_2,
     \     },
-    \     'luis_sort_priority': 2,
+    \     'luis_sort_priority': -2,
     \   },
     \   {
     \     'word': bufname(bufnr_3),
@@ -45,7 +45,7 @@ function! s:test_gather_candidates() abort
     \       'buffer_nr': bufnr_3,
     \       'preview_bufnr': bufnr_3,
     \     },
-    \     'luis_sort_priority': 3,
+    \     'luis_sort_priority': -2,
     \   },
     \ ], source.gather_candidates({ 'pattern': '' }))
   finally

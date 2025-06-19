@@ -38,7 +38,7 @@ function! s:Source.on_source_enter(context) abort dict
     \     'register_name': name,
     \     'preview_lines': contents,
     \   },
-    \   'luis_sort_priority': -char2nr(name),
+    \   'luis_sort_priority': char2nr(name),
     \ })
   endfor
   let self._cached_candidates = candidates

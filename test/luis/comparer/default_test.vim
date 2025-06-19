@@ -36,28 +36,28 @@ function! s:test_compare_candidates() abort
   \   )
   \ )
   call assert_equal(
-  \   -1,
+  \   1,
   \   s:comparer.compare_candidates(
   \     { 'word': 'A', 'luis_sort_priority': 1 },
   \     { 'word': 'A', 'luis_sort_priority': 0 }
   \   )
   \ )
   call assert_equal(
-  \   -1,
+  \   1,
   \   s:comparer.compare_candidates(
   \     { 'word': 'B', 'luis_sort_priority': 1 },
   \     { 'word': 'A', 'luis_sort_priority': 0 }
   \   )
   \ )
   call assert_equal(
-  \   1,
+  \   -1,
   \   s:comparer.compare_candidates(
   \     { 'word': 'A', 'luis_sort_priority': 0 },
   \     { 'word': 'A', 'luis_sort_priority': 1 }
   \   )
   \ )
   call assert_equal(
-  \   1,
+  \   -1,
   \   s:comparer.compare_candidates(
   \     { 'word': 'B', 'luis_sort_priority': 0 },
   \     { 'word': 'A', 'luis_sort_priority': 1 }

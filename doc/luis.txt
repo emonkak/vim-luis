@@ -458,12 +458,12 @@ Luis adds several additional entries for this dictionary.  Keys of such
 entries are prefixed with "luis_":
 
   "luis_sort_priority"   (number) The priority of sort used by "default"
-                         comparer.  Higher numerical values are placed at the
+                         comparer.  Lower numerical values are placed at the
                          front.
   "luis_match_priority"  (number) The priority of sort used by "fuzzy" or
-                         "fuzzy_native" matcher. Higher numerical values are
-                         placed at the front.  This value has a
-                         higher priority than "luis_sort_priority".
+                         "fuzzy_native" matcher. Lower numerical values are
+                         placed at the front.  This value is prioritized than
+                         "luis_sort_priority".
 
 Additionally, in Luis, The "user_data" entry is always represented as a
 dictionary.  This dictionary is used for the following purposes:
@@ -710,8 +710,8 @@ luis#source#buffer#new()			*luis#source#buffer#new()*
 
 	Each candidates are associated with the |luis-kind-buffer|.
 
-	The buffers are sorted in the following order of priority, with the
-	buffer that satisfies all conditions being the highest priority:
+	The buffers are sorted by default in the following condition, with the
+	buffer that satisfies all conditions being the lowest priority:
 
 	1. The buffer is located within the current directory.
 	2. The buffer has an empty value for 'buftype'.
@@ -1593,7 +1593,7 @@ luis#matcher#fuzzy#import()
 
 	It add the following entries to a candidate:
 
-	  "luis_match_priority"   (number) The priority of sort.  Higher
+	  "luis_match_priority"   (number) The priority of sort.  Lower
 	                          numerical values are placed at the front.
                                   It prioritize over the score.  You can
 	                          override this value to adjust the sorting
@@ -1652,7 +1652,7 @@ The following code is the implementation of |luis-comparer-default|.
 
 	function! s:Comparer.compare_candidates(first, second) abort dict
 	  return a:first.luis_sort_priority != a:second.luis_sort_priority
-	  \      ? a:second.luis_sort_priority - a:first.luis_sort_priority
+	  \      ? a:first.luis_sort_priority - a:second.luis_sort_priority
 	  \      : a:first.word < a:second.word
 	  \      ? -1
 	  \      : a:first.word > a:second.word
@@ -1676,7 +1676,7 @@ luis#matcher#fuzzy#import()
 
 	It add the following entries to a candidate:
 
-	  "luis_sort_priority"  (number) The priority of sort.  Higher
+	  "luis_sort_priority"  (number) The priority of sort.  Lower
 	                        numerical values are placed at the front.  You
 	                        can override this value to adjust the sorting
 	                        order (default: 0).

@@ -6,7 +6,7 @@ let s:Comparer = {}
 
 function! s:Comparer.compare_candidates(first, second) abort dict
   return a:first.luis_sort_priority != a:second.luis_sort_priority
-  \      ? a:second.luis_sort_priority - a:first.luis_sort_priority
+  \      ? a:first.luis_sort_priority - a:second.luis_sort_priority
   \      : a:first.word < a:second.word
   \      ? -1
   \      : a:first.word > a:second.word

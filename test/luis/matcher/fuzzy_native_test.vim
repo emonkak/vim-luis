@@ -126,13 +126,13 @@ function! s:test_sort_candidates() abort
   \   {
   \     'word': '/lib',
   \     'luis_match_positions': [0, 3],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 500,
   \   },
   \   {
   \     'word': '/sbin',
   \     'luis_match_positions': [0, 2],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 760,
   \   },
   \ ]

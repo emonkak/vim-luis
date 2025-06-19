@@ -38,7 +38,7 @@ function! s:test_gather_candidates() abort
     \       'preview_cursor': [24, 0],
     \       'quickfix_nr': 2,
     \     },
-    \     'luis_sort_priority': -1,
+    \     'luis_sort_priority': 1,
     \   },
     \ ], candidates)
   finally

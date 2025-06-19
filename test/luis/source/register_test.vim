@@ -26,7 +26,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'c',
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('a'),
+    \     'luis_sort_priority': char2nr('a'),
     \   },
     \   {
     \     'word': 'bar',
@@ -37,7 +37,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'l',
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('b'),
+    \     'luis_sort_priority': char2nr('b'),
     \   },
     \   {
     \     'word': 'baz',
@@ -48,7 +48,7 @@ function! s:test_gather_candidates() abort
     \     },
     \     'kind': 'b',
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('c'),
+    \     'luis_sort_priority': char2nr('c'),
     \   },
     \ ], candidates)
   finally
@@ -83,7 +83,7 @@ function! s:test_gather_candidates__with_long_content() abort
     \     },
     \     'kind': 'c',
     \     'dup': 1,
-    \     'luis_sort_priority': -char2nr('a'),
+    \     'luis_sort_priority': char2nr('a'),
     \   },
     \ ], candidates)
   finally

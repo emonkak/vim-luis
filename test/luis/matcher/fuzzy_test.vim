@@ -7,7 +7,7 @@ function! s:test_filter_candidates() abort
   let cs1 = [
   \   { 'word': 'foo' },
   \   { 'word': 'foobar' },
-  \   { 'word': 'foobarbaz', 'luis_match_priority': 1 },
+  \   { 'word': 'foobarbaz', 'luis_match_priority': -1 },
   \ ]
 
   call assert_equal([
@@ -26,7 +26,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 900,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': '' }))
@@ -46,7 +46,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 1, 2],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 933,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foo' }))
@@ -60,7 +60,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [3, 4, 5],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 633,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'bar' }))
@@ -68,7 +68,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [6, 7, 8],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 333,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'baz' }))
@@ -84,7 +84,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 1, 2, 3, 4, 5],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 967,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobar' }))
@@ -92,7 +92,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 1, 2, 3, 4, 8],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 667,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobaz' }))
@@ -104,7 +104,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 1000,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'foobarbaz' }))
@@ -119,7 +119,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 3],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 722,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'fb' }))
@@ -127,7 +127,7 @@ function! s:test_filter_candidates() abort
   \   {
   \     'word': 'foobarbaz',
   \     'luis_match_positions': [0, 3, 6],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 533,
   \   },
   \ ], s:matcher.filter_candidates(cs1, { 'pattern': 'fbb' }))
@@ -180,13 +180,13 @@ function! s:test_sort_candidates() abort
   \   {
   \     'word': '/lib',
   \     'luis_match_positions': [0, 3],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 500,
   \   },
   \   {
   \     'word': '/sbin',
   \     'luis_match_positions': [0, 2],
-  \     'luis_match_priority': 1,
+  \     'luis_match_priority': -1,
   \     'luis_match_score': 760,
   \   },
   \ ]

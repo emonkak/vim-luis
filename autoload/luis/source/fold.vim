@@ -48,7 +48,7 @@ function! s:Source.on_source_enter(context) abort dict
         \     'preview_bufnr': bufnr,
         \     'preview_cursor': [lnum, 1],
         \   },
-        \   'luis_sort_priority': -lnum,
+        \   'luis_sort_priority': lnum,
         \ })
         execute lnum 'foldopen'
       endif
